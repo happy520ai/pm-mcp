@@ -1,5 +1,5 @@
 {
-  "seq": 30,
+  "seq": 31,
   "tasks": [
     {
       "id": "T-001",
@@ -880,6 +880,55 @@
       "updated": "2026-09-03T05:20:16.989Z",
       "started_at": "2026-09-03T05:01:33.798Z",
       "completed_at": "2026-09-03T05:20:16.989Z"
+    },
+    {
+      "id": "T-031",
+      "title": "统一所有本地 AI 编程助手的一键 MCP 安装命令",
+      "detail": "",
+      "type": "feature",
+      "status": "backlog",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "实现 CLI/MCP 分流和跨平台客户端检测",
+          "done": true
+        },
+        {
+          "text": "实现安全配置合并、备份、dry-run 与显式客户端选项",
+          "done": true
+        },
+        {
+          "text": "完成本地全量门禁和 npm 包冷启动验证",
+          "done": false
+        },
+        {
+          "text": "发布 npm/GitHub v0.1.2 并确认托管 CI",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/cli.ts",
+        "src/setup.ts",
+        "test/setup.test.ts",
+        "test/realrepo.test.ts",
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/index.ts",
+        "scripts/create-pm-acceptance-profile.mts"
+      ],
+      "acceptance": "单一 npx setup 命令自动检测并配置支持的客户端；dry-run 不写；配置备份与坏 JSON fail-closed；npm 匿名冷启动 setup 与 MCP 路径均通过；GitHub CI 全绿",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-03T05:34:27.799Z",
+      "updated": "2026-09-03T05:34:27.799Z",
+      "started_at": null,
+      "completed_at": null
     }
   ]
 }

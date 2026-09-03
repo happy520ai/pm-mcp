@@ -29,44 +29,58 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 | 法律知识产权 | `audit_license` 依赖许可证/copyleft 冲突 + 来源登记（provenance） |
 | 测试投机（删测试、skip 凑绿） | 禁用/蒸发/空测试检测 + 功能测试背书占比 + done 必附验证 |
 
-## 一键添加到 AI 编程助手
+## 一个命令自动添加到 AI 编程助手
 
-要求：Node.js ≥ 22.18。下面的配置固定到 npm 版本 `0.1.1`；首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
+要求：Node.js ≥ 22.18。Windows、macOS 和 Linux 使用同一条命令：
 
-### Codex / ChatGPT 桌面版 / Codex IDE 扩展
+```bash
+npx -y @luckychen1993/pm-mcp@latest setup
+```
+
+安装器自动检测本机的 Codex、Claude Code、ZCode、Cursor 和 VS Code，并配置所有检测到的客户端。JSON 配置会先备份；已经存在的 Codex/Claude 配置默认保留，用 `setup --force` 才替换。先预览、不写配置：
+
+```bash
+npx -y @luckychen1993/pm-mcp@latest setup --dry-run
+```
+
+非标准安装路径无法自动发现时，可在同一命令末尾指定 `--client codex|claude|zcode|cursor|vscode`；`--client print` 输出通用 MCP JSON。首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
+
+### 客户端官方命令（自动检测失败时备用）
+
+#### Codex / ChatGPT 桌面版 / Codex IDE 扩展
 
 Codex 的本地客户端共享同一份 MCP 配置。复制执行：
 
 ```bash
-codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.1
+codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.2
 ```
 
 重启客户端后可用 `codex mcp list` 检查。该命令遵循 [OpenAI 官方 MCP CLI 格式](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
 
-### Claude Code
+#### Claude Code
 
 ```bash
-claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.1
+claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.2
 ```
 
-### ZCode、Cursor、VS Code（Windows 一键脚本）
+#### ZCode、Cursor、VS Code（Windows 备用脚本）
 
 将 `<client>` 替换为 `zcode`、`cursor` 或 `vscode`，整行复制到 PowerShell：
 
 ```powershell
-$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.1/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
+$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.2/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
 ```
 
 脚本只写对应客户端的 MCP 配置；已有 JSON 配置会先生成带时间戳的备份。建议执行前先打开 [`install.ps1`](install.ps1) 审阅。ZCode 默认写入 `$ZCODE_HOME/cli/config.json` 或 `~/.zcode/cli/config.json`，Cursor 默认写入 `~/.cursor/mcp.json`；也可用 `-ConfigPath` 指定路径。
 
-### 其他支持 stdio MCP 的客户端
+#### 其他支持 stdio MCP 的客户端
 
 ```json
 {
   "mcpServers": {
     "pm-mcp": {
       "command": "npx",
-      "args": ["-y", "@luckychen1993/pm-mcp@0.1.1"],
+      "args": ["-y", "@luckychen1993/pm-mcp@0.1.2"],
       "env": {}
     }
   }

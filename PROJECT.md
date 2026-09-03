@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T05:20:17.073Z
+> 生成时间: 2026-09-03T05:34:27.853Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,12 +18,12 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [███████░░░] 71% M2 v2 增强（12/17）
-- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 18% < 配额 20%
+▶ [███████░░░] 67% M2 v2 增强（12/18）
+- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 17% < 配额 20%
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
-- 当前阶段: v0.1.1 npm release
+- 当前阶段: v0.1.2 unified installer
 
 ## 🩺 健康摘要
 | 账本 | 状态 |
@@ -33,7 +33,7 @@ flowchart LR
 | churn（变更率） | ⚠️ 热点 README.md(12), package.json(9), src/index.ts(7) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 7 条记录 |
-| 测试背书 | 11/11 个功能带测试 |
+| 测试背书 | 12/12 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
 | 质量矩阵 | ✅ 2026-09-03 05:01（4/4） |
 | 标准化验收 | ✅ 2026-09-03 05:01（需求 33/33，errors 0） |
@@ -44,7 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 23 · backlog 7
+- 总览: done 23 · backlog 8
 
 ## 🧩 功能清单
 ### src
@@ -58,6 +58,7 @@ flowchart LR
 - ✅ F-009 跨文件/模块/语言语义治理 — 结构化模块/owner/公开接口、TypeScript Compiler与六语言Tree-sitter AST、hash-bound runtime evide
 - ✅ F-010 标准化产品验收与防伪证据链 — 版本化预批准质量基线、ISO 25010九特性/25040五阶段、需求风险测试追踪、冻结JSON Pointer、证据与报告SHA-256及机器判定门禁
 - ✅ F-011 编译器与多语言 AST 语义治理 — TypeScript Compiler API与六语言Tree-sitter AST、symbol-bound调用边、hash-bound原生/运行时证据和严格
+- ✅ F-012 统一 MCP 客户端安装器 — 一个 npx setup 命令自动检测 Codex、Claude Code、ZCode、Cursor、VS Code；支持备份、dry-run、force 与通
 ### scripts
 - ✅ F-008 字节/超大LOC容量基准 — 按精确字节与LOC生成可扫描代码树，验证结构、watcher、安全、许可证覆盖并安全清理
 

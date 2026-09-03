@@ -1,5 +1,5 @@
 {
-  "seq": 11,
+  "seq": 12,
   "features": [
     {
       "id": "F-001",
@@ -194,6 +194,22 @@
       "status": "implemented",
       "created": "2026-09-03T00:52:15.460Z",
       "updated": "2026-09-03T00:52:15.460Z"
+    },
+    {
+      "id": "F-012",
+      "name": "统一 MCP 客户端安装器",
+      "description": "一个 npx setup 命令自动检测 Codex、Claude Code、ZCode、Cursor、VS Code；支持备份、dry-run、force 与通用 JSON 输出。",
+      "module": "src",
+      "entry_files": [
+        "src/cli.ts",
+        "src/setup.ts"
+      ],
+      "test_files": [
+        "test/setup.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-03T05:34:27.839Z",
+      "updated": "2026-09-03T05:34:27.839Z"
     }
   ]
 }

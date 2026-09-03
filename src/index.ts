@@ -23,7 +23,7 @@ for (let i = 0; i < argv.length; i++) {
 }
 const root = resolveRoot(explicitRoot);
 
-const server = new McpServer({ name: "pm-mcp", version: "0.1.1" });
+const server = new McpServer({ name: "pm-mcp", version: "0.1.2" });
 registerAllTools(server, root);
 
 /* -------------------------------- Resources ------------------------------- */

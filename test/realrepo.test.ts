@@ -36,11 +36,12 @@ test("真实 .pm 全账本通过 schema 校验（自家数据先合规）", () =
   const tasks = loadTasks(REPO);
   assert.ok(tasks.tasks.length >= 12, `真实任务数 ${tasks.tasks.length}`);
   const features = loadFeatures(REPO).features;
-  assert.equal(features.length, 11);
+  assert.equal(features.length, 12);
   assert.ok(features.some((f) => f.id === "F-008" && f.name === "字节/超大LOC容量基准"));
   assert.ok(features.some((f) => f.id === "F-009" && f.name === "跨文件/模块/语言语义治理"));
   assert.ok(features.some((f) => f.id === "F-010" && f.name === "标准化产品验收与防伪证据链"));
   assert.ok(features.some((f) => f.id === "F-011" && f.name === "编译器与多语言 AST 语义治理"));
+  assert.ok(features.some((f) => f.id === "F-012" && f.name === "统一 MCP 客户端安装器"));
   assert.ok(loadSessions(REPO).sessions.length >= 1);
   assert.ok(loadDebugLog(REPO) !== undefined);
   assert.ok(Object.keys(loadFileNotes(REPO).notes).length >= 6);
