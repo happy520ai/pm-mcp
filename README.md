@@ -25,6 +25,7 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 | 调试过程随会话消失 | `log_debug` 调试知识账（症状/根因/修法/验证） |
 | 长任务崩溃、上下文丢失 | 任务步骤清单 + `checkpoint` 断点存档，新会话从恢复点续做 |
 | 团队协作与知识传递 | Git 项目中共享 `.pm/` + 会话署名 + `onboard` 入职简报工作流 |
+| 多 Agent 重复读写 | 并行读请求跨进程合并；写工具支持业务幂等键并自动抑制瞬时完全重复调用 |
 | token 猛烧 | 三段式定位 + 读类工具输出硬预算 + 文件用途索引 |
 | 法律知识产权 | `audit_license` 依赖许可证/copyleft 冲突 + 来源登记（provenance） |
 | 测试投机（删测试、skip 凑绿） | 禁用/蒸发/空测试检测 + 功能测试背书占比 + done 必附验证 |
@@ -52,7 +53,7 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 Codex 的本地客户端共享同一份 MCP 配置。复制执行：
 
 ```bash
-codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.2
+codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.3
 ```
 
 重启客户端后可用 `codex mcp list` 检查。该命令遵循 [OpenAI 官方 MCP CLI 格式](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
@@ -60,7 +61,7 @@ codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.2
 #### Claude Code
 
 ```bash
-claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.2
+claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.3
 ```
 
 #### ZCode、Cursor、VS Code（Windows 备用脚本）
@@ -68,7 +69,7 @@ claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.2
 将 `<client>` 替换为 `zcode`、`cursor` 或 `vscode`，整行复制到 PowerShell：
 
 ```powershell
-$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.2/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
+$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.3/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
 ```
 
 脚本只写对应客户端的 MCP 配置；已有 JSON 配置会先生成带时间戳的备份。建议执行前先打开 [`install.ps1`](install.ps1) 审阅。ZCode 默认写入 `$ZCODE_HOME/cli/config.json` 或 `~/.zcode/cli/config.json`，Cursor 默认写入 `~/.cursor/mcp.json`；也可用 `-ConfigPath` 指定路径。
@@ -80,7 +81,7 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.2/install.ps1'; $f=
   "mcpServers": {
     "pm-mcp": {
       "command": "npx",
-      "args": ["-y", "@luckychen1993/pm-mcp@0.1.2"],
+      "args": ["-y", "@luckychen1993/pm-mcp@0.1.3"],
       "env": {}
     }
   }
@@ -153,6 +154,8 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 Resources：`pm://dashboard`、`pm://roadmap`、`pm://tasks`、`pm://changelog`、`pm://architecture`、`pm://portfolio`、`pm://acceptance`。
 
+所有写工具都接受可选 `idempotency_key`。同一业务的多个 Agent 应传同一个稳定键（例如 `T-123:add-login-task`）：同键同参数只执行一次并复用首次结果，同键不同参数直接拒绝。即使没有显式键，完全相同的并发写也会在短窗口内自动合并；完全相同的并行读会等待首个执行者并复用结果。
+
 ## 数据模型（被管理项目内的 `.pm/`；JSON/Markdown 账本可 git diff，`index.db` 是忽略并可重建的缓存）
 
 ```
@@ -175,7 +178,7 @@ PROJECT.md        # 仓库根，自动生成的仪表盘（勿手改）
 changelog.md      # 自动生成
 ```
 
-全局注册表：`~/.pm-mcp/registry.json`。
+全局注册表：`~/.pm-mcp/registry.json`。跨进程读合并/写幂等运行态位于 `~/.pm-mcp/idempotency/<项目路径哈希>/`，不会污染被管理项目或进入 Git。
 
 ## 跨文件、跨模块、跨语言治理
 
@@ -252,6 +255,7 @@ npm run benchmark:volume -- --size-gib 20 --file-bytes 1048576 --full-audit --te
 - **许可证审计**覆盖直接+传递 Node 依赖（npm 嵌套与 pnpm 布局）；语言单元虽可跨生态发现，但许可证深度仍不是所有生态的通用供应链图，也不替代法务意见。
 - **测试背书占比**是代理指标（功能是否挂了真实存在的测试文件），不是行覆盖率。
 - **token 消耗**本身是客户端的账，工具用「足迹/产出比」做空转代理指标。
+- 幂等层能避免重复计算、重复落账并缩短重复调用输出，但无法返还模型在发起 MCP 调用前已经消耗的推理 token；客户端/Agent 编排仍应避免无意义扇出。
 - 结构/安全扫描忽略内置目录（node_modules/.git/dist/build/venv 等）与常见二进制/锁文件，尚不通用解析 `.gitignore`；`search_code` 的 rg 后端会解析。目录深度上限 64 层（超限计数上报，不静默）。
 - **仓库提供 fail-closed 巡检命令**；定时器、托管 CI 与会话 hooks 属部署层，必须在相应环境单独配置和监控。
 - 语义层面无法强制的（笔记内容是否属实、AI 是否真跑了测试）依赖 git 对账与审计交叉验证，不承诺语义级防伪。

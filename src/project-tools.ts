@@ -16,7 +16,7 @@ import {
   saveRoadmap,
 } from "./store.ts";
 import { now, type Task } from "./types.ts";
-import { budgetLines, tool, toolW } from "./tool-base.ts";
+import { budgetLines, toolI, toolR, toolW } from "./tool-base.ts";
 
 function taskLine(t: Task, withNext = false): string {
   const parts = [`[${t.status}]`, t.id, t.title, `(${t.type}${t.milestone ? `,${t.milestone}` : ""})`];
@@ -52,8 +52,8 @@ export function registerProjectTools(server: McpServer, root: string): void {
     },
   );
 
-  tool<{ since?: string }>(
-    server,
+  toolR<{ since?: string }>(
+    server, root,
     "get_status",
     "一站式「我在哪」：项目阶段 + 里程碑进度 + 进行中任务（含断点下一步）+ 健康摘要 + 最近变更。会话开工第一件事。since 可只看某日期以来的任务/会话变化。",
     { since: z.string().optional().describe("ISO 日期，如 2026-09-01：只看该日期以来的任务/会话变化") },
@@ -159,7 +159,7 @@ export function registerProjectTools(server: McpServer, root: string): void {
     },
   );
 
-  tool(server, "regenerate_dashboard", "手动重新生成 PROJECT.md 仪表盘与 changelog.md（正常情况下每次写操作已自动刷新）。", {}, () => {
+  toolI(server, root, "regenerate_dashboard", "手动重新生成 PROJECT.md 仪表盘与 changelog.md（正常情况下每次写操作已自动刷新）。", {}, () => {
     requireInitialized(root);
     refreshDerived(root);
     return "✅ PROJECT.md 与 changelog.md 已重新生成。";
@@ -231,8 +231,8 @@ export function registerRoadmapTools(server: McpServer, root: string): void {
     },
   );
 
-  tool<{ depth?: number }>(
-    server,
+  toolR<{ depth?: number }>(
+    server, root,
     "get_roadmap",
     "查看路线图。depth=1 每个里程碑一行摘要（功能再多也不乱）；depth=2 额外展开活跃里程碑的任务明细与断点。",
     { depth: z.number().int().min(1).max(2).optional().describe("默认 1") },

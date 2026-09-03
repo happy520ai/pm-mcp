@@ -33,7 +33,7 @@ export function registerAllTools(server: McpServer, root: string): void {
   registerSessionTools(server, root);
   registerSearchTools(server, root);
   registerAuditTools(server, root);
-  registerRegistryTools(server);
+  registerRegistryTools(server, root);
   registerGovernanceTools(server, root);
   registerAcceptanceTools(server, root);
 }

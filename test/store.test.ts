@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { initProject } from "../src/init.ts";
-import { loadProject, loadTasks, saveProject, saveTasks } from "../src/store.ts";
+import { loadProject, loadTasks, saveProject, saveTasks, withLedgerLock } from "../src/store.ts";
 import { TaskSchema, now } from "../src/types.ts";
 import { loadGovernance } from "../src/governance-model.ts";
 import { existsRel, mkProj, readRel, writeRel } from "./helpers.ts";
@@ -55,4 +55,27 @@ test("saveProject 自动刷新 updated 时间", async () => {
   p.phase = "MVP";
   saveProject(root, p);
   assert.ok(loadProject(root).updated > before);
+});
+
+test("超过 10 秒但持锁进程仍存活时不得强制抢锁", () => {
+  const root = mkProj();
+  initProject(root, { name: "A" });
+  const lock = path.join(root, ".pm", ".lock");
+  fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, token: "live-owner" }), "utf8");
+  const old = new Date(Date.now() - 20_000);
+  fs.utimesSync(lock, old, old);
+  assert.throws(() => withLedgerLock(root, () => "不应执行"), /账本锁获取超时/);
+  assert.ok(fs.existsSync(lock), "活进程的锁必须保留");
+  fs.rmSync(lock, { force: true });
+});
+
+test("超过 10 秒且持锁进程已死亡时可安全接管", () => {
+  const root = mkProj();
+  initProject(root, { name: "A" });
+  const lock = path.join(root, ".pm", ".lock");
+  fs.writeFileSync(lock, JSON.stringify({ pid: 2_147_483_647, token: "dead-owner" }), "utf8");
+  const old = new Date(Date.now() - 20_000);
+  fs.utimesSync(lock, old, old);
+  assert.equal(withLedgerLock(root, () => "接管成功"), "接管成功");
+  assert.ok(!fs.existsSync(lock));
 });

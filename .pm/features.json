@@ -1,5 +1,5 @@
 {
-  "seq": 12,
+  "seq": 13,
   "features": [
     {
       "id": "F-001",
@@ -210,6 +210,25 @@
       "status": "implemented",
       "created": "2026-09-03T05:34:27.839Z",
       "updated": "2026-09-03T05:34:27.839Z"
+    },
+    {
+      "id": "F-013",
+      "name": "多 Agent 读写幂等协调",
+      "description": "跨进程合并完全相同的并行读；写工具提供显式业务幂等键与自动瞬时去重；键冲突 fail-closed，长写锁按进程存活性安全接管。",
+      "module": "src",
+      "entry_files": [
+        "src/idempotency.ts",
+        "src/tool-base.ts",
+        "src/store.ts"
+      ],
+      "test_files": [
+        "test/idempotency.test.ts",
+        "test/exploit.test.ts",
+        "test/store.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-03T06:38:14.756Z",
+      "updated": "2026-09-03T06:38:14.756Z"
     }
   ]
 }

@@ -7,7 +7,7 @@ import { auditLicense } from "./license.ts";
 import { isInitialized, requireInitialized } from "./paths.ts";
 import { listRegistry } from "./registry.ts";
 import { auditSecurity, listFindings, resolveFinding } from "./security.ts";
-import { budgetLines, tool, toolW } from "./tool-base.ts";
+import { budgetLines, toolR, toolW } from "./tool-base.ts";
 
 export function registerAuditTools(server: McpServer, root: string): void {
   toolW(server, root, "snapshot_codebase", "给代码结构拍快照（文件数/行数/目录分布/测试数/skip 标记/依赖清单）。之后 audit_structure 会与上次快照 diff。建议每个会话或每个里程碑结束时拍一次。", {}, () => {
@@ -17,7 +17,7 @@ export function registerAuditTools(server: McpServer, root: string): void {
     return [...summary, `下次 audit_structure 将以此为基线（${snapshot.file}）。`].join("\n");
   });
 
-  tool(server, "audit_structure", "八项结构对账（定期做）：①增长与新增依赖 ②漂移对账（功能↔文件，防幻觉）③债务与重构配额 ④churn 热点 ⑤复杂度预算 ⑥索引覆盖率 ⑦足迹/产出 ⑧测试健康（禁用/蒸发/空测试/背书占比）。", {}, () => {
+  toolR(server, root, "audit_structure", "八项结构对账（定期做）：①增长与新增依赖 ②漂移对账（功能↔文件，防幻觉）③债务与重构配额 ④churn 热点 ⑤复杂度预算 ⑥索引覆盖率 ⑦足迹/产出 ⑧测试健康（禁用/蒸发/空测试/背书占比）。", {}, () => {
     requireInitialized(root);
     return auditStructure(root, budgetLines(root));
   });
@@ -29,8 +29,8 @@ export function registerAuditTools(server: McpServer, root: string): void {
     return report.text.join("\n");
   });
 
-  tool<{ status?: "open" | "fixed" | "accepted" }>(
-    server,
+  toolR<{ status?: "open" | "fixed" | "accepted" }>(
+    server, root,
     "list_findings",
     "查看安全台账（可按状态过滤）。",
     { status: z.enum(["open", "fixed", "accepted"]).optional() },
@@ -60,14 +60,14 @@ export function registerAuditTools(server: McpServer, root: string): void {
     },
   );
 
-  tool(server, "audit_license", "许可证审计（法律账）：依赖许可证清单与 copyleft 冲突、源码中的 GPL 家族许可证头、LICENSE 文件检查、来源登记清单。离线启发式，不替代法务。", {}, () => {
+  toolR(server, root, "audit_license", "许可证审计（法律账）：依赖许可证清单与 copyleft 冲突、源码中的 GPL 家族许可证头、LICENSE 文件检查、来源登记清单。离线启发式，不替代法务。", {}, () => {
     requireInitialized(root);
     return auditLicense(root, budgetLines(root));
   });
 }
 
-export function registerRegistryTools(server: McpServer): void {
-  tool(server, "list_projects", "列出本机所有被 pm-mcp 管理的项目（全局注册表）。", {}, () => {
+export function registerRegistryTools(server: McpServer, root: string): void {
+  toolR(server, root, "list_projects", "列出本机所有被 pm-mcp 管理的项目（全局注册表）。", {}, () => {
     const list = listRegistry();
     if (list.length === 0) return "（注册表为空。在任何项目里 init_project 后会自动登记。）";
     const L = list.map((p) => {

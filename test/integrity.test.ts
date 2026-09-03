@@ -188,16 +188,16 @@ test("并发双进程写同一账本：最终 JSON 仍然合法（无半截文�
   initProject(root, { name: "并发" });
   const clients: Client[] = [];
   t.after(() => Promise.all(clients.map((c) => c.close().catch(() => undefined))));
-  const mk = async (): Promise<void> => {
+  const mk = async (agent: string): Promise<void> => {
     const client = new Client({ name: "concurrent", version: "0" });
     clients.push(client);
     await client.connect(new StdioClientTransport({ command: process.execPath, args: [srcEntry, "--root", root], env: { PM_MCP_HOME: root + "-home" } }));
     for (let i = 0; i < 10; i++) {
-      await client.callTool({ name: "add_task", arguments: { title: `并发任务` } });
+      await client.callTool({ name: "add_task", arguments: { title: `${agent}-并发任务-${i}` } });
     }
     await client.close();
   };
-  await Promise.all([mk(), mk()]);
+  await Promise.all([mk("A"), mk("B")]);
   // 账本锁生效后：不丢、不重、合法
   const parsed = loadTasks(root);
   assert.equal(parsed.tasks.length, 20, `两客户端各 10 个任务必须全部存活（实际 ${parsed.tasks.length}）`);

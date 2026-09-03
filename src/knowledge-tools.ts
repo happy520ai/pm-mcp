@@ -18,7 +18,7 @@ import {
   saveFileNotes,
   saveSessions,
 } from "./store.ts";
-import { budgetLines, tool, toolW } from "./tool-base.ts";
+import { budgetLines, toolR, toolW } from "./tool-base.ts";
 import { now } from "./types.ts";
 
 export function registerFeatureTools(server: McpServer, root: string): void {
@@ -61,8 +61,8 @@ export function registerFeatureTools(server: McpServer, root: string): void {
     },
   );
 
-  tool<{ module?: string; status?: "planned" | "implemented" | "deprecated" }>(
-    server,
+  toolR<{ module?: string; status?: "planned" | "implemented" | "deprecated" }>(
+    server, root,
     "list_features",
     "列出功能清单（可按模块/状态过滤）。",
     { module: z.string().optional(), status: z.enum(["planned", "implemented", "deprecated"]).optional() },
@@ -127,7 +127,7 @@ export function registerDecisionTools(server: McpServer, root: string): void {
     },
   );
 
-  tool(server, "list_decisions", "列出全部架构决策（ADR）。", {}, () => {
+  toolR(server, root, "list_decisions", "列出全部架构决策（ADR）。", {}, () => {
     requireInitialized(root);
     const dir = decisionsDir(root);
     const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".md")).sort() : [];
@@ -211,8 +211,8 @@ export function registerSessionTools(server: McpServer, root: string): void {
 }
 
 export function registerSearchTools(server: McpServer, root: string): void {
-  tool<{ query: string; glob?: string; max_results?: number; regex?: boolean }>(
-    server,
+  toolR<{ query: string; glob?: string; max_results?: number; regex?: boolean }>(
+    server, root,
     "search_code",
     "在真实代码里检索（防幻觉事中防线）：谈某个功能/文件之前先搜实码。返回 file:line 片段而非整文件（token 经济）。默认按字面量匹配；regex=true 时按 JavaScript 正则（仅在你确需时开启）。",
     {
@@ -228,8 +228,8 @@ export function registerSearchTools(server: McpServer, root: string): void {
     },
   );
 
-  tool<{ query: string }>(
-    server,
+  toolR<{ query: string }>(
+    server, root,
     "search_knowledge",
     "检索六类项目知识源（ADR/任务/功能/会话/调试记录/文件索引）——回答「之前为什么这么做」「上次这个错怎么解的」，用历史结论代替重新推理。代码内容请用 search_code。",
     { query: z.string().min(1) },

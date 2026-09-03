@@ -18,7 +18,7 @@ import { acceptanceBaselineFingerprint, evaluateAcceptance } from "./acceptance-
 import { writeAcceptanceReport, type AcceptanceReport } from "./acceptance-report.ts";
 import { requireInitialized } from "./paths.ts";
 import { loadJson, saveJson, withLedgerLock } from "./store.ts";
-import { tool } from "./tool-base.ts";
+import { toolI, toolR } from "./tool-base.ts";
 import { refreshDerived } from "./dashboard.ts";
 
 const IdSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/);
@@ -306,12 +306,12 @@ export function evaluateAcceptanceFile(
 }
 
 export function registerAcceptanceTools(server: McpServer, root: string): void {
-  tool(server, "list_acceptance_baselines", "列出版本化验收基线、审批状态、当前 fingerprint 和规模。", {}, () => {
+  toolR(server, root, "list_acceptance_baselines", "列出版本化验收基线、审批状态、当前 fingerprint 和规模。", {}, () => {
     requireInitialized(root);
     return JSON.stringify(listAcceptanceBaselines(root), null, 2);
   });
 
-  tool<{ baseline_id: string; baseline_version: string; full?: boolean }>(server, "get_acceptance_baseline", "读取一个验收基线；默认返回摘要，full=true 返回严格 JSON。", {
+  toolR<{ baseline_id: string; baseline_version: string; full?: boolean }>(server, root, "get_acceptance_baseline", "读取一个验收基线；默认返回摘要，full=true 返回严格 JSON。", {
     baseline_id: IdSchema,
     baseline_version: SemVerSchema,
     full: z.boolean().optional(),
@@ -322,7 +322,7 @@ export function registerAcceptanceTools(server: McpServer, root: string): void {
     return JSON.stringify(listAcceptanceBaselines(root).find((item) => item.id === args.baseline_id && item.version === args.baseline_version), null, 2);
   });
 
-  tool<{ baseline_file: string }>(server, "save_acceptance_baseline_draft", "从项目内 .pm/acceptance 下的严格 JSON 保存 draft 基线；批准后的同版本不可覆盖。", {
+  toolI<{ baseline_file: string }>(server, root, "save_acceptance_baseline_draft", "从项目内 .pm/acceptance 下的严格 JSON 保存 draft 基线；批准后的同版本不可覆盖。", {
     baseline_file: JsonPathSchema,
   }, (args) => {
     requireInitialized(root);
@@ -330,7 +330,7 @@ export function registerAcceptanceTools(server: McpServer, root: string): void {
     return `✅ draft ${baseline.baseline_id}@${baseline.baseline_version} 已保存；fingerprint=${acceptanceBaselineFingerprint(baseline)}`;
   });
 
-  tool<ApproveAcceptanceBaselineInput>(server, "approve_acceptance_baseline", "按当前 SHA-256 fingerprint 原子批准基线；fingerprint 变化即拒绝，批准后修改必须升版。", {
+  toolI<ApproveAcceptanceBaselineInput>(server, root, "approve_acceptance_baseline", "按当前 SHA-256 fingerprint 原子批准基线；fingerprint 变化即拒绝，批准后修改必须升版。", {
     baseline_id: IdSchema,
     baseline_version: SemVerSchema,
     expected_fingerprint_sha256: Sha256Schema,
@@ -343,7 +343,7 @@ export function registerAcceptanceTools(server: McpServer, root: string): void {
     return `✅ baseline ${approved.baseline_id}@${approved.baseline_version} 已批准；approved fingerprint=${acceptanceBaselineFingerprint(approved)}`;
   });
 
-  tool<EvaluateAcceptanceFileInput>(server, "evaluate_acceptance", "读取项目内 .pm/acceptance evaluation JSON，逐项复算证据 SHA-256，再生成不可手填、不可覆盖的正式报告。", {
+  toolI<EvaluateAcceptanceFileInput>(server, root, "evaluate_acceptance", "读取项目内 .pm/acceptance evaluation JSON，逐项复算证据 SHA-256，再生成不可手填、不可覆盖的正式报告。", {
     baseline_id: IdSchema,
     baseline_version: SemVerSchema,
     evaluation_file: JsonPathSchema,

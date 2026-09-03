@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
-export const PACKAGE_SPEC = "@luckychen1993/pm-mcp@0.1.2";
+export const PACKAGE_SPEC = "@luckychen1993/pm-mcp@0.1.3";
 export const SERVER_NAME = "pm-mcp";
 
 export type SetupClient = "auto" | "all" | "codex" | "claude" | "zcode" | "cursor" | "vscode" | "print";

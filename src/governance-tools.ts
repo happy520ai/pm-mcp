@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { budgetLines, tool, toolW } from "./tool-base.ts";
+import { budgetLines, toolI, toolR, toolW } from "./tool-base.ts";
 import { foldLines } from "./budget.ts";
 import { refreshDerived } from "./dashboard.ts";
 import { requireInitialized } from "./paths.ts";
@@ -73,14 +73,14 @@ function qualityLines(commands: QualityCommand[]): string[] {
 }
 
 export function registerGovernanceTools(server: McpServer, root: string): void {
-  tool(server, "init_governance", "为旧项目初始化 .pm/governance.json；新项目 init_project 已自动创建。", {}, () => {
+  toolI(server, root, "init_governance", "为旧项目初始化 .pm/governance.json；新项目 init_project 已自动创建。", {}, () => {
     requireInitialized(root);
     const governance = initGovernance(root, {});
     refreshDerived(root);
     return `✅ 治理模型已初始化（schema v${governance.schema_version}）。下一步用 upsert_module 声明模块、owner 与语言。`;
   });
 
-  tool(server, "get_governance", "查看结构化模块、owner、公开接口、仓库依赖与强制策略。", {}, () => {
+  toolR(server, root, "get_governance", "查看结构化模块、owner、公开接口、仓库依赖与强制策略。", {}, () => {
     requireInitialized(root);
     return compactGovernance(loadGovernance(root));
   });
@@ -153,7 +153,7 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     return `✅ 治理策略已更新：coverage>=${governance.policies.minimum_coverage_pct}% · semantic>=${governance.policies.minimum_semantic_assurance} · regex-fallback=${governance.policies.fail_on_semantic_fallback ? "forbidden" : "allowed"}`;
   });
 
-  tool(server, "discover_languages", "递归发现 Node/Python/Go/Rust/JVM/.NET 单元及其受控质量命令，不执行命令。", {}, () => {
+  toolR(server, root, "discover_languages", "递归发现 Node/Python/Go/Rust/JVM/.NET 单元及其受控质量命令，不执行命令。", {}, () => {
     requireInitialized(root);
     const units = discoverProjectUnits(root);
     const coverage = assessQualityCoverage(units);
@@ -163,17 +163,17 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     return foldLines(lines, { maxLines: budgetLines(root), hint: "按模块拆分治理 root" });
   });
 
-  tool(server, "audit_governance", "审计跨文件/模块/语言语义覆盖、owner、公开接口、依赖边界、循环、unresolved 与质量矩阵覆盖。", {}, () => {
+  toolR(server, root, "audit_governance", "审计跨文件/模块/语言语义覆盖、owner、公开接口、依赖边界、循环、unresolved 与质量矩阵覆盖。", {}, () => {
     requireInitialized(root);
     return auditGovernance(root, budgetLines(root)).report;
   });
 
-  tool(server, "list_semantic_evidence", "列出已登记的语言原生 AST、编译器或运行时语义证据；损坏文档会使整次读取失败。", {}, () => {
+  toolR(server, root, "list_semantic_evidence", "列出已登记的语言原生 AST、编译器或运行时语义证据；损坏文档会使整次读取失败。", {}, () => {
     requireInitialized(root);
     return JSON.stringify(listSemanticEvidence(root), null, 2);
   });
 
-  tool<{ id: string; document: unknown }>(server, "save_semantic_evidence", "保存一份绑定源码 SHA-256 的语言原生 AST/编译器/运行时证据；过期摘要在治理审计中严格失败。", {
+  toolI<{ id: string; document: unknown }>(server, root, "save_semantic_evidence", "保存一份绑定源码 SHA-256 的语言原生 AST/编译器/运行时证据；过期摘要在治理审计中严格失败。", {
     id: z.string().trim().min(1).max(128),
     document: SemanticEvidenceDocumentSchema,
   }, (args) => {
@@ -182,7 +182,7 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     return `✅ semantic evidence ${args.id} 已保存：${saved.file} · ${saved.analyzer.id} · ${saved.analyzer.assurance} · ${saved.status}`;
   });
 
-  tool<{ files: string[] }>(server, "impact_analysis", "从变更文件沿 file/module 反向依赖闭包计算受影响文件与模块。", {
+  toolR<{ files: string[] }>(server, root, "impact_analysis", "从变更文件沿 file/module 反向依赖闭包计算受影响文件与模块。", {
     files: z.array(z.string().min(1)).min(1).max(100),
   }, (args) => {
     requireInitialized(root);
@@ -196,7 +196,7 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     ], { maxLines: budgetLines(root), hint: "缩小 files 输入或按模块运行" });
   });
 
-  tool<{ unit?: string; kinds?: Array<"test" | "build" | "lint" | "typecheck" | "coverage" | "security"> }>(server, "plan_quality_matrix", "生成跨语言真实质量命令计划；只规划，不启动进程。", {
+  toolR<{ unit?: string; kinds?: Array<"test" | "build" | "lint" | "typecheck" | "coverage" | "security"> }>(server, root, "plan_quality_matrix", "生成跨语言真实质量命令计划；只规划，不启动进程。", {
     unit: z.string().optional(),
     kinds: z.array(z.enum(["test", "build", "lint", "typecheck", "coverage", "security"])).optional(),
   }, (args) => {
@@ -209,7 +209,7 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     ], { maxLines: budgetLines(root), hint: "用 unit/kinds 过滤；真实执行需 run_quality_matrix confirm_execute=true" });
   });
 
-  tool<{ confirm_execute: boolean; unit?: string; kinds?: Array<"test" | "build" | "lint" | "typecheck" | "coverage" | "security">; stop_on_failure?: boolean }>(server, "run_quality_matrix", "显式执行跨语言质量矩阵。只运行受支持适配器生成的 argv，shell=false；缺工具/超时/非零均失败。", {
+  toolI<{ confirm_execute: boolean; unit?: string; kinds?: Array<"test" | "build" | "lint" | "typecheck" | "coverage" | "security">; stop_on_failure?: boolean }>(server, root, "run_quality_matrix", "显式执行跨语言质量矩阵。只运行受支持适配器生成的 argv，shell=false；缺工具/超时/非零均失败。", {
     confirm_execute: z.literal(true).describe("必须显式为 true；该操作会运行目标项目构建/测试命令"),
     unit: z.string().optional(),
     kinds: z.array(z.enum(["test", "build", "lint", "typecheck", "coverage", "security"])).optional(),
@@ -232,7 +232,7 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     return foldLines(lines, { maxLines: budgetLines(root), hint: "查看 .pm/quality-runs 结构化摘要（不落原始输出）" });
   });
 
-  tool<{ current_only?: boolean }>(server, "get_portfolio", "聚合当前项目或全局注册项目的阶段、里程碑、债务、安全、语言、跨仓依赖/版本/cycle；加载失败不能假绿。", {
+  toolR<{ current_only?: boolean }>(server, root, "get_portfolio", "聚合当前项目或全局注册项目的阶段、里程碑、债务、安全、语言、跨仓依赖/版本/cycle；加载失败不能假绿。", {
     current_only: z.boolean().optional(),
   }, (args) => {
     requireInitialized(root);

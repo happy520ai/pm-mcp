@@ -48,6 +48,12 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
   assert.equal(tools.tools.length, 46, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
   assert.ok(tools.tools.some((x) => x.name === "evaluate_acceptance"));
   assert.ok(tools.tools.some((x) => x.name === "save_semantic_evidence"));
+  const writeTools = tools.tools.filter((item) => item.annotations?.readOnlyHint === false);
+  assert.ok(writeTools.length >= 20, `应识别主要写工具，实际 ${writeTools.length}`);
+  for (const item of writeTools) {
+    const properties = (item.inputSchema as { properties?: Record<string, unknown> }).properties ?? {};
+    assert.ok(properties.idempotency_key, `${item.name} 写工具必须公开 idempotency_key`);
+  }
 
   // 初始化
   const init = await client.callTool({ name: "init_project", arguments: { name: "集成项目", modules: ["src"], license: "MIT" } });

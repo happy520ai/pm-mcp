@@ -60,7 +60,7 @@ function registeredHandlers(root: string): Map<string, Handler> {
   registerSessionTools(fake, root);
   registerSearchTools(fake, root);
   registerAuditTools(fake, root);
-  registerRegistryTools(fake);
+  registerRegistryTools(fake, root);
   registerGovernanceTools(fake, root);
   return handlers;
 }

@@ -5,7 +5,7 @@ import { foldLines, normSep } from "./budget.ts";
 import { requireInitialized } from "./paths.ts";
 import { loadRoadmap, loadTasks, nextId, saveTasks } from "./store.ts";
 import { now, type TaskStatus, type TaskType } from "./types.ts";
-import { budgetLines, tool, toolW } from "./tool-base.ts";
+import { budgetLines, toolR, toolW } from "./tool-base.ts";
 
 const stepSchema = z.object({ text: z.string(), done: z.boolean().optional() });
 
@@ -66,8 +66,8 @@ export function registerTaskTools(server: McpServer, root: string): void {
     },
   );
 
-  tool<{ status?: TaskStatus; type?: TaskType; milestone?: string; tag?: string; include_done?: boolean }>(
-    server,
+  toolR<{ status?: TaskStatus; type?: TaskType; milestone?: string; tag?: string; include_done?: boolean }>(
+    server, root,
     "list_tasks",
     "列出任务（默认不含 done/cancelled）。可按状态/类型/里程碑/标签过滤。",
     {

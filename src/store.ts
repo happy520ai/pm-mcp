@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import type { ZodTypeAny, output } from "zod";
 import {
   DebugLogFileSchema,
@@ -71,23 +72,51 @@ export function saveJson(file: string, data: unknown): void {
 
 /**
  * 账本互斥锁：把「读账本 → 改 → 写」整个事务串行化，多客户端（如 ZCode+Codex 并行）
- * 不再互相覆盖丢数据。锁文件 .pm/.lock（O_EXCL 创建）；持有超过 10s 视为残留强制接管
- * （进程崩溃不留死锁）；等待上限 3s，超时明确报错而非静默丢写。
+ * 不再互相覆盖丢数据。锁文件 .pm/.lock（O_EXCL 创建）；超过 10s 且持锁进程已死亡
+ * 才视为残留并接管。活着的长任务不会被误抢锁；释放时也只删除自己的 token。
+ * 等待上限 3s，超时明确报错而非静默丢写。
  */
 export function withLedgerLock<T>(root: string, fn: () => T): T {
   const lockFile = pmPath(root, ".lock");
   fs.mkdirSync(pmPath(root), { recursive: true });
+  const token = randomUUID();
+  const payload = JSON.stringify({ pid: process.pid, token, created_at: new Date().toISOString() });
+  const owner = (): { pid: number; token?: string } | null => {
+    try {
+      const raw = fs.readFileSync(lockFile, "utf8");
+      try {
+        const parsed = JSON.parse(raw) as { pid?: unknown; token?: unknown };
+        return typeof parsed.pid === "number"
+          ? { pid: parsed.pid, ...(typeof parsed.token === "string" ? { token: parsed.token } : {}) }
+          : null;
+      } catch {
+        const pid = Number(raw.trim());
+        return Number.isInteger(pid) && pid > 0 ? { pid } : null;
+      }
+    } catch {
+      return null;
+    }
+  };
+  const alive = (pid: number): boolean => {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch (error) {
+      return (error as NodeJS.ErrnoException).code === "EPERM";
+    }
+  };
   const acquire = (): boolean => {
     try {
-      fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" });
+      fs.writeFileSync(lockFile, payload, { flag: "wx" });
       return true;
     } catch {
       try {
         const st = fs.statSync(lockFile);
-        if (Date.now() - st.mtimeMs > 10_000) {
+        const current = owner();
+        if (Date.now() - st.mtimeMs > 10_000 && (!current || !alive(current.pid))) {
           fs.rmSync(lockFile, { force: true });
           try {
-            fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" });
+            fs.writeFileSync(lockFile, payload, { flag: "wx" });
             return true;
           } catch {
             return false;
@@ -111,7 +140,7 @@ export function withLedgerLock<T>(root: string, fn: () => T): T {
     return fn();
   } finally {
     try {
-      fs.rmSync(lockFile, { force: true });
+      if (owner()?.token === token) fs.rmSync(lockFile, { force: true });
     } catch {
       /* 尽力释放 */
     }

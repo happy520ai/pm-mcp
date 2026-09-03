@@ -23,7 +23,16 @@ for (let i = 0; i < argv.length; i++) {
 }
 const root = resolveRoot(explicitRoot);
 
-const server = new McpServer({ name: "pm-mcp", version: "0.1.2" });
+const server = new McpServer(
+  { name: "pm-mcp", version: "0.1.3" },
+  {
+    instructions: [
+      "多 Agent 规则：相同业务的所有写工具调用必须携带相同 idempotency_key（建议 task-id:operation）；同键同参数只执行一次，同键不同参数会被拒绝。",
+      "完全相同的并行读请求会由服务端合并并复用结果；不要让多个分支重复请求同一工具和参数。",
+      "看到“幂等复用”时直接采用首次结果；看到“幂等占位/正在执行”时等待负责该业务的 Agent，不要换键重试。",
+    ].join(" "),
+  },
+);
 registerAllTools(server, root);
 
 /* -------------------------------- Resources ------------------------------- */
