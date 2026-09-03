@@ -37,8 +37,9 @@ function childProgram(moduleUrl: string): string {
     const [root, marker] = process.argv.slice(1);
     const originalWatch = fs.watch;
     fs.watch = function (...args) {
+      const watcher = originalWatch.apply(this, args);
       fs.appendFileSync(marker, String(process.pid) + "\\n", "utf8");
-      return originalWatch.apply(this, args);
+      return watcher;
     };
     const { startWatcher } = await import(${JSON.stringify(moduleUrl)});
     const handle = startWatcher(root);
@@ -104,16 +105,16 @@ test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接�
     late.stderr!.on("data", (chunk: string) => failures.push(chunk));
     await waitFor(() => ready.size === agentCount + 1, 5_000);
     await new Promise((resolve) => setTimeout(resolve, 1_000));
-    const initial = markerPids(marker);
-    assert.equal(initial.length, 1, `迟到 standby 加入后仍只能有一个 fs.watch，实际 ${initial.length}: ${initial.join(",")}`);
+    const initial = [...new Set(markerPids(marker))];
+    assert.equal(initial.length, 1, `迟到 standby 加入后仍只能有一个 fs.watch owner，实际 ${initial.length}: ${initial.join(",")}`);
 
     const leader = children.find((child) => child.pid === initial[0]);
     assert.ok(leader, `找不到 leader 子进程 ${initial[0]}`);
     leader.kill("SIGKILL");
-    await waitFor(() => markerPids(marker).length >= 2, 10_000);
+    await waitFor(() => new Set(markerPids(marker)).size >= 2, 10_000);
     await new Promise((resolve) => setTimeout(resolve, 1_250));
-    const afterFailover = markerPids(marker);
-    assert.equal(afterFailover.length, 2, `强杀后只能有一个 standby 接管，实际 watcher 创建 ${afterFailover.length} 次`);
+    const afterFailover = [...new Set(markerPids(marker))];
+    assert.equal(afterFailover.length, 2, `强杀后只能有一个新 owner 接管，实际 owner ${afterFailover.length} 个`);
     assert.notEqual(afterFailover[1], afterFailover[0]);
     assert.deepEqual(failures, [], failures.join("\n"));
   } finally {

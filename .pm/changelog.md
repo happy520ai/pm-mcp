@@ -2,6 +2,14 @@
 
 ## 2026-09-03 — codex
 
+修复 v0.1.4 托管 CI 首败：Linux 空 SQLite 选举事务增加实际 header 写以物化唯一写锁；watcher 测试仅统计成功创建的唯一 owner。
+
+改动文件（2）: src/watcher-coordinator.ts, test/watcher-leader.test.ts
+
+下一步: 提交后重跑完整本地 gate 并推送新的 Node 22.18/24 CI
+
+## 2026-09-03 — codex
+
 修复 v0.1.4 发布门禁首败：将 stale-lock 测试中的 secret-shaped 固定 token 改为运行时 UUID；保留 SEC-016 首次发现并由复扫自动关闭。
 
 改动文件（1）: test/lock-stampede.test.ts

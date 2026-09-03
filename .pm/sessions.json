@@ -1,5 +1,5 @@
 {
-  "seq": 17,
+  "seq": 18,
   "sessions": [
     {
       "id": "S-0001",
@@ -444,6 +444,19 @@
       ],
       "next_steps": [
         "提交门禁修复后从干净提交重新执行完整 gate"
+      ]
+    },
+    {
+      "id": "S-0018",
+      "date": "2026-09-03T09:15:12.634Z",
+      "author": "codex",
+      "summary": "修复 v0.1.4 托管 CI 首败：Linux 空 SQLite 选举事务增加实际 header 写以物化唯一写锁；watcher 测试仅统计成功创建的唯一 owner。",
+      "files": [
+        "src/watcher-coordinator.ts",
+        "test/watcher-leader.test.ts"
+      ],
+      "next_steps": [
+        "提交后重跑完整本地 gate 并推送新的 Node 22.18/24 CI"
       ]
     }
   ]

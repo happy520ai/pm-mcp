@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T09:09:57.887Z
+> 生成时间: 2026-09-03T09:15:12.656Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -72,6 +72,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-03 [codex] 修复 v0.1.4 托管 CI 首败：Linux 空 SQLite 选举事务增加实际 header 写以物化唯一写锁；watcher 测试仅统计成功创建的唯一 owner。
+  - 改动: src/watcher-coordinator.ts, test/watcher-leader.test.ts
 - 2026-09-03 [codex] 修复 v0.1.4 发布门禁首败：将 stale-lock 测试中的 secret-shaped 固定 token 改为运行时 UUID；保留 SEC-016 首次发现并由复扫自动关闭。
   - 改动: test/lock-stampede.test.ts
 - 2026-09-03 [codex] 完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
@@ -80,8 +82,6 @@ flowchart LR
   - 改动: src/cli.ts, src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, install.ps1 等 10 个
 - 2026-09-03 [codex] 发布 @luckychen1993/pm-mcp@0.1.1 到 npm Registry：启用发布账号 2FA，统一包名/版本与安装命令，完成本地 gate、双版本 GitHub CI、匿名 Registry 元数据和全新缓存 MCP 冷启动验证，并创建 GitHub v0.1.1 Release。
   - 改动: package.json, package-lock.json, README.md, install.ps1, src/index.ts, scripts/create-pm-acceptance-profile.mts
-- 2026-09-03 [codex] 公开发布 pm-mcp v0.1.0：建立 Git 仓库并推送 GitHub，补齐固定 Release 标签的一键 MCP 安装、精简发布包和双版本 CI；保留首轮托管失败并修复报告排序与 SQLite 并发启动问题，远端 npx MCP smoke 通过。
-  - 改动: .gitattributes, .github/workflows/ci.yml, .gitignore, README.md, install.ps1, package.json, package-lock.json, src/dashboard.ts 等 16 个
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

@@ -51,10 +51,11 @@ function openElection(root: string): DatabaseSync {
 function acquire(db: DatabaseSync): boolean {
   if (db.isTransaction) return true;
   try {
-    // BEGIN IMMEDIATE itself owns the database write reservation. No schema or
-    // row mutation is needed; avoiding startup DDL lets late standbys join while
-    // the current leader intentionally holds this transaction for its lifetime.
+    // Avoid startup DDL so late standbys can join while a leader holds the DB.
+    // The transactional header write forces ownership even when an empty DB
+    // would otherwise defer materializing the write reservation on this OS.
     db.exec("BEGIN IMMEDIATE");
+    db.exec("PRAGMA user_version=1");
     return true;
   } catch (error) {
     if (db.isTransaction) {
