@@ -2,6 +2,14 @@
 
 ## 2026-09-03 — codex
 
+发布 pm-mcp v0.1.4 多 Agent 加强版：完成强杀、陈旧锁、路径别名、单 watcher、跨版本迁移与10/20 Agent持续压力治理；本地门禁、双版本CI、npm冷安装和GitHub Release均通过。
+
+改动文件（14）: src/idempotency.ts, src/store.ts, src/watcher-coordinator.ts, src/index-store.ts, src/tool-base.ts, scripts/benchmark-agents.mts, scripts/agent-benchmark-support.mts, test/idempotency-crash.test.ts, test/idempotency-lease.test.ts, test/lock-stampede.test.ts, test/watcher-leader.test.ts, test/agent-benchmark.test.ts, README.md, package.json
+
+下一步: 升级客户端后重启全部旧 pm-mcp 进程，避免 v0.1.3/v0.1.4 混跑
+
+## 2026-09-03 — codex
+
 修复 v0.1.4 第二次托管 CI 首败：精确过滤 Node 22 node:sqlite ExperimentalWarning，任何其他 watcher stderr 仍严格失败。
 
 改动文件（1）: test/watcher-leader.test.ts

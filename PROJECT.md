@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T09:22:19.359Z
+> 生成时间: 2026-09-03T13:29:36.225Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,11 +18,11 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [███████░░░] 70% M2 v2 增强（14/20）
+▶ [████████░░] 75% M2 v2 增强（15/20）
 - ⚠️ 重构被挤出: M2 v2 增强 重构类占比 15% < 配额 20%
 
 ## 🎯 当前焦点
-- 🔄 T-033 强化多 Agent 强杀恢复、路径别名与持续压力（步骤 4/5）
+- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
 - 当前阶段: v0.1.4 multi-agent crash hardening
 
 ## 🩺 健康摘要
@@ -30,7 +30,7 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(14), package.json(11), src/index.ts(9) |
+| churn（变更率） | ⚠️ 热点 README.md(15), package.json(12), src/index.ts(9) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 8 条记录 |
 | 测试背书 | 14/14 个功能带测试 |
@@ -44,8 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 25 · backlog 7 · in_progress 1
-- [in_progress] T-033 强化多 Agent 强杀恢复、路径别名与持续压力 (fix, M2)
+- 总览: done 26 · backlog 7
 
 ## 🧩 功能清单
 ### src
@@ -72,6 +71,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-03 [codex] 发布 pm-mcp v0.1.4 多 Agent 加强版：完成强杀、陈旧锁、路径别名、单 watcher、跨版本迁移与10/20 Agent持续压力治理；本地门禁、双版本CI、npm冷安装和GitHub Release均通过。
+  - 改动: src/idempotency.ts, src/store.ts, src/watcher-coordinator.ts, src/index-store.ts, src/tool-base.ts, scripts/benchmark-agents.mts, scripts/agent-benchmark-support.mts, test/idempotency-crash.test.ts 等 14 个
 - 2026-09-03 [codex] 修复 v0.1.4 第二次托管 CI 首败：精确过滤 Node 22 node:sqlite ExperimentalWarning，任何其他 watcher stderr 仍严格失败。
   - 改动: test/watcher-leader.test.ts
 - 2026-09-03 [codex] 修复 v0.1.4 托管 CI 首败：Linux 空 SQLite 选举事务增加实际 header 写以物化唯一写锁；watcher 测试仅统计成功创建的唯一 owner。
@@ -80,8 +81,6 @@ flowchart LR
   - 改动: test/lock-stampede.test.ts
 - 2026-09-03 [codex] 完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
   - 改动: src/idempotency.ts, src/tool-base.ts, src/store.ts, src/index.ts, src/acceptance-tools.ts, src/audit-tools.ts, src/governance-tools.ts, src/knowledge-tools.ts 等 22 个
-- 2026-09-03 [codex] 发布 pm-mcp v0.1.2 统一安装入口：一个 npx setup 命令自动检测五类 AI 编程客户端，支持备份、dry-run、force、显式客户端和通用 JSON；CLI/MCP 双路径分流，npm 冷启动与 GitHub 双版本 CI 均通过。
-  - 改动: src/cli.ts, src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, install.ps1 等 10 个
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT
