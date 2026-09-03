@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T04:35:52.901Z
+> 生成时间: 2026-09-03T04:38:37.027Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -22,7 +22,7 @@ flowchart LR
 - ⚠️ 重构被挤出: M2 v2 增强 重构类占比 19% < 配额 20%
 
 ## 🎯 当前焦点
-- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
+- 🔄 T-029 发布 GitHub v0.1.0 并提供一键 MCP 安装（步骤 2/4）
 - 当前阶段: v0.1.0 public release
 
 ## 🩺 健康摘要
@@ -35,8 +35,8 @@ flowchart LR
 | 调试知识 | 5 条记录 |
 | 测试背书 | 11/11 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-09-03 01:05（4/4） |
-| 标准化验收 | ✅ 2026-09-03 01:05（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-09-03 04:38（4/4） |
+| 标准化验收 | ✅ 2026-09-03 04:38（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
 - pm-mcp [tool] typescript · owner project-maintainers · roots .
@@ -44,7 +44,8 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 21 · backlog 8
+- 总览: done 21 · backlog 7 · in_progress 1
+- [in_progress] T-029 发布 GitHub v0.1.0 并提供一键 MCP 安装 (chore, M2)
 
 ## 🧩 功能清单
 ### src

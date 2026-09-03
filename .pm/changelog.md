@@ -91,3 +91,4 @@ v1 完成：27 工具 + 4 资源 + 3 提示词，40/40 测试通过，tsc 构建
 改动文件（32）: package.json, tsconfig.json, .gitignore, README.md, LICENSE, src/index.ts, src/types.ts, src/paths.ts, src/store.ts, src/init.ts, src/registry.ts, src/budget.ts, src/scan.ts, src/roadmap.ts, src/health.ts, src/audit.ts, src/security.ts, src/license.ts, src/search.ts, src/dashboard.ts, src/tools.ts, test/helpers.ts, test/budget.test.ts, test/store.test.ts, test/roadmap.test.ts, test/health.test.ts, test/security.test.ts, test/license.test.ts, test/audit.test.ts, test/search.test.ts, test/dashboard.test.ts, test/integration.test.ts
 
 下一步: v2：按 M2 任务推进（OSV/相似度检索/依赖图）
+

@@ -796,7 +796,7 @@
       "title": "发布 GitHub v0.1.0 并提供一键 MCP 安装",
       "detail": "",
       "type": "chore",
-      "status": "backlog",
+      "status": "in_progress",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -806,7 +806,7 @@
         },
         {
           "text": "完成本地门禁与敏感信息检查",
-          "done": false
+          "done": true
         },
         {
           "text": "初始化 Git 并推送公开仓库",
@@ -830,10 +830,10 @@
       "result_note": "",
       "verification": "",
       "tags": [],
-      "author": "",
+      "author": "codex",
       "created": "2026-09-03T04:35:52.889Z",
-      "updated": "2026-09-03T04:35:52.889Z",
-      "started_at": null,
+      "updated": "2026-09-03T04:38:37.012Z",
+      "started_at": "2026-09-03T04:38:37.012Z",
       "completed_at": null
     }
   ]
