@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T05:39:14.994Z
+> 生成时间: 2026-09-03T05:58:27.523Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,11 +18,11 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [███████░░░] 67% M2 v2 增强（12/18）
+▶ [███████░░░] 72% M2 v2 增强（13/18）
 - ⚠️ 重构被挤出: M2 v2 增强 重构类占比 17% < 配额 20%
 
 ## 🎯 当前焦点
-- 🔄 T-031 统一所有本地 AI 编程助手的一键 MCP 安装命令（步骤 3/4）
+- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
 - 当前阶段: v0.1.2 unified installer
 
 ## 🩺 健康摘要
@@ -30,7 +30,7 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(12), package.json(9), src/index.ts(7) |
+| churn（变更率） | ⚠️ 热点 README.md(13), package.json(10), src/index.ts(8) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 7 条记录 |
 | 测试背书 | 12/12 个功能带测试 |
@@ -44,8 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 23 · backlog 7 · in_progress 1
-- [in_progress] T-031 统一所有本地 AI 编程助手的一键 MCP 安装命令 (feature, M2)
+- 总览: done 24 · backlog 7
 
 ## 🧩 功能清单
 ### src
@@ -70,6 +69,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-03 [codex] 发布 pm-mcp v0.1.2 统一安装入口：一个 npx setup 命令自动检测五类 AI 编程客户端，支持备份、dry-run、force、显式客户端和通用 JSON；CLI/MCP 双路径分流，npm 冷启动与 GitHub 双版本 CI 均通过。
+  - 改动: src/cli.ts, src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, install.ps1 等 10 个
 - 2026-09-03 [codex] 发布 @luckychen1993/pm-mcp@0.1.1 到 npm Registry：启用发布账号 2FA，统一包名/版本与安装命令，完成本地 gate、双版本 GitHub CI、匿名 Registry 元数据和全新缓存 MCP 冷启动验证，并创建 GitHub v0.1.1 Release。
   - 改动: package.json, package-lock.json, README.md, install.ps1, src/index.ts, scripts/create-pm-acceptance-profile.mts
 - 2026-09-03 [codex] 公开发布 pm-mcp v0.1.0：建立 Git 仓库并推送 GitHub，补齐固定 Release 标签的一键 MCP 安装、精简发布包和双版本 CI；保留首轮托管失败并修复报告排序与 SQLite 并发启动问题，远端 npx MCP smoke 通过。
@@ -78,8 +79,6 @@ flowchart LR
   - 改动: src/acceptance-model.ts, src/acceptance-evaluator.ts, src/acceptance-report.ts, src/acceptance-tools.ts, src/typescript-semantic.ts, src/polyglot-ast.ts, src/semantic-evidence.ts, src/semantic-evidence-store.ts 等 53 个
 - 2026-09-02 [codex] 完成跨文件/模块/语言语义治理层：结构化owner/接口/依赖策略，多生态manifest与真实质量矩阵，import/call/RPC/FFI图，循环/越界/影响分析，跨仓semver组合；完整gate与133项测试通过。
   - 改动: src/governance-model.ts, src/language-adapters.ts, src/language-dependencies.ts, src/semantic-graph.ts, src/semantic-parsers.ts, src/governance-audit.ts, src/portfolio.ts, src/governance-tools.ts 等 33 个
-- 2026-09-02 [codex] 完成20 GiB/约2.983亿行源码仓库基准：结构、watcher、快照、安全与许可证全部通过精确容量oracle；修复大批次物化、强制内容走查与跨项目内容缓存问题，原始JSON和人读报告已留存。
-  - 改动: scripts/benchmark-volume.mts, src/search.ts, src/index-store.ts, src/scan.ts, scripts/health-check.mts, test/search.test.ts, test/index-store.test.ts, package.json 等 14 个
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

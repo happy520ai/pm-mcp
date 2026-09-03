@@ -886,7 +886,7 @@
       "title": "统一所有本地 AI 编程助手的一键 MCP 安装命令",
       "detail": "",
       "type": "feature",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -904,7 +904,7 @@
         },
         {
           "text": "发布 npm/GitHub v0.1.2 并确认托管 CI",
-          "done": false
+          "done": true
         }
       ],
       "checkpoint": null,
@@ -921,14 +921,14 @@
         "scripts/create-pm-acceptance-profile.mts"
       ],
       "acceptance": "单一 npx setup 命令自动检测并配置支持的客户端；dry-run 不写；配置备份与坏 JSON fail-closed；npm 匿名冷启动 setup 与 MCP 路径均通过；GitHub CI 全绿",
-      "result_note": "",
-      "verification": "",
+      "result_note": "已发布统一跨平台 setup 命令，自动检测并配置 Codex、Claude Code、ZCode、Cursor 与 VS Code，同时保持无参数 MCP Server 启动兼容。",
+      "verification": "本地 191/191 与完整 gate PASS；GitHub Actions 33719778636 的 Node 22.18/24 全绿；npm @latest 全新缓存 setup 写配置成功，无参数 MCP smoke 返回 46 tools 且 init_project/get_status 成功。",
       "tags": [],
       "author": "codex",
       "created": "2026-09-03T05:34:27.799Z",
-      "updated": "2026-09-03T05:39:14.971Z",
+      "updated": "2026-09-03T05:58:27.466Z",
       "started_at": "2026-09-03T05:39:14.971Z",
-      "completed_at": null
+      "completed_at": "2026-09-03T05:58:27.466Z"
     }
   ]
 }
