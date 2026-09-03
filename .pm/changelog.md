@@ -2,6 +2,12 @@
 
 ## 2026-09-03 — codex
 
+发布 @luckychen1993/pm-mcp@0.1.1 到 npm Registry：启用发布账号 2FA，统一包名/版本与安装命令，完成本地 gate、双版本 GitHub CI、匿名 Registry 元数据和全新缓存 MCP 冷启动验证，并创建 GitHub v0.1.1 Release。
+
+改动文件（6）: package.json, package-lock.json, README.md, install.ps1, src/index.ts, scripts/create-pm-acceptance-profile.mts
+
+## 2026-09-03 — codex
+
 公开发布 pm-mcp v0.1.0：建立 Git 仓库并推送 GitHub，补齐固定 Release 标签的一键 MCP 安装、精简发布包和双版本 CI；保留首轮托管失败并修复报告排序与 SQLite 并发启动问题，远端 npx MCP smoke 通过。
 
 改动文件（16）: .gitattributes, .github/workflows/ci.yml, .gitignore, README.md, install.ps1, package.json, package-lock.json, src/dashboard.ts, src/index-db.ts, test/dashboard.test.ts, test/exploit.test.ts, test/integration.test.ts, test/runner.test.ts, test/scenario.test.ts, test/security.test.ts, .pm/acceptance/evidence/github-ci-first-failure-v0.1.0.md

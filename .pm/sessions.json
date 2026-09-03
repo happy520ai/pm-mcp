@@ -1,5 +1,5 @@
 {
-  "seq": 13,
+  "seq": 14,
   "sessions": [
     {
       "id": "S-0001",
@@ -366,6 +366,21 @@
         "test/scenario.test.ts",
         "test/security.test.ts",
         ".pm/acceptance/evidence/github-ci-first-failure-v0.1.0.md"
+      ],
+      "next_steps": []
+    },
+    {
+      "id": "S-0014",
+      "date": "2026-09-03T05:20:17.059Z",
+      "author": "codex",
+      "summary": "发布 @luckychen1993/pm-mcp@0.1.1 到 npm Registry：启用发布账号 2FA，统一包名/版本与安装命令，完成本地 gate、双版本 GitHub CI、匿名 Registry 元数据和全新缓存 MCP 冷启动验证，并创建 GitHub v0.1.1 Release。",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/index.ts",
+        "scripts/create-pm-acceptance-profile.mts"
       ],
       "next_steps": []
     }

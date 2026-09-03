@@ -1,5 +1,5 @@
 {
-  "seq": 6,
+  "seq": 7,
   "entries": [
     {
       "id": "D-0001",
@@ -98,6 +98,21 @@
         ".pm/acceptance/evidence/github-ci-first-failure-v0.1.0.md"
       ],
       "task_id": "T-029"
+    },
+    {
+      "id": "D-0007",
+      "date": "2026-09-03T05:20:17.024Z",
+      "author": "",
+      "symptom": "首次 npm publish 因账号未启用 2FA 返回 E403；完成发布后匿名元数据短暂返回 404。",
+      "root_cause": "npm 强制发布账号使用 2FA 或 bypass-2FA token；2026 发布时恶意软件扫描会让新版本在短时间内已有 dist-tag/access 但尚不可下载。",
+      "fix": "由用户在 npm 官方页面启用 auth-and-writes 2FA 后重新发布，并等待 Registry HTTP 200 再执行匿名冷安装。",
+      "verified_how": "匿名 npm view 显示 latest=0.1.1；空白 userconfig 和全新 cache 的 npx MCP smoke 返回 46 tools，init_project/get_status 成功。",
+      "files": [
+        "package.json",
+        "README.md",
+        "install.ps1"
+      ],
+      "task_id": "T-030"
     }
   ]
 }
