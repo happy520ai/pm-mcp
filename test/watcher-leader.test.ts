@@ -31,6 +31,13 @@ function markerPids(marker: string): number[] {
     .map(Number);
 }
 
+function unexpectedChildStderr(chunks: string[]): string {
+  return chunks.join("").replace(
+    /\(node:\d+\) ExperimentalWarning: SQLite is an experimental feature and might change at any time\r?\n(?:\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)\r?\n)?/g,
+    "",
+  ).trim();
+}
+
 function childProgram(moduleUrl: string): string {
   return `
     import fs from "node:fs";
@@ -59,6 +66,13 @@ async function stopChildren(children: ChildProcess[]): Promise<void> {
     }, 2_000).unref();
   })));
 }
+
+test("Node 22 SQLite 实验性提示不冒充 watcher 业务错误", () => {
+  const warning = "(node:123) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n" +
+    "(Use `node --trace-warnings ...` to show where the warning was created)\n";
+  assert.equal(unexpectedChildStderr([warning]), "");
+  assert.equal(unexpectedChildStderr([warning, "real watcher failure\n"]), "real watcher failure");
+});
 
 test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接管", { timeout: 30_000 }, async () => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), "pm-watcher-leader-"));
@@ -116,7 +130,8 @@ test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接�
     const afterFailover = [...new Set(markerPids(marker))];
     assert.equal(afterFailover.length, 2, `强杀后只能有一个新 owner 接管，实际 owner ${afterFailover.length} 个`);
     assert.notEqual(afterFailover[1], afterFailover[0]);
-    assert.deepEqual(failures, [], failures.join("\n"));
+    const unexpectedStderr = unexpectedChildStderr(failures);
+    assert.equal(unexpectedStderr, "", unexpectedStderr);
   } finally {
     await stopChildren(children);
     fs.rmSync(base, { recursive: true, force: true });

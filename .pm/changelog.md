@@ -2,6 +2,14 @@
 
 ## 2026-09-03 — codex
 
+修复 v0.1.4 第二次托管 CI 首败：精确过滤 Node 22 node:sqlite ExperimentalWarning，任何其他 watcher stderr 仍严格失败。
+
+改动文件（1）: test/watcher-leader.test.ts
+
+下一步: 提交并重跑完整 gate 与 Node 22.18/24 CI
+
+## 2026-09-03 — codex
+
 修复 v0.1.4 托管 CI 首败：Linux 空 SQLite 选举事务增加实际 header 写以物化唯一写锁；watcher 测试仅统计成功创建的唯一 owner。
 
 改动文件（2）: src/watcher-coordinator.ts, test/watcher-leader.test.ts

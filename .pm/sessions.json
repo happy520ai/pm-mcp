@@ -1,5 +1,5 @@
 {
-  "seq": 18,
+  "seq": 19,
   "sessions": [
     {
       "id": "S-0001",
@@ -457,6 +457,18 @@
       ],
       "next_steps": [
         "提交后重跑完整本地 gate 并推送新的 Node 22.18/24 CI"
+      ]
+    },
+    {
+      "id": "S-0019",
+      "date": "2026-09-03T09:20:24.115Z",
+      "author": "codex",
+      "summary": "修复 v0.1.4 第二次托管 CI 首败：精确过滤 Node 22 node:sqlite ExperimentalWarning，任何其他 watcher stderr 仍严格失败。",
+      "files": [
+        "test/watcher-leader.test.ts"
+      ],
+      "next_steps": [
+        "提交并重跑完整 gate 与 Node 22.18/24 CI"
       ]
     }
   ]
