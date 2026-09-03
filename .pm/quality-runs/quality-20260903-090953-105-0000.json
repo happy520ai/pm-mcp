@@ -1,0 +1,145 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-03T09:09:53.105Z",
+  "ok": true,
+  "reported_ok": true,
+  "execute": true,
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "5de4ab91a4fc9fdd34b0858c6a07cd6717512d7e45b924e218b83ef5995e73fc",
+      "files": 110,
+      "bytes": 1069402
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "5de4ab91a4fc9fdd34b0858c6a07cd6717512d7e45b924e218b83ef5995e73fc",
+      "files": 110,
+      "bytes": 1069402
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 45272,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 21322,
+        "stderr_bytes": 0,
+        "output_sha256": "165b08a1222b644a201851c43205ad2995408f15aa415047df061e6bacf212ce",
+        "tests": 226,
+        "passed": 226,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 5506,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 61,
+        "stderr_bytes": 0,
+        "output_sha256": "9a45091537eb0d267fb13f9268fe98d1a485b04ffc6baf33a0e059f00cb64ffd",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 9648,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 106,
+        "stderr_bytes": 0,
+        "output_sha256": "08babb1cd8e7eb72281f16f0bdde73569c577390106a0bffb0ab71448a477a6e",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "coverage",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 48628,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 26362,
+        "stderr_bytes": 0,
+        "output_sha256": "d01ffbd2d64d4d0dfeba582896d6877cd4ca3b7ebc70c43643aa61fa03178e77",
+        "tests": 226,
+        "passed": 226,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": {
+          "lines_pct": 95.52,
+          "branches_pct": 88.01,
+          "functions_pct": 94.54
+        }
+      },
+      "error": ""
+    }
+  ]
+}
