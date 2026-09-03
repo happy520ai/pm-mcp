@@ -45,9 +45,19 @@ export function buildDashboard(root: string): string {
     const dir = pmPath(root, "acceptance", "reports");
     const latest = fs.readdirSync(dir)
       .filter((name) => name.endsWith(".json") && !name.endsWith(".sha256.json"))
-      .map((name) => ({ name, mtime: fs.statSync(path.join(dir, name)).mtimeMs }))
-      .sort((a, b) => b.mtime - a.mtime || a.name.localeCompare(b.name))[0];
-    if (latest) latestAcceptance = JSON.parse(fs.readFileSync(path.join(dir, latest.name), "utf8"));
+      .flatMap((name) => {
+        try {
+          const report = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")) as typeof latestAcceptance;
+          const timestamp = report ? Date.parse(report.report_generated_at) : Number.NaN;
+          return Number.isFinite(timestamp) ? [{ name, timestamp, report }] : [];
+        } catch {
+          return [];
+        }
+      })
+      // Git checkout commonly gives every tracked report the same mtime, so
+      // report content—not filesystem metadata—must determine recency.
+      .sort((a, b) => b.timestamp - a.timestamp || b.name.localeCompare(a.name))[0];
+    if (latest) latestAcceptance = latest.report;
   } catch {
     // 尚未执行标准化验收。
   }

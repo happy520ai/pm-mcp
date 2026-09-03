@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { buildChangelog, buildDashboard } from "../src/dashboard.ts";
 import { loadFeatures, loadRoadmap, loadSessions, loadTasks, saveFeatures, saveRoadmap, saveSessions, saveTasks } from "../src/store.ts";
 import { FeatureSchema, MilestoneSchema, SessionSchema, TaskSchema, now } from "../src/types.ts";
@@ -51,4 +53,23 @@ test("changelog 由 sessions 生成且含改动文件", () => {
   const md = buildChangelog(root);
   assert.ok(md.includes("搭好登录表单"));
   assert.ok(md.includes("src/login.ts"));
+});
+
+test("仪表盘按报告生成时间选择最新验收，不依赖 checkout 后的文件 mtime", () => {
+  const root = mkProj({ "src/login.ts": "export const login = 1;\n" });
+  initTestProject(root);
+  const reports = path.join(root, ".pm", "acceptance", "reports");
+  fs.mkdirSync(reports, { recursive: true });
+  const summary = { errors: 0, requirements_passed: 1, requirements_total: 1 };
+  const oldFile = path.join(reports, "report-old.json");
+  const newFile = path.join(reports, "report-new.json");
+  fs.writeFileSync(oldFile, JSON.stringify({ report_generated_at: "2026-01-01T00:00:00.000Z", verdict: "accepted", summary }));
+  fs.writeFileSync(newFile, JSON.stringify({ report_generated_at: "2026-02-01T00:00:00.000Z", verdict: "accepted", summary }));
+  const sameMtime = new Date("2026-03-01T00:00:00.000Z");
+  fs.utimesSync(oldFile, sameMtime, sameMtime);
+  fs.utimesSync(newFile, sameMtime, sameMtime);
+
+  const md = buildDashboard(root);
+  assert.ok(md.includes("2026-02-01 00:00"), "应选择报告内容中生成时间最新的一份");
+  assert.ok(!md.includes("2026-01-01 00:00"));
 });

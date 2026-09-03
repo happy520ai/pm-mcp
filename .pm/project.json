@@ -3,7 +3,7 @@
   "description": "AI 编码项目的单一事实来源 + 健康台账 MCP 服务",
   "stack": [
     "TypeScript",
-    "Node.js>=22.13 (dist); >=23 (source/health-check)"
+    "Node.js>=22.18"
   ],
   "goals": [],
   "phase": "v0.1.0 public release",
@@ -21,5 +21,5 @@
     "outputBudgetLines": 150
   },
   "created": "2026-09-01T16:30:56.142Z",
-  "updated": "2026-09-03T04:35:52.847Z"
+  "updated": "2026-09-03T04:44:13.762Z"
 }

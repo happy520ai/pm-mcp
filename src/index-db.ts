@@ -34,9 +34,11 @@ export function getIndex(root: string): DatabaseSync {
   if (db) return db;
   fs.mkdirSync(pmPath(abs), { recursive: true });
   db = new DatabaseSync(pmPath(abs, "index.db"));
+  // journal_mode=WAL itself may need an exclusive lock. Configure the wait
+  // policy first so two MCP clients starting together do not race and crash.
+  db.exec("PRAGMA busy_timeout=8000");
   db.exec("PRAGMA journal_mode=WAL");
   db.exec("PRAGMA synchronous=NORMAL");
-  db.exec("PRAGMA busy_timeout=8000");
   db.exec(SCHEMA);
   dbs.set(abs, db);
   return db;

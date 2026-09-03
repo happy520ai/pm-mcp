@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T04:38:37.027Z
+> 生成时间: 2026-09-03T04:44:13.782Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -81,4 +81,4 @@ flowchart LR
   - 改动: src/index-store.ts, scripts/health-check.mts, test/index-store.test.ts, README.md
 
 ---
-stack: TypeScript, Node.js>=22.13 (dist); >=23 (source/health-check) · modules: src, test, scripts · exposure: public · license: MIT
+stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT
