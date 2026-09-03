@@ -935,7 +935,7 @@
       "title": "解决多 Agent 并行读取、并发写入与重复工具调用",
       "detail": "",
       "type": "feature",
-      "status": "backlog",
+      "status": "in_progress",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -949,7 +949,7 @@
         },
         {
           "text": "完成并发、冲突、锁存活与全量门禁验证",
-          "done": false
+          "done": true
         },
         {
           "text": "发布 npm/GitHub v0.1.3 并完成冷启动验证",
@@ -977,10 +977,10 @@
       "result_note": "",
       "verification": "",
       "tags": [],
-      "author": "",
+      "author": "codex",
       "created": "2026-09-03T06:38:14.716Z",
-      "updated": "2026-09-03T06:38:14.716Z",
-      "started_at": null,
+      "updated": "2026-09-03T06:43:35.050Z",
+      "started_at": "2026-09-03T06:43:35.050Z",
       "completed_at": null
     }
   ]

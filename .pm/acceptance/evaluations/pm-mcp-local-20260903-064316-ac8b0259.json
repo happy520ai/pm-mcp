@@ -1,0 +1,784 @@
+{
+  "schema_version": 1,
+  "report_id": "pm-mcp-local-20260903-064316-ac8b0259",
+  "evaluation_id": "EVAL-PM-MCP-LOCAL-1.0.0",
+  "baseline_id": "pm-mcp-local-release",
+  "baseline_version": "1.0.0",
+  "evaluated_at": "2026-09-03T06:43:18.734Z",
+  "report_generated_at": "2026-09-03T06:43:18.735Z",
+  "evaluator": {
+    "name": "Codex machine-assisted evaluator",
+    "organization": "pm-mcp development",
+    "role": "first-party evaluator",
+    "independent": false
+  },
+  "stage_results": [
+    {
+      "stage": "define",
+      "status": "completed",
+      "started_at": "2026-09-02T16:03:18.948Z",
+      "completed_at": "2026-09-02T16:03:38.734Z",
+      "artifact_evidence_ids": [
+        "EV-BASELINE"
+      ],
+      "result_note": "Product, intended use, environment and exclusions were frozen in the approved baseline."
+    },
+    {
+      "stage": "design",
+      "status": "completed",
+      "started_at": "2026-09-02T16:03:18.948Z",
+      "completed_at": "2026-09-02T16:03:38.734Z",
+      "artifact_evidence_ids": [
+        "EV-BASELINE"
+      ],
+      "result_note": "Nine characteristics, quantitative requirements, risks, tests and evidence pointers were designed before execution."
+    },
+    {
+      "stage": "plan",
+      "status": "completed",
+      "started_at": "2026-09-02T16:03:18.948Z",
+      "completed_at": "2026-09-02T16:03:38.734Z",
+      "artifact_evidence_ids": [
+        "EV-BASELINE"
+      ],
+      "result_note": "Entry, stop, retest and reporting rules were frozen; the readable plan is supplementary evidence."
+    },
+    {
+      "stage": "execute",
+      "status": "completed",
+      "started_at": "2026-09-02T16:03:38.734Z",
+      "completed_at": "2026-09-03T06:43:18.499Z",
+      "artifact_evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST",
+        "EV-AUDIT",
+        "EV-BENCH",
+        "EV-FIRST-FAILURE"
+      ],
+      "result_note": "The first failed coverage run was preserved; remediation added tests without lowering thresholds, followed by fresh quality and evidence collection."
+    },
+    {
+      "stage": "conclude",
+      "status": "completed",
+      "started_at": "2026-09-03T06:43:18.499Z",
+      "completed_at": "2026-09-03T06:43:18.734Z",
+      "artifact_evidence_ids": [
+        "EV-PLAN",
+        "EV-MEASURE",
+        "EV-TEST",
+        "EV-AUDIT",
+        "EV-BENCH"
+      ],
+      "result_note": "All evidence hashes and frozen JSON assertions are ready for evaluator recomputation and immutable report generation."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "EV-BASELINE",
+      "kind": "review",
+      "locator": ".pm/acceptance/baselines/pm-mcp-local-release/1.0.0.json",
+      "captured_at": "2026-09-02T16:03:38.734Z",
+      "sha256": "03acf276db2690dbe58d331032bf651bd3d283f74ad5785d943ae5b9648238f4",
+      "produced_by": "pm-mcp baseline approval transaction",
+      "summary": "Immutable approved quality baseline and evaluation plan."
+    },
+    {
+      "id": "EV-PLAN",
+      "kind": "review",
+      "locator": ".pm/acceptance/evidence/evaluation-plan.md",
+      "captured_at": "2026-09-02T16:08:42.024Z",
+      "sha256": "8965eb4440384bcd17e2adc0c41c8cd01cb55ce5c013cef05fcadd13bd788457",
+      "produced_by": "Codex first-party evaluation planner",
+      "summary": "Human-readable bounded evaluation plan and stop conditions."
+    },
+    {
+      "id": "EV-FIRST-FAILURE",
+      "kind": "review",
+      "locator": ".pm/acceptance/evidence/first-failure.md",
+      "captured_at": "2026-09-02T16:13:08.961Z",
+      "sha256": "6d29008ee6dc4f235e38984d312bc93233a2a0fec37e21c508a29ad4daea2596",
+      "produced_by": "Node.js coverage gate",
+      "summary": "Preserved first failing coverage result before remediation."
+    },
+    {
+      "id": "EV-MEASURE",
+      "kind": "measurement",
+      "locator": ".pm/acceptance/evidence/product-evidence-20260903-064316-ac8b0259.json",
+      "captured_at": "2026-09-03T06:43:18.499Z",
+      "sha256": "694de5764b44b0f3acc8f0e145e1bff45744f62d3f2f85cff993c4868a7bac37",
+      "produced_by": "collect-acceptance-evidence.mts",
+      "summary": "Machine-collected numeric measurements bound to the current source tree."
+    },
+    {
+      "id": "EV-TEST",
+      "kind": "test_result",
+      "locator": ".pm/acceptance/evidence/product-evidence-20260903-064316-ac8b0259.json",
+      "captured_at": "2026-09-03T06:43:18.499Z",
+      "sha256": "694de5764b44b0f3acc8f0e145e1bff45744f62d3f2f85cff993c4868a7bac37",
+      "produced_by": "npm quality and MCP integration collector",
+      "summary": "Machine test, build, typecheck, coverage and stdio inventory results."
+    },
+    {
+      "id": "EV-AUDIT",
+      "kind": "audit",
+      "locator": ".pm/acceptance/evidence/product-evidence-20260903-064316-ac8b0259.json",
+      "captured_at": "2026-09-03T06:43:18.499Z",
+      "sha256": "694de5764b44b0f3acc8f0e145e1bff45744f62d3f2f85cff993c4868a7bac37",
+      "produced_by": "pm-mcp audit/governance/security collectors",
+      "summary": "Machine governance, documentation, security and maintainability audit results."
+    },
+    {
+      "id": "EV-BENCH",
+      "kind": "benchmark",
+      "locator": ".pm/acceptance/evidence/product-evidence-20260903-064316-ac8b0259.json",
+      "captured_at": "2026-09-03T06:43:18.499Z",
+      "sha256": "694de5764b44b0f3acc8f0e145e1bff45744f62d3f2f85cff993c4868a7bac37",
+      "produced_by": "pm-mcp volume benchmark verifier",
+      "summary": "Verified digest and oracle summary for the 20 GiB qualification run."
+    }
+  ],
+  "measurements": [
+    {
+      "requirement_id": "QR-FS-TOOLS",
+      "observed_value": 46,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FS-RESOURCES",
+      "observed_value": 7,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FS-PROMPTS",
+      "observed_value": 5,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FS-TESTS",
+      "observed_value": 200,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-CAPACITY",
+      "observed_value": 20,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-ORACLE",
+      "observed_value": 1,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-READ",
+      "observed_value": 1,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-RSS",
+      "observed_value": 500.11,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-DURATION",
+      "observed_value": 2409.103,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-WARM",
+      "observed_value": 3.034186,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-STEADY",
+      "observed_value": 0.053177,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-PE-SNAPSHOT",
+      "observed_value": 0.03479,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-CO-STDIO",
+      "observed_value": 1,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-IN-DOCS",
+      "observed_value": 1,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-QUALITY",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-FAILED",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-CANCELLED",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-SKIPPED",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-TODO",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-STABLE",
+      "observed_value": 1,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-RE-CURRENT",
+      "observed_value": 1,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-SE-OPEN",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-SE-NOTE",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-MA-LOC",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-MA-LINES",
+      "observed_value": 95.71,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-MA-BRANCH",
+      "observed_value": 88.33,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-MA-FUNCTION",
+      "observed_value": 94.18,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FL-LANG",
+      "observed_value": 8,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FL-ASSURANCE",
+      "observed_value": 100,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FL-RESOLUTION",
+      "observed_value": 100,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FL-FALLBACK",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FL-UNRESOLVED",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "requirement_id": "QR-FL-VIOLATIONS",
+      "observed_value": 0,
+      "measured_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    }
+  ],
+  "test_results": [
+    {
+      "test_id": "AT-FS-TOOLS",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/mcp_tools equal 46."
+    },
+    {
+      "test_id": "AT-FS-RESOURCES",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/mcp_resources equal 7."
+    },
+    {
+      "test_id": "AT-FS-PROMPTS",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/mcp_prompts equal 5."
+    },
+    {
+      "test_id": "AT-FS-TESTS",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/tests_total at_least 160."
+    },
+    {
+      "test_id": "AT-PE-CAPACITY",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_payload_gib at_least 20."
+    },
+    {
+      "test_id": "AT-PE-ORACLE",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_oracle_consistent equal 1."
+    },
+    {
+      "test_id": "AT-PE-READ",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_disk_read_complete equal 1."
+    },
+    {
+      "test_id": "AT-PE-RSS",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_peak_rss_mib at_most 1024."
+    },
+    {
+      "test_id": "AT-PE-DURATION",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_total_seconds at_most 3600."
+    },
+    {
+      "test_id": "AT-PE-WARM",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_warm_walk_seconds at_most 5."
+    },
+    {
+      "test_id": "AT-PE-STEADY",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_steady_audit_seconds at_most 1."
+    },
+    {
+      "test_id": "AT-PE-SNAPSHOT",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "result_note": "Machine assertion passed: /metrics/volume_snapshot_seconds at_most 3."
+    },
+    {
+      "test_id": "AT-CO-STDIO",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/mcp_inventory_ok equal 1."
+    },
+    {
+      "test_id": "AT-IN-DOCS",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/documentation_inventory_match equal 1."
+    },
+    {
+      "test_id": "AT-RE-QUALITY",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/quality_failed_or_blocked equal 0."
+    },
+    {
+      "test_id": "AT-RE-FAILED",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/tests_failed equal 0."
+    },
+    {
+      "test_id": "AT-RE-CANCELLED",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/tests_cancelled equal 0."
+    },
+    {
+      "test_id": "AT-RE-SKIPPED",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/tests_skipped equal 0."
+    },
+    {
+      "test_id": "AT-RE-TODO",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/tests_todo equal 0."
+    },
+    {
+      "test_id": "AT-RE-STABLE",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/quality_source_stable equal 1."
+    },
+    {
+      "test_id": "AT-RE-CURRENT",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/quality_source_matches_current equal 1."
+    },
+    {
+      "test_id": "AT-SE-OPEN",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/security_open_total equal 0."
+    },
+    {
+      "test_id": "AT-SE-NOTE",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/security_accepted_without_note equal 0."
+    },
+    {
+      "test_id": "AT-MA-LOC",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/implementation_files_over_500 equal 0."
+    },
+    {
+      "test_id": "AT-MA-LINES",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/coverage_lines_pct at_least 90."
+    },
+    {
+      "test_id": "AT-MA-BRANCH",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/coverage_branches_pct at_least 85."
+    },
+    {
+      "test_id": "AT-MA-FUNCTION",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "result_note": "Machine assertion passed: /metrics/coverage_functions_pct at_least 90."
+    },
+    {
+      "test_id": "AT-FL-LANG",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/built_in_ast_languages at_least 8."
+    },
+    {
+      "test_id": "AT-FL-ASSURANCE",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/semantic_assurance_pct equal 100."
+    },
+    {
+      "test_id": "AT-FL-RESOLUTION",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/internal_resolution_pct equal 100."
+    },
+    {
+      "test_id": "AT-FL-FALLBACK",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/fallback_files equal 0."
+    },
+    {
+      "test_id": "AT-FL-UNRESOLVED",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/unresolved_references equal 0."
+    },
+    {
+      "test_id": "AT-FL-VIOLATIONS",
+      "status": "passed",
+      "executed_at": "2026-09-03T06:43:18.499Z",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "result_note": "Machine assertion passed: /metrics/governance_violations equal 0."
+    }
+  ],
+  "residual_risks": [
+    {
+      "risk_id": "R-FUNCTIONAL",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "risk_id": "R-PERFORMANCE",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "risk_id": "R-COMPATIBILITY",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "risk_id": "R-INTERACTION",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "risk_id": "R-RELIABILITY",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "risk_id": "R-SECURITY",
+      "residual_level": "low",
+      "disposition": "accepted",
+      "acceptance": {
+        "accepted_by": "project-owner",
+        "accepted_at": "2026-09-02T16:03:38.734Z",
+        "rationale": "Remaining accepted scanner findings are documented synthetic fixtures or scanner rule literals; open findings are still prohibited.",
+        "review_due": "2026-11-30T16:03:38.734Z"
+      },
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "risk_id": "R-MAINTAINABILITY",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "risk_id": "R-FLEXIBILITY",
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "acceptance": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    }
+  ]
+}

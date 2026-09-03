@@ -1,0 +1,133 @@
+{
+  "taken_at": "2026-09-03T06:42:15.057Z",
+  "file": ".pm/snapshots/snap-20260903-064215.json",
+  "total_files": 104,
+  "total_loc": 19373,
+  "test_files": 37,
+  "skip_markers": 4,
+  "deps": [
+    "@ast-grep/lang-csharp",
+    "@ast-grep/lang-go",
+    "@ast-grep/lang-java",
+    "@ast-grep/lang-kotlin",
+    "@ast-grep/lang-python",
+    "@ast-grep/lang-rust",
+    "@ast-grep/napi",
+    "@modelcontextprotocol/sdk",
+    "typescript",
+    "zod",
+    "@types/node"
+  ],
+  "by_ext": [
+    {
+      "ext": "ts",
+      "files": 82,
+      "loc": 16607
+    },
+    {
+      "ext": "mts",
+      "files": 10,
+      "loc": 1947
+    },
+    {
+      "ext": "md",
+      "files": 3,
+      "loc": 514
+    },
+    {
+      "ext": "ps1",
+      "files": 1,
+      "loc": 130
+    },
+    {
+      "ext": "json",
+      "files": 3,
+      "loc": 101
+    },
+    {
+      "ext": "(无扩展名)",
+      "files": 3,
+      "loc": 42
+    },
+    {
+      "ext": "yml",
+      "files": 1,
+      "loc": 32
+    }
+  ],
+  "top_dirs": [
+    {
+      "dir": "src",
+      "files": 45,
+      "loc": 10783
+    },
+    {
+      "dir": "test",
+      "files": 37,
+      "loc": 5824
+    },
+    {
+      "dir": "scripts",
+      "files": 10,
+      "loc": 1947
+    },
+    {
+      "dir": ".",
+      "files": 10,
+      "loc": 682
+    },
+    {
+      "dir": ".zcode/plans",
+      "files": 1,
+      "loc": 105
+    },
+    {
+      "dir": ".github/workflows",
+      "files": 1,
+      "loc": 32
+    }
+  ],
+  "largest_files": [
+    {
+      "path": "src/language-adapters.ts",
+      "loc": 499
+    },
+    {
+      "path": "src/semantic-graph.ts",
+      "loc": 490
+    },
+    {
+      "path": "src/acceptance-model.ts",
+      "loc": 486
+    },
+    {
+      "path": "src/index-store.ts",
+      "loc": 457
+    },
+    {
+      "path": "src/portfolio.ts",
+      "loc": 447
+    },
+    {
+      "path": "test/semantic-coverage.test.ts",
+      "loc": 415
+    },
+    {
+      "path": "test/exploit.test.ts",
+      "loc": 400
+    },
+    {
+      "path": "src/audit.ts",
+      "loc": 392
+    },
+    {
+      "path": "scripts/benchmark-volume.mts",
+      "loc": 375
+    },
+    {
+      "path": "src/acceptance-report.ts",
+      "loc": 368
+    }
+  ],
+  "index_coverage_pct": 25
+}
