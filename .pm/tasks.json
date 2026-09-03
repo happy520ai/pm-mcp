@@ -841,7 +841,7 @@
       "title": "发布 @luckychen1993/pm-mcp 到 npm Registry",
       "detail": "",
       "type": "chore",
-      "status": "backlog",
+      "status": "in_progress",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -851,7 +851,7 @@
         },
         {
           "text": "执行本地完整门禁与发布包检查",
-          "done": false
+          "done": true
         },
         {
           "text": "发布 npm 并完成匿名 registry/npx 验证",
@@ -875,10 +875,10 @@
       "result_note": "",
       "verification": "",
       "tags": [],
-      "author": "",
+      "author": "codex",
       "created": "2026-09-03T04:58:40.753Z",
-      "updated": "2026-09-03T04:58:40.753Z",
-      "started_at": null,
+      "updated": "2026-09-03T05:01:33.798Z",
+      "started_at": "2026-09-03T05:01:33.798Z",
       "completed_at": null
     }
   ]
