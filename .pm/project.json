@@ -1,0 +1,25 @@
+{
+  "name": "pm-mcp",
+  "description": "AI 编码项目的单一事实来源 + 健康台账 MCP 服务",
+  "stack": [
+    "TypeScript",
+    "Node.js>=22.13 (dist); >=23 (source/health-check)"
+  ],
+  "goals": [],
+  "phase": "v0.1.0 public release",
+  "modules": [
+    "src",
+    "test",
+    "scripts"
+  ],
+  "exposure": "public",
+  "license": "MIT",
+  "budgets": {
+    "maxFileLoc": 500,
+    "refactorQuotaPct": 20,
+    "sessionBlastRadius": 15,
+    "outputBudgetLines": 150
+  },
+  "created": "2026-09-01T16:30:56.142Z",
+  "updated": "2026-09-03T04:35:52.847Z"
+}

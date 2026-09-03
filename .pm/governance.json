@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "modules": [
+    {
+      "id": "pm-mcp",
+      "name": "pm-mcp",
+      "roots": [
+        "."
+      ],
+      "kind": "tool",
+      "owners": [
+        "project-maintainers"
+      ],
+      "languages": [
+        "typescript"
+      ],
+      "public_interfaces": [
+        "mcp-stdio"
+      ],
+      "depends_on": [],
+      "allowed_dependencies": [],
+      "denied_dependencies": []
+    }
+  ],
+  "interfaces": [
+    {
+      "id": "mcp-stdio",
+      "kind": "mcp",
+      "provider": "pm-mcp",
+      "consumers": [],
+      "contract_files": [
+        "src/index.ts"
+      ],
+      "version": "0.1.0"
+    }
+  ],
+  "repositories": [
+    {
+      "id": "pm-mcp",
+      "name": "pm-mcp",
+      "root": ".",
+      "version": "0.1.0",
+      "dependencies": []
+    }
+  ],
+  "policies": {
+    "enforce_ownership": true,
+    "enforce_declared_dependencies": true,
+    "fail_on_unresolved": true,
+    "enforce_public_interfaces": true,
+    "minimum_coverage_pct": 80,
+    "minimum_semantic_assurance": "ast",
+    "fail_on_semantic_fallback": true,
+    "required_quality_kinds": [
+      "test",
+      "build",
+      "typecheck",
+      "coverage"
+    ]
+  }
+}

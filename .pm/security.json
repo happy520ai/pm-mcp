@@ -1,0 +1,161 @@
+{
+  "findings": [
+    {
+      "id": "SEC-001",
+      "rule": "danger.eval",
+      "severity": "medium",
+      "file": "src/security.ts",
+      "line": 44,
+      "fingerprint": "c857b0524d1995dc",
+      "status": "accepted",
+      "note": "扫描器源码中内置规则的正则样例文本（有意为之），非真实危险调用",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-002",
+      "rule": "danger.new-function",
+      "severity": "medium",
+      "file": "src/security.ts",
+      "line": 45,
+      "fingerprint": "77664ac4000cf5f4",
+      "status": "accepted",
+      "note": "扫描器源码中内置规则的正则样例文本（有意为之），非真实危险调用",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-003",
+      "rule": "secret.aws-access-key",
+      "severity": "high",
+      "file": "test/integration.test.ts",
+      "line": 13,
+      "fingerprint": "9fdebcdc7003ace9",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-004",
+      "rule": "secret.aws-access-key",
+      "severity": "high",
+      "file": "test/security.test.ts",
+      "line": 6,
+      "fingerprint": "19b8611530ef9c04",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-005",
+      "rule": "secret.openai-key",
+      "severity": "high",
+      "file": "test/security.test.ts",
+      "line": 7,
+      "fingerprint": "90b3ba870d0cc827",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-006",
+      "rule": "danger.eval",
+      "severity": "medium",
+      "file": "test/security.test.ts",
+      "line": 12,
+      "fingerprint": "984f1acec56b65c3",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-007",
+      "rule": "danger.tls-disabled",
+      "severity": "high",
+      "file": "test/security.test.ts",
+      "line": 12,
+      "fingerprint": "12ce49d772809f63",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-01T16:30:57.107Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-008",
+      "rule": "secret.aws-access-key",
+      "severity": "high",
+      "file": "test/exploit.test.ts",
+      "line": 34,
+      "fingerprint": "505b98057391464d",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档公开示例 key，见测试文件内注释），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-02T03:30:50.344Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-009",
+      "rule": "secret.aws-access-key",
+      "severity": "high",
+      "file": "test/scenario.test.ts",
+      "line": 15,
+      "fingerprint": "960a27871269a2f1",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档公开示例 key，见测试文件内注释），用于验证扫描器检出能力，非真实凭据",
+      "first_seen": "2026-09-02T03:30:50.344Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-010",
+      "rule": "secret.aws-access-key",
+      "severity": "high",
+      "file": "test/runner.test.ts",
+      "line": 48,
+      "fingerprint": "b891e642fab3668e",
+      "status": "accepted",
+      "note": "测试 fixture 中的伪造样本值（AWS 官方文档公开示例 key，非真实凭据），用于验证扫描器检出能力；与本仓库已接受的 SEC-003/004/005/008/009 同类",
+      "first_seen": "2026-09-02T04:00:34.757Z",
+      "last_seen": "2026-09-03T01:03:55.757Z"
+    },
+    {
+      "id": "SEC-011",
+      "rule": "danger.sql-concat",
+      "severity": "high",
+      "file": "src/index-store.ts",
+      "line": 285,
+      "fingerprint": "3addfb215be99640",
+      "status": "fixed",
+      "note": "SQL 与字符串拼接/插值（注入风险）（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-09-02T08:58:57.140Z",
+      "last_seen": "2026-09-02T10:03:11.662Z"
+    },
+    {
+      "id": "SEC-012",
+      "rule": "danger.eval",
+      "severity": "medium",
+      "file": "test/runner.test.ts",
+      "line": 106,
+      "fingerprint": "84730fd139b4c22f",
+      "status": "fixed",
+      "note": "eval() 动态执行（注入风险）（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-09-02T11:10:29.586Z",
+      "last_seen": "2026-09-02T11:10:29.586Z"
+    },
+    {
+      "id": "SEC-013",
+      "rule": "danger.eval",
+      "severity": "medium",
+      "file": "test/tooling-coverage.test.ts",
+      "line": 189,
+      "fingerprint": "832ff04fd4f94abc",
+      "status": "fixed",
+      "note": "eval() 动态执行（注入风险）（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-09-02T18:00:40.447Z",
+      "last_seen": "2026-09-03T00:00:37.252Z"
+    }
+  ],
+  "last_scan": "2026-09-03T01:03:55.757Z"
+}

@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "run_id": "48e7f896-dc50-4114-8b64-97c3ef4f27b5",
+  "status": "complete",
+  "started_at": "2026-09-02T11:59:35.363Z",
+  "request": {
+    "payload_bytes": "8388608",
+    "payload_gib": 0.0078125,
+    "file_bytes": 65536,
+    "files": 128,
+    "full_audit": true
+  },
+  "environment": {
+    "node": "v25.8.1",
+    "platform": "win32",
+    "release": "10.0.19045",
+    "arch": "x64",
+    "logical_cpus": 6,
+    "total_memory_bytes": 17116467200,
+    "free_memory_at_start_bytes": 4432109568,
+    "temp_base": "E:\\UserData\\Administrator\\Temp",
+    "temp_volume": "E:\\",
+    "note": "warm-after-write synthetic benchmark; not a cold-disk or production workload"
+  },
+  "paths": {
+    "fixture_root": "E:\\UserData\\Administrator\\Temp\\pm-mcp-volume-qn4Jn1",
+    "result": "E:\\通用型项目管理\\.pm\\benchmarks\\volume-smoke-20260902.json"
+  },
+  "disk": {
+    "free_before_bytes": "73463631872",
+    "reserve_bytes": "10737418240",
+    "free_current_bytes": "73455169536",
+    "free_after_cleanup_bytes": "73463623680"
+  },
+  "phases": {
+    "generate": {
+      "duration_ms": 70.861,
+      "cpu_user_ms": 31,
+      "cpu_system_ms": 31,
+      "rss_after_bytes": 79233024,
+      "max_rss_kib": 81112,
+      "files_written": 128,
+      "logical_bytes_written": "8388608",
+      "free_after_bytes": "73455169536",
+      "volume_free_delta_bytes": "8462336"
+    },
+    "filesystem_oracle": {
+      "duration_ms": 14.8,
+      "cpu_user_ms": 16,
+      "cpu_system_ms": 0,
+      "rss_after_bytes": 79298560,
+      "max_rss_kib": 81112,
+      "files": 128,
+      "bytes": "8388608",
+      "min_file_bytes": 65536,
+      "max_file_bytes": 65536,
+      "all_below_2_mib": true,
+      "sample_sha256": {
+        "src/module-00000/file-0000000.ts": "9b725b4a91a0dc391e8306792b3c59abfb81938720825f27e4374604d35d05b3",
+        "src/module-00000/file-0000064.ts": "8736abfbe1bf053fbe52ed2836683e9f98a5bf3a9f413a16c58481c0def28700",
+        "src/module-00000/file-0000127.ts": "4bb187097d78dd64104fe18093fd851fd29bee61d8d308d54d0f6131d86d4a04"
+      }
+    },
+    "first_structure_walk": {
+      "duration_ms": 204.179,
+      "cpu_user_ms": 94,
+      "cpu_system_ms": 78,
+      "rss_after_bytes": 84422656,
+      "max_rss_kib": 82488,
+      "walk": {
+        "totalFiles": 128,
+        "changed": 128,
+        "deleted": 0,
+        "hits": 0,
+        "skippedDeep": 0
+      },
+      "oracle": {
+        "files": 128,
+        "bytes": 8388608,
+        "loc": 145024,
+        "oversize": 0,
+        "contentOk": 128,
+        "skip": 0
+      },
+      "expected_loc": 145024
+    },
+    "warm_structure_walk": {
+      "duration_ms": 14.343,
+      "cpu_user_ms": 0,
+      "cpu_system_ms": 16,
+      "rss_after_bytes": 84434944,
+      "max_rss_kib": 82488,
+      "walk": {
+        "totalFiles": 128,
+        "changed": 0,
+        "deleted": 0,
+        "hits": 128,
+        "skippedDeep": 0
+      },
+      "oracle": {
+        "files": 128,
+        "bytes": 8388608,
+        "loc": 145024,
+        "oversize": 0,
+        "contentOk": 128,
+        "skip": 0
+      }
+    },
+    "watcher_start_reconcile": {
+      "duration_ms": 15.281,
+      "cpu_user_ms": 15,
+      "cpu_system_ms": 0,
+      "rss_after_bytes": 84471808,
+      "max_rss_kib": 82496,
+      "used": "walk",
+      "oracle": {
+        "files": 128,
+        "bytes": 8388608,
+        "loc": 145024,
+        "oversize": 0,
+        "contentOk": 128,
+        "skip": 0
+      }
+    },
+    "watcher_steady_audit_structure": {
+      "duration_ms": 11.032,
+      "cpu_user_ms": 0,
+      "cpu_system_ms": 15,
+      "rss_after_bytes": 84598784,
+      "max_rss_kib": 82620,
+      "used_watcher_sql": true,
+      "report_lines": 42,
+      "oracle": {
+        "files": 128,
+        "bytes": 8388608,
+        "loc": 145024,
+        "oversize": 0,
+        "contentOk": 128,
+        "skip": 0
+      }
+    },
+    "snapshot": {
+      "duration_ms": 3.198,
+      "cpu_user_ms": 0,
+      "cpu_system_ms": 0,
+      "rss_after_bytes": 84602880,
+      "max_rss_kib": 82624,
+      "total_files": 128,
+      "total_loc": 145024
+    },
+    "watcher_restart_offline_replace": {
+      "duration_ms": 17.018,
+      "cpu_user_ms": 0,
+      "cpu_system_ms": 16,
+      "rss_after_bytes": 84471808,
+      "max_rss_kib": 82640,
+      "fresh_before_reconcile": false,
+      "used": "walk",
+      "steady_after": "watcher",
+      "oracle": {
+        "files": 128,
+        "bytes": 8388608,
+        "loc": 145024,
+        "oversize": 0,
+        "contentOk": 128,
+        "skip": 0
+      }
+    },
+    "security_content_scan": {
+      "duration_ms": 937.883,
+      "cpu_user_ms": 797,
+      "cpu_system_ms": 47,
+      "rss_after_bytes": 121331712,
+      "max_rss_kib": 118492,
+      "disk_read_files": 128,
+      "disk_read_bytes": "8388608",
+      "cache_hits": 0,
+      "open_findings": 0,
+      "high_findings": 0
+    },
+    "license_content_scan": {
+      "duration_ms": 111.967,
+      "cpu_user_ms": 16,
+      "cpu_system_ms": 31,
+      "rss_after_bytes": 121872384,
+      "max_rss_kib": 119020,
+      "disk_read_files": 128,
+      "disk_read_bytes": "8388608",
+      "cache_hits": 0,
+      "report_lines": 16
+    }
+  },
+  "cleanup": {
+    "attempted": true,
+    "verified": true,
+    "removed": true,
+    "detail": "已删除 E:\\UserData\\Administrator\\Temp\\pm-mcp-volume-qn4Jn1"
+  },
+  "finished_at": "2026-09-02T11:59:36.845Z"
+}

@@ -1,0 +1,111 @@
+{
+  "taken_at": "2026-09-02T10:18:48.389Z",
+  "file": ".pm/snapshots/snap-20260902-101848.json",
+  "total_files": 43,
+  "total_loc": 6943,
+  "test_files": 17,
+  "skip_markers": 4,
+  "deps": [
+    "@modelcontextprotocol/sdk",
+    "zod",
+    "@types/node",
+    "typescript"
+  ],
+  "by_ext": [
+    {
+      "ext": "ts",
+      "files": 34,
+      "loc": 6276
+    },
+    {
+      "ext": "md",
+      "files": 3,
+      "loc": 416
+    },
+    {
+      "ext": "mts",
+      "files": 1,
+      "loc": 171
+    },
+    {
+      "ext": "json",
+      "files": 2,
+      "loc": 52
+    },
+    {
+      "ext": "(无扩展名)",
+      "files": 2,
+      "loc": 28
+    }
+  ],
+  "top_dirs": [
+    {
+      "dir": "src",
+      "files": 17,
+      "loc": 4306
+    },
+    {
+      "dir": "test",
+      "files": 17,
+      "loc": 1970
+    },
+    {
+      "dir": ".",
+      "files": 7,
+      "loc": 391
+    },
+    {
+      "dir": "scripts",
+      "files": 1,
+      "loc": 171
+    },
+    {
+      "dir": ".zcode/plans",
+      "files": 1,
+      "loc": 105
+    }
+  ],
+  "largest_files": [
+    {
+      "path": "src/tools.ts",
+      "loc": 892
+    },
+    {
+      "path": "src/index-store.ts",
+      "loc": 525
+    },
+    {
+      "path": "src/audit.ts",
+      "loc": 382
+    },
+    {
+      "path": "test/exploit.test.ts",
+      "loc": 376
+    },
+    {
+      "path": "src/scan.ts",
+      "loc": 334
+    },
+    {
+      "path": "src/security.ts",
+      "loc": 288
+    },
+    {
+      "path": "src/types.ts",
+      "loc": 280
+    },
+    {
+      "path": "src/search.ts",
+      "loc": 276
+    },
+    {
+      "path": "src/license.ts",
+      "loc": 259
+    },
+    {
+      "path": "test/integrity.test.ts",
+      "loc": 246
+    }
+  ],
+  "index_coverage_pct": 14
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.zcode/
+*.log
+*.tmp
+.coverage/
+*.tgz
+.pm/index.db*

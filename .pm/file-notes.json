@@ -1,0 +1,160 @@
+{
+  "notes": {
+    "src/index.ts": {
+      "purpose": "MCP server入口：39工具/6资源/4提示词注册、stdio与watcher启动",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:47.143Z"
+    },
+    "src/tools.ts": {
+      "purpose": "全部工具注册与参数校验（状态/路线图/任务/功能/决策/会话/求证/审计/安全）",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-01T16:30:56.886Z"
+    },
+    "src/store.ts": {
+      "purpose": ".pm/ 账本读写、zod 校验、原子写、自增 ID",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-01T16:30:56.907Z"
+    },
+    "src/audit.ts": {
+      "purpose": "快照与八项结构对账报告",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-01T16:30:56.935Z"
+    },
+    "src/security.ts": {
+      "purpose": "安全规则库与台账闭环",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-01T16:30:56.966Z"
+    },
+    "src/dashboard.ts": {
+      "purpose": "PROJECT.md 与 changelog.md 生成",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-01T16:30:57.004Z"
+    },
+    "src/governance-model.ts": {
+      "purpose": "版本化模块/owner/接口/仓库依赖治理schema与原子存储",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.291Z"
+    },
+    "src/language-adapters.ts": {
+      "purpose": "多生态单元发现、质量命令规划与fail-closed执行",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.324Z"
+    },
+    "src/language-dependencies.ts": {
+      "purpose": "Node/Python/Go/Rust/JVM/.NET manifest依赖解析与错误账",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.346Z"
+    },
+    "src/semantic-graph.ts": {
+      "purpose": "文件/模块语义图、边界/循环/覆盖率与影响闭包",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.368Z"
+    },
+    "src/semantic-parsers.ts": {
+      "purpose": "多语言import/call/contract/RPC/FFI启发式解析器",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.391Z"
+    },
+    "src/governance-audit.ts": {
+      "purpose": "组合治理模型、语义图、语言与质量覆盖的统一门禁报告",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.411Z"
+    },
+    "src/portfolio.ts": {
+      "purpose": "跨仓项目状态、依赖版本、missing/cycle与风险聚合",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.432Z"
+    },
+    "src/governance-tools.ts": {
+      "purpose": "12个治理MCP工具接入层",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.453Z"
+    },
+    "src/quality-store.ts": {
+      "purpose": "追加式质量结果、输出摘要、覆盖率与源码指纹证据",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.229Z"
+    },
+    "src/tool-base.ts": {
+      "purpose": "MCP工具注册、同步账本锁与输出预算公共基础",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.496Z"
+    },
+    "scripts/quality-gate.mts": {
+      "purpose": "平台中立的结构+语义+真实多语言质量CI门禁",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-02T14:25:25.517Z"
+    },
+    "src/acceptance-model.ts": {
+      "purpose": "标准化验收基线、风险、测试、证据与评价严格schema",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.019Z"
+    },
+    "src/acceptance-evaluator.ts": {
+      "purpose": "从预批准基线和机器证据计算唯一验收结论",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.052Z"
+    },
+    "src/acceptance-tools.ts": {
+      "purpose": "验收MCP工具、路径边界、证据哈希与机器断言核验",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.081Z"
+    },
+    "src/typescript-semantic.ts": {
+      "purpose": "TypeScript Compiler API AST与symbol-bound语义边",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.110Z"
+    },
+    "src/polyglot-ast.ts": {
+      "purpose": "Python/Go/Rust/Java/Kotlin/C# Tree-sitter AST provider",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.141Z"
+    },
+    "src/semantic-evidence.ts": {
+      "purpose": "语言原生AST与runtime trace可移植证据schema",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.169Z"
+    },
+    "src/project-fingerprint.ts": {
+      "purpose": "无可信VCS时的确定性产品源码树SHA-256",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.194Z"
+    },
+    "scripts/acceptance-cycle.mts": {
+      "purpose": "唯一run ID的证据采集、评价与正式报告编排",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.263Z"
+    },
+    "scripts/collect-acceptance-evidence.mts": {
+      "purpose": "采集MCP、治理、质量、安全、维护性和20GiB指标",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-03T01:11:37.301Z"
+    }
+  }
+}

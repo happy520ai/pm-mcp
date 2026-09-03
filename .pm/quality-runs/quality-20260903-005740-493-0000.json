@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-03T00:57:40.493Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "4f96ee29fece6786f2a522e9ca110701487726e9e9c9ca91757e11d1007bf19d",
+      "files": 94,
+      "bytes": 920834
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "4f96ee29fece6786f2a522e9ca110701487726e9e9c9ca91757e11d1007bf19d",
+      "files": 94,
+      "bytes": 920834
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 36050,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 33903,
+        "stderr_bytes": 0,
+        "output_sha256": "173208d5cdde5a5a528c926526b4b1d4568f5a0e4489cba612fa106eb1d8d2a7",
+        "tests": 155,
+        "passed": 141,
+        "failed": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null
+      },
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null
+      },
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "coverage",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null
+      },
+      "error": "Blocked by an earlier failed quality command"
+    }
+  ]
+}

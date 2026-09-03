@@ -1,0 +1,87 @@
+{
+  "seq": 5,
+  "entries": [
+    {
+      "id": "D-0001",
+      "date": "2026-09-02T11:15:12.715Z",
+      "author": "",
+      "symptom": "监管审计可能假绿：服务重启漏掉停机变更，巡检覆盖旧快照或异常退出 0，安全处置 note 可写入部分密钥。",
+      "root_cause": "watcher 新心跳未绑定本次精确走查；巡检在 audit 前推进快照且把 failures 排除在退出条件外；note 使用了与扫描规则分叉的不完整正则。",
+      "fix": "用 watcherSession/lastWalkSession 绑定会话基线；独立巡检先强制走查、完成全部审计后快照并结构化 fail-closed；note 与扫描共用 SECRET_PATTERNS。",
+      "verified_how": "专项回归覆盖停机增删改、旧快照增量、公网中危、缺失/损坏、7 类秘密 note；标准全套 100/100。",
+      "files": [
+        "src/index-store.ts",
+        "scripts/health-check.mts",
+        "src/security.ts"
+      ],
+      "task_id": "T-021"
+    },
+    {
+      "id": "D-0002",
+      "date": "2026-09-02T12:51:26.135Z",
+      "author": "",
+      "symptom": "原文件数基准不能证明20 GiB内容被实际扫描，且大规模首次走查会物化全部变更行、内容缓存可能跨项目串用。",
+      "root_cause": "基准只校验COUNT；缺少字节/LOC/readText读取计数；changedRows使用all；缓存键只有相对路径。",
+      "fix": "新增volume基准和文件系统/SQLite/读取字节oracle；changedRows改游标批处理；独立巡检支持forceContent；缓存按root+rel隔离并增加读取统计。",
+      "verified_how": "8 MiB与256 MiB校准后完成20 GiB/298,332,160行正式运行；结构、安全、许可证字节均精确相等，峰值RSS约500 MiB。",
+      "files": [
+        "scripts/benchmark-volume.mts",
+        "src/index-store.ts",
+        "src/search.ts",
+        "scripts/health-check.mts"
+      ],
+      "task_id": "T-022"
+    },
+    {
+      "id": "D-0003",
+      "date": "2026-09-02T14:25:25.560Z",
+      "author": "",
+      "symptom": "跨文件、跨模块、跨语言项目只能做文件存在性和文本扫描，无法约束owner、私有接口、模块循环、manifest依赖、跨仓版本或真实质量命令。",
+      "root_cause": "旧模型只有扁平modules字符串和路径锚点，没有版本化关系实体、语言适配器、关系图、组合视图及执行门禁。",
+      "fix": "新增governance schema、语言/依赖适配器、启发式import+call+RPC/FFI图、策略违规与影响闭包、portfolio semver图、plan/execute分离的quality gate。",
+      "verified_how": "多语言monorepo/边界/循环/私有接口/unresolved/semver/缺工具/超时/跨仓失败测试；全套133/133；当前项目完整gate真实通过。",
+      "files": [
+        "src/governance-model.ts",
+        "src/language-adapters.ts",
+        "src/language-dependencies.ts",
+        "src/semantic-graph.ts",
+        "src/semantic-parsers.ts",
+        "src/governance-audit.ts",
+        "src/portfolio.ts",
+        "src/governance-tools.ts",
+        "scripts/quality-gate.mts"
+      ],
+      "task_id": "T-024"
+    },
+    {
+      "id": "D-0004",
+      "date": "2026-09-03T01:11:36.961Z",
+      "author": "",
+      "symptom": "首次冻结覆盖率门禁失败：lines 92.27%通过，但branches 80.91%<85%、functions 89.51%<90%。",
+      "root_cause": "验收schema、证据路径和工具错误分支虽存在，但缺少系统性的负向与边界测试；测试数量全绿不能替代分支覆盖。",
+      "fix": "保留首失败证据，补充验收、语义、扫描、工具和故障注入测试；未降低阈值、未加coverage ignore。",
+      "verified_how": "最终quality：183/183，lines 96.57%、branches 89.47%、functions 94.70%，全部超过冻结阈值。",
+      "files": [
+        "test/acceptance-coverage.test.ts",
+        "test/semantic-coverage.test.ts",
+        "test/tooling-coverage.test.ts"
+      ],
+      "task_id": "T-027"
+    },
+    {
+      "id": "D-0005",
+      "date": "2026-09-03T01:11:36.990Z",
+      "author": "",
+      "symptom": "完整gate内npm test失败，而独立复跑通过；真实仓库测试显示质量账本已写红但PROJECT.md仍显示旧绿。",
+      "root_cause": "saveQualityRun追加质量证据后没有调用派生刷新，导致质量状态与自动仪表盘短暂失同步。",
+      "fix": "质量证据在账本锁内追加后立即refreshDerived；新增失败质量结果必须在PROJECT.md显示红灯的回归测试。",
+      "verified_how": "quality-evidence+realrepo聚焦11/11；随后完整npm run gate退出0，失败和通过证据均独立保留。",
+      "files": [
+        "src/quality-store.ts",
+        "test/quality-evidence.test.ts",
+        "src/dashboard.ts"
+      ],
+      "task_id": "T-027"
+    }
+  ]
+}

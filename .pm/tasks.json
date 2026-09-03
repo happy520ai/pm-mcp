@@ -1,0 +1,840 @@
+{
+  "seq": 29,
+  "tasks": [
+    {
+      "id": "T-001",
+      "title": "核心数据模型与七本账存储层",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/store.ts",
+        "src/types.ts",
+        "src/scan.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.222Z",
+      "updated": "2026-09-01T16:30:56.397Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.397Z"
+    },
+    {
+      "id": "T-002",
+      "title": "路线图与里程碑配额渲染",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/roadmap.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.245Z",
+      "updated": "2026-09-01T16:30:56.420Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.420Z"
+    },
+    {
+      "id": "T-003",
+      "title": "八项结构对账审计",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/audit.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.269Z",
+      "updated": "2026-09-01T16:30:56.445Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.445Z"
+    },
+    {
+      "id": "T-004",
+      "title": "安全扫描与台账闭环",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/security.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.295Z",
+      "updated": "2026-09-01T16:30:56.471Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.471Z"
+    },
+    {
+      "id": "T-005",
+      "title": "许可证审计（copyleft/GPL头/provenance）",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/license.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.320Z",
+      "updated": "2026-09-01T16:30:56.510Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.510Z"
+    },
+    {
+      "id": "T-006",
+      "title": "求证检索与文件用途索引",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/search.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.349Z",
+      "updated": "2026-09-01T16:30:56.535Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.535Z"
+    },
+    {
+      "id": "T-007",
+      "title": "27 工具 MCP 接入层与仪表盘",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/tools.ts",
+        "src/dashboard.ts",
+        "src/index.ts"
+      ],
+      "acceptance": "",
+      "result_note": "已实现并通过全部测试",
+      "verification": "node --test 40/40 通过；tsc 构建成功；dist 冒烟通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.371Z",
+      "updated": "2026-09-01T16:30:56.559Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T16:30:56.559Z"
+    },
+    {
+      "id": "T-008",
+      "title": "OSV 联网漏洞查询（默认关）",
+      "detail": "",
+      "type": "feature",
+      "status": "backlog",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.610Z",
+      "updated": "2026-09-01T16:30:56.610Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-009",
+      "title": "受版权代码外部相似度检索",
+      "detail": "",
+      "type": "feature",
+      "status": "backlog",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.630Z",
+      "updated": "2026-09-01T16:30:56.630Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-010",
+      "title": "依赖图与循环依赖检测",
+      "detail": "",
+      "type": "refactor",
+      "status": "backlog",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.646Z",
+      "updated": "2026-09-01T16:30:56.646Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-011",
+      "title": "重复代码检测",
+      "detail": "",
+      "type": "feature",
+      "status": "backlog",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.663Z",
+      "updated": "2026-09-01T16:30:56.663Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-012",
+      "title": "Web UI 仪表盘",
+      "detail": "",
+      "type": "feature",
+      "status": "backlog",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T16:30:56.681Z",
+      "updated": "2026-09-01T16:30:56.681Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-013",
+      "title": "拆分 tools.ts（844 行超 500 行预算）",
+      "detail": "按域拆成 tools/status.ts、tools/tasks.ts 等模块",
+      "type": "debt",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/tools.ts"
+      ],
+      "acceptance": "各文件 <500 行，测试全绿",
+      "result_note": "将845行 tools.ts 拆为稳定聚合入口和四个职责模块，全部实现文件低于500行且公开注册API保持兼容。",
+      "verification": "npm run typecheck；MCP/integration/scenario/governance 聚焦测试通过，46工具清单一致。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-01T16:33:53.785Z",
+      "updated": "2026-09-03T00:53:00.155Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T00:53:00.155Z"
+    },
+    {
+      "id": "T-014",
+      "title": "完整性测试：场景/完整性/真实仓库三层真实测试",
+      "detail": "对 dist 产物跑三段会话生命周期（三种根解析）；状态完整性不变式；以本仓库真实 .pm 为被测对象",
+      "type": "feature",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "test/scenario.test.ts",
+        "test/integrity.test.ts",
+        "test/realrepo.test.ts",
+        "test/integration.test.ts"
+      ],
+      "acceptance": "全套 node --test 通过且真实注册表零污染",
+      "result_note": "新增 19 个真实测试（含孤儿进程兜底、并发 EPERM 修复、GPL 头误报修复、注册表沙箱）",
+      "verification": "node --test 59/59 通过（4.8s）；跑完全套后 ~/.pm-mcp/registry.json 仅含本项目的合法条目",
+      "tags": [
+        "测试"
+      ],
+      "author": "zcode",
+      "created": "2026-09-01T17:07:35.149Z",
+      "updated": "2026-09-01T17:07:35.151Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T17:07:35.151Z"
+    },
+    {
+      "id": "T-015",
+      "title": "红队评审：修复 17 项可钻空子与不完善点",
+      "detail": "",
+      "type": "fix",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M1",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/security.ts",
+        "src/scan.ts",
+        "src/license.ts",
+        "src/search.ts",
+        "src/audit.ts",
+        "src/tools.ts",
+        "src/store.ts",
+        "src/types.ts",
+        "src/roadmap.ts",
+        "src/index.ts"
+      ],
+      "acceptance": "每个漏洞都有钻空失败测试守护",
+      "result_note": "堵上 17 个空子：fixed复现重开/accepted复现可见/exposure兑现/oversize点名/恒真独立行检测/pnpm符号链检出/搜索默认字面量/.pm完整性/无锚点警告/预算偏离可见/gitignore检测/git对账抓漏报/result_note质量门槛/save层schema闸门/账本锁零丢失/乱序与过期标注",
+      "verification": "node --test 80/80 通过（含 21 个钻空失败测试）；并发双客户端 20/20 任务零丢失；真实注册表零污染",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-01T17:22:01.039Z",
+      "updated": "2026-09-01T17:22:01.068Z",
+      "started_at": null,
+      "completed_at": "2026-09-01T17:22:01.068Z"
+    },
+    {
+      "id": "T-016",
+      "title": "超大项目适配：深度盲区/传递依赖/增量索引/内容缓存",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/scan.ts",
+        "src/search.ts",
+        "src/license.ts",
+        "src/security.ts",
+        "src/types.ts"
+      ],
+      "acceptance": "万级文件二次扫描 <3s；传递依赖（嵌套+pnpm）可见；64 层深度不静默丢失",
+      "result_note": "深度上限 12→64 且超限计数上报；许可证盘点覆盖直接+传递依赖（npm 嵌套与 pnpm .pnpm 布局）；mtime 增量索引持久化 .pm/index.json；常驻进程 32MB 内容缓存供搜索/安全/许可证共享",
+      "verification": "万文件实测：二次扫描 18.6s→1.3s（14x）、audit 19.9s→1.9s、搜索二次 2.8s、改 20 文件仅 20 个失效；85/85 测试通过（新增传递依赖×2、深度、增量索引、内容缓存用例）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-02T03:23:21.405Z",
+      "updated": "2026-09-02T03:23:21.473Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T03:23:21.473Z"
+    },
+    {
+      "id": "T-017",
+      "title": "定时巡检强制层：独立脚本 + 每 2 小时自动化 + 红旗自动登记",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "scripts/health-check.mts",
+        "test/runner.test.ts",
+        "package.json",
+        "README.md"
+      ],
+      "acceptance": "巡检脚本可独立运行；红旗退出码 1；定时自动化激活",
+      "result_note": "scripts/health-check.mts（--all/--root 巡检 + --tasks/--add-task 走账本锁的登记通道，红旗退出码 1 可当 CI 门禁）；ZCode 定时自动化每 2 小时巡检全部注册项目并对新红旗查重登记 [巡检] 任务；首轮真实巡检即抓到 2 个未处置高危 fixture（已带理由接受闭环）",
+      "verification": "test/runner.test.ts 3/3（健康退出 0/红旗退出 1/登记通道）；手动巡检本仓库两次：处置前退出 1（高危 2）→ 处置后退出 0；定时任务 automation-f476973b 已激活（每 2 小时）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-02T03:35:08.038Z",
+      "updated": "2026-09-02T03:35:08.071Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T03:35:08.071Z"
+    },
+    {
+      "id": "T-018",
+      "title": "[巡检] 高危未处理：test/runner.test.ts:48 存在 AWS 示例 key fixture（与已接受 SEC-003/004/005/008/009 同类，待复核接受或改造）",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "SEC-010（test/runner.test.ts:48 AWS 官方文档公开示例 key fixture）已带理由接受，与同类 9 条一致；评估并否决了「公开样例白名单」方案（会让检测测试失效并制造藏密钥新空子）；顺手修复巡检汇总区不显示红旗明细的缺陷",
+      "verification": "处置后复扫 open=0/high=0；巡检复跑退出码 0（无红旗）；runner 测试 3/3",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-02T04:03:08.044Z",
+      "updated": "2026-09-02T04:31:28.128Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T04:31:28.128Z"
+    },
+    {
+      "id": "T-019",
+      "title": "v3 事件驱动架构：SQLite 索引 + 递归 watcher + ripgrep，×100 交互级",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/index-store.ts",
+        "src/scan.ts",
+        "src/search.ts",
+        "src/security.ts",
+        "src/license.ts",
+        "src/audit.ts",
+        "src/index.ts",
+        "test/index-store.test.ts"
+      ],
+      "acceptance": "1M 文件稳态 audit <5s；正确性与走查等价；回退路径可用",
+      "result_note": "SQLite 索引（node:sqlite，.pm/index.db）取代 JSON；Windows 递归 watcher 事件驱动增量维护（增/改/删/子树补扫、防抖、计数自愈、rootPath 守卫）；新鲜度分级（watcher 保鲜纯 SQL / 过期回退精确走查，报告标注）；search_code 接入 ripgrep（含 CRLF 行尾解析修复）；生成器走查 + SQL 聚合使百万级零物化",
+      "verification": "1M 文件实测：稳态 audit 2.85s（回退走查 222s，78x）、snapshot 2.58s、冷启动 186s 一次性；watcher 专项测试 2 项（事件增量四场景 + rootPath 守卫）；全套 90/90 通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-02T08:52:48.923Z",
+      "updated": "2026-09-02T08:52:48.963Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T08:52:48.963Z"
+    },
+    {
+      "id": "T-020",
+      "title": "[巡检] 高危未处理：src/index-store.ts:285 sql-concat（iterateFileRows 动态 WHERE 模板插值触发规则；建议改为静态 SQL 变体消除而非接受）",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "从源头消除而非接受：iterateFileRows 动态 WHERE 改为两个静态 SQL 常量（SQL_ROWS_ALL / SQL_ROWS_NO_OVERSIZE），无插值即无注入面也无告警；SEC-011 复扫自动关闭。顺带解决风暴边界：watcher 增加就地排空（drainWatcher），变更风暴后审计不再回退全量走查；巡检脚本补 refreshDerived（领域层写台账后同步刷仪表盘，realrepo 同步测试抓到的失同步）",
+      "verification": "巡检复跑退出 0（红旗清零）；全套 91/91 通过（新增风暴排空测试：防抖窗口内审计走 watcher 路径且索引毫秒级收敛）",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-02T09:02:09.410Z",
+      "updated": "2026-09-02T10:25:46.065Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T10:25:46.065Z"
+    },
+    {
+      "id": "T-021",
+      "title": "修复监管层假绿、旧索引与证据边界",
+      "detail": "修复核验发现的 watcher 重启旧索引、巡检基线覆盖与 fail-open、安全 note 泄漏、npm test 入口、非 Git ignore 和性能证据不可复跑问题。",
+      "type": "fix",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "修复 watcher 会话基线与停机窗口",
+          "done": true
+        },
+        {
+          "text": "修复巡检基线顺序和 fail-closed",
+          "done": true
+        },
+        {
+          "text": "修复安全处置 note 防泄漏",
+          "done": true
+        },
+        {
+          "text": "修复标准测试、rg ignore、文档与基准证据",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/index-store.ts",
+        "src/audit.ts",
+        "src/security.ts",
+        "src/search.ts",
+        "src/tools.ts",
+        "src/dashboard.ts",
+        "src/index.ts",
+        "src/scan.ts",
+        "scripts/health-check.mts",
+        "scripts/benchmark.mts",
+        "test/index-store.test.ts",
+        "test/audit.test.ts",
+        "test/security.test.ts",
+        "test/search.test.ts",
+        "test/runner.test.ts",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.scripts.json",
+        "README.md",
+        ".pm/project.json",
+        ".pm/features.json"
+      ],
+      "acceptance": "停机变更不漏扫；巡检异常和公网中危非零；旧快照增量有效；处置 note 不落内置密钥；标准测试、构建、巡检和可复跑基准通过。",
+      "result_note": "修复 watcher 重启旧索引误信；巡检改为独立精确走查、旧基线审计后推进并对缺失/异常/公网中危 fail-closed；安全 note 复用全部内置密钥规则；修复 npm test 与非 Git .gitignore；新增安全基准并收紧文档声明。",
+      "verification": "npm run typecheck；npm run build；npm test=100/100；npm run audit -- --root .=exit 0；npm run benchmark -- --files 1000=ok（重启对账 1001/1001）",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-02T11:15:12.641Z",
+      "updated": "2026-09-02T11:15:12.680Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T11:15:12.680Z"
+    },
+    {
+      "id": "T-022",
+      "title": "20 GiB / 约 3 亿行源码仓库全量基准",
+      "detail": "构建真实占用的可扫描 TypeScript 代码树，验证结构索引、watcher、快照、安全与许可证的容量覆盖和资源上界。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "容量与存储预检",
+          "done": true
+        },
+        {
+          "text": "实现字节/LOC/读取覆盖oracle",
+          "done": true
+        },
+        {
+          "text": "8 MiB与256 MiB校准",
+          "done": true
+        },
+        {
+          "text": "运行20 GiB结构与内容扫描",
+          "done": true
+        },
+        {
+          "text": "复算结果并安全清理",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "scripts/benchmark-volume.mts",
+        "src/search.ts",
+        "src/index-store.ts",
+        "src/scan.ts",
+        "scripts/health-check.mts",
+        "test/search.test.ts",
+        "test/index-store.test.ts",
+        "package.json",
+        "README.md",
+        ".pm/benchmarks/volume-20g-3e8-20260902.json",
+        ".pm/benchmarks/volume-20g-3e8-20260902.md",
+        "dist/search.js",
+        "dist/index-store.js",
+        "dist/scan.js"
+      ],
+      "acceptance": "20 GiB、约3亿行、全部低于oversize；文件系统/SQLite/快照一致；安全与许可证各读满20 GiB；无OOM；安全清理并留存原始证据。",
+      "result_note": "完成20 GiB真实文本夹具测试：20,480个1 MiB TypeScript文件、298,332,160行；结构/SQLite/快照完全一致，安全与许可证各自缓存清零后读满20 GiB，峰值RSS约500 MiB，总耗时40分09秒，fixture已验证删除。",
+      "verification": ".pm/benchmarks/volume-20g-3e8-20260902.json status=complete；JSON SHA256=D8AFD6005D72646BFD13FC84636D2F972842B8674670DA53BCA7758F7D561EC6；npm test=102/102；项目audit exit0",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-02T12:51:26.034Z",
+      "updated": "2026-09-02T12:51:26.062Z",
+      "started_at": null,
+      "completed_at": "2026-09-02T12:51:26.062Z"
+    },
+    {
+      "id": "T-023",
+      "title": "拆分 benchmark-volume 脚本至复杂度预算内",
+      "detail": "20 GiB基准为保持一次验证链集中在单脚本，当前约581行，超过500行预算；后续在不改变结果schema与安全清理语义下拆分CLI、fixture、oracle。",
+      "type": "debt",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "scripts/benchmark-volume.mts"
+      ],
+      "acceptance": "每个实现文件不超过500行；小规模full-audit结果schema兼容；无需重跑既有20 GiB历史结果。",
+      "result_note": "将581行 benchmark-volume 拆为374行CLI与233行支持模块，保持结果schema、容量oracle和安全清理语义。",
+      "verification": "8 MiB full-audit 回归 complete：128文件/8388608字节/116864行，安全与许可证均读满，cleanup verified。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-02T12:51:26.110Z",
+      "updated": "2026-09-03T00:53:00.199Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T00:53:00.199Z"
+    },
+    {
+      "id": "T-024",
+      "title": "跨文件/模块/语言语义治理层",
+      "detail": "补齐结构化模块模型、ownership、允许/禁止依赖、跨语言依赖与接口图、循环/越界检测、影响分析、语言质量矩阵和跨仓聚合。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "建立版本化治理数据模型与迁移",
+          "done": true
+        },
+        {
+          "text": "实现跨语言发现和依赖/接口图",
+          "done": true
+        },
+        {
+          "text": "实现边界、循环和影响分析",
+          "done": true
+        },
+        {
+          "text": "实现质量命令矩阵与CI入口",
+          "done": true
+        },
+        {
+          "text": "实现跨仓聚合",
+          "done": true
+        },
+        {
+          "text": "MCP接入、文档、全量验证",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "受支持语言/manifest/关系可发现；未知覆盖显式；模块边界与循环fail-closed；质量矩阵真实执行且缺工具失败；跨仓状态/风险/依赖聚合；全链路测试与文档通过。",
+      "result_note": "落地治理schema v1、owner/公开接口/模块与跨仓semver模型；支持Node/Python/Go/Rust/JVM/.NET manifest依赖和质量矩阵；生成启发式import/call/HTTP/gRPC/FFI/contract图，强制循环/私有入口/unresolved/覆盖率；新增portfolio、39工具/6资源/4提示词及平台中立gate。",
+      "verification": "npm run gate通过：audit硬红旗0；audit_governance source coverage=100%、internal resolution=100%、unresolved=0；真实quality test/build/typecheck全passed；npm test 133/133；quality摘要 .pm/quality-runs/quality-20260902-142422.json",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-02T13:07:06.679Z",
+      "updated": "2026-09-02T14:25:25.537Z",
+      "started_at": "2026-09-02T13:07:06.709Z",
+      "completed_at": "2026-09-02T14:25:25.537Z"
+    },
+    {
+      "id": "T-025",
+      "title": "[巡检] 新增 1 处 skip 标记：test/semantic-evidence-store.ts:100 t.skip（条件式平台跳过，非硬禁用）——请复核是否合理，或为'平台条件跳过'建立白名单语义",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "backlog",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-02T16:06:11.962Z",
+      "updated": "2026-09-02T16:06:11.964Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-026",
+      "title": "[巡检] 反投机计数 +2：semantic-coverage.test.ts 自测 fixture 内嵌 3 处 skip 标记字符串（在测计数器本身），同时上轮 T-025 的真实 t.skip 已移除(-1)。建议：检测器自测文件改用字符串拼接构造标记（不落字面量），或给'检测器自测'建立显式豁免语义",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "backlog",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-02T18:01:41.260Z",
+      "updated": "2026-09-02T18:01:41.262Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-027",
+      "title": "标准化产品验收与防伪证据链",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "冻结量化质量基线",
+          "done": true
+        },
+        {
+          "text": "实现证据哈希与机器断言",
+          "done": true
+        },
+        {
+          "text": "生成正式不可覆盖报告",
+          "done": true
+        },
+        {
+          "text": "完整门禁终验",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "完成版本化预批准质量基线、九特性五阶段、双向追踪、风险治理、冻结JSON Pointer、证据复算与不可覆盖报告三件套。",
+      "verification": "完整 npm run gate exit 0；183/183；coverage 96.70/89.57/94.61；质量4/4；报告 pm-mcp-local-20260903-010515-d6417929：33/33需求、33/33测试、8/8风险、5/5阶段、errors=0。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-03T00:52:15.374Z",
+      "updated": "2026-09-03T01:12:59.544Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T00:53:00.259Z"
+    },
+    {
+      "id": "T-028",
+      "title": "编译器与多语言 AST 语义治理",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "TypeScript Compiler API 分析",
+          "done": true
+        },
+        {
+          "text": "六语言 Tree-sitter AST",
+          "done": true
+        },
+        {
+          "text": "runtime evidence schema",
+          "done": true
+        },
+        {
+          "text": "strict governance gate",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "实现TypeScript Compiler AST与Python/Go/Rust/Java/Kotlin/C# Tree-sitter AST，加入symbol-bound调用、hash-bound runtime证据和严格fallback门禁。",
+      "verification": "npm run gate exit 0；AST 52/52、assurance 100%、internal resolution 100%、fallback/unresolved/cycles/violations 0；八语言AST provider测试通过。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-03T00:52:15.411Z",
+      "updated": "2026-09-03T01:11:36.872Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T00:53:00.302Z"
+    },
+    {
+      "id": "T-029",
+      "title": "发布 GitHub v0.1.0 并提供一键 MCP 安装",
+      "detail": "",
+      "type": "chore",
+      "status": "backlog",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "收紧发布包并补齐安装说明",
+          "done": true
+        },
+        {
+          "text": "完成本地门禁与敏感信息检查",
+          "done": false
+        },
+        {
+          "text": "初始化 Git 并推送公开仓库",
+          "done": false
+        },
+        {
+          "text": "创建 Release 并完成远端 npx smoke",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        ".github/workflows/ci.yml",
+        ".gitignore"
+      ],
+      "acceptance": "公开仓库与 v0.1.0 Release 可访问；托管 CI 通过；固定标签的 npx MCP smoke 成功",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-03T04:35:52.889Z",
+      "updated": "2026-09-03T04:35:52.889Z",
+      "started_at": null,
+      "completed_at": null
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "taken_at": "2026-09-02T14:23:57.115Z",
+  "file": ".pm/snapshots/snap-20260902-142357.json",
+  "total_files": 64,
+  "total_loc": 11999,
+  "test_files": 24,
+  "skip_markers": 4,
+  "deps": [
+    "@modelcontextprotocol/sdk",
+    "zod",
+    "@types/node",
+    "typescript"
+  ],
+  "by_ext": [
+    {
+      "ext": "ts",
+      "files": 51,
+      "loc": 10235
+    },
+    {
+      "ext": "mts",
+      "files": 4,
+      "loc": 1209
+    },
+    {
+      "ext": "md",
+      "files": 3,
+      "loc": 461
+    },
+    {
+      "ext": "json",
+      "files": 3,
+      "loc": 66
+    },
+    {
+      "ext": "(无扩展名)",
+      "files": 2,
+      "loc": 28
+    }
+  ],
+  "top_dirs": [
+    {
+      "dir": "src",
+      "files": 27,
+      "loc": 7055
+    },
+    {
+      "dir": "test",
+      "files": 24,
+      "loc": 3180
+    },
+    {
+      "dir": "scripts",
+      "files": 4,
+      "loc": 1209
+    },
+    {
+      "dir": ".",
+      "files": 8,
+      "loc": 450
+    },
+    {
+      "dir": ".zcode/plans",
+      "files": 1,
+      "loc": 105
+    }
+  ],
+  "largest_files": [
+    {
+      "path": "src/tools.ts",
+      "loc": 846
+    },
+    {
+      "path": "scripts/benchmark-volume.mts",
+      "loc": 582
+    },
+    {
+      "path": "src/index-store.ts",
+      "loc": 576
+    },
+    {
+      "path": "src/language-adapters.ts",
+      "loc": 499
+    },
+    {
+      "path": "src/portfolio.ts",
+      "loc": 447
+    },
+    {
+      "path": "src/audit.ts",
+      "loc": 392
+    },
+    {
+      "path": "test/exploit.test.ts",
+      "loc": 376
+    },
+    {
+      "path": "scripts/benchmark.mts",
+      "loc": 355
+    },
+    {
+      "path": "src/governance-model.ts",
+      "loc": 344
+    },
+    {
+      "path": "src/scan.ts",
+      "loc": 336
+    }
+  ],
+  "index_coverage_pct": 10
+}

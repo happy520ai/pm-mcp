@@ -1,0 +1,1770 @@
+{
+  "schema_version": 1,
+  "baseline_id": "pm-mcp-local-release",
+  "baseline_version": "1.0.0",
+  "title": "pm-mcp local product acceptance baseline",
+  "product": "pm-mcp 0.1.0",
+  "scope": "First-party product-quality acceptance for pm-mcp as a local stdio MCP service on Windows x64 with Node.js 25.8.1; distributable engine floor remains Node.js 22.13. Includes the implemented project brain, strict AST governance for the declared source tree, quality gates, and the recorded 20 GiB synthetic qualification workload. Excludes hosted CI, production HA/DR, independent certification, safety-critical use, and universal runtime execution claims.",
+  "created_at": "2026-09-02T16:03:18.948Z",
+  "approval": {
+    "status": "approved",
+    "approved_by": "project-owner",
+    "approved_at": "2026-09-02T16:03:38.734Z",
+    "rationale": "User explicitly directed completion to final pass under the strict acceptance criteria on 2026-09-02/03."
+  },
+  "characteristics": [
+    {
+      "id": "functional_suitability",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "performance_efficiency",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "compatibility",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "interaction_capability",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "reliability",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "security",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "maintainability",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "flexibility",
+      "applicable": true,
+      "tailoring_reason": null
+    },
+    {
+      "id": "safety",
+      "applicable": false,
+      "tailoring_reason": "This local development-governance tool is not accepted for safety-critical decisions; such use requires a separate hazard analysis and evaluation."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "QR-FS-TOOLS",
+      "characteristic": "functional_suitability",
+      "statement": "MCP 工具清单必须与冻结发布基线完全一致。",
+      "metric": {
+        "name": "MCP tools",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 46,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_tools"
+      },
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-TOOLS"
+      ]
+    },
+    {
+      "id": "QR-FS-RESOURCES",
+      "characteristic": "functional_suitability",
+      "statement": "MCP 资源清单必须与冻结发布基线完全一致。",
+      "metric": {
+        "name": "MCP resources",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 7,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_resources"
+      },
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-RESOURCES"
+      ]
+    },
+    {
+      "id": "QR-FS-PROMPTS",
+      "characteristic": "functional_suitability",
+      "statement": "MCP 提示词清单必须与冻结发布基线完全一致。",
+      "metric": {
+        "name": "MCP prompts",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 5,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_prompts"
+      },
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-PROMPTS"
+      ]
+    },
+    {
+      "id": "QR-FS-TESTS",
+      "characteristic": "functional_suitability",
+      "statement": "冻结测试集不得少于 160 项且必须完整执行。",
+      "metric": {
+        "name": "executed tests",
+        "unit": "count",
+        "direction": "at_least",
+        "threshold": 160,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_total"
+      },
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-TESTS"
+      ]
+    },
+    {
+      "id": "QR-PE-CAPACITY",
+      "characteristic": "performance_efficiency",
+      "statement": "容量资格场景必须达到至少 20 GiB。",
+      "metric": {
+        "name": "qualified payload",
+        "unit": "GiB",
+        "direction": "at_least",
+        "threshold": 20,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_payload_gib"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-CAPACITY"
+      ]
+    },
+    {
+      "id": "QR-PE-ORACLE",
+      "characteristic": "performance_efficiency",
+      "statement": "文件系统、SQLite、快照和内容读取 oracle 必须完全一致。",
+      "metric": {
+        "name": "volume oracle",
+        "unit": "boolean01",
+        "direction": "equal",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_oracle_consistent"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-ORACLE"
+      ]
+    },
+    {
+      "id": "QR-PE-READ",
+      "characteristic": "performance_efficiency",
+      "statement": "安全与许可证扫描必须分别读取完整 20 GiB。",
+      "metric": {
+        "name": "full content reads",
+        "unit": "boolean01",
+        "direction": "equal",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_disk_read_complete"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-READ"
+      ]
+    },
+    {
+      "id": "QR-PE-RSS",
+      "characteristic": "performance_efficiency",
+      "statement": "20 GiB 资格场景峰值 RSS 不得超过 1024 MiB。",
+      "metric": {
+        "name": "peak RSS",
+        "unit": "MiB",
+        "direction": "at_most",
+        "threshold": 1024,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_peak_rss_mib"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-RSS"
+      ]
+    },
+    {
+      "id": "QR-PE-DURATION",
+      "characteristic": "performance_efficiency",
+      "statement": "20 GiB 完整资格场景墙钟时间不得超过 3600 秒。",
+      "metric": {
+        "name": "full qualification duration",
+        "unit": "seconds",
+        "direction": "at_most",
+        "threshold": 3600,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_total_seconds"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-DURATION"
+      ]
+    },
+    {
+      "id": "QR-PE-WARM",
+      "characteristic": "performance_efficiency",
+      "statement": "20 GiB 暖结构走查不得超过 5 秒。",
+      "metric": {
+        "name": "warm structure walk",
+        "unit": "seconds",
+        "direction": "at_most",
+        "threshold": 5,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_warm_walk_seconds"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-WARM"
+      ]
+    },
+    {
+      "id": "QR-PE-STEADY",
+      "characteristic": "performance_efficiency",
+      "statement": "watcher 稳态结构审计不得超过 1 秒。",
+      "metric": {
+        "name": "steady audit",
+        "unit": "seconds",
+        "direction": "at_most",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_steady_audit_seconds"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-STEADY"
+      ]
+    },
+    {
+      "id": "QR-PE-SNAPSHOT",
+      "characteristic": "performance_efficiency",
+      "statement": "20 GiB 快照聚合不得超过 3 秒。",
+      "metric": {
+        "name": "snapshot",
+        "unit": "seconds",
+        "direction": "at_most",
+        "threshold": 3,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_snapshot_seconds"
+      },
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-SNAPSHOT"
+      ]
+    },
+    {
+      "id": "QR-CO-STDIO",
+      "characteristic": "compatibility",
+      "statement": "限定环境中的 stdio MCP inventory 必须成功且名称唯一。",
+      "metric": {
+        "name": "MCP interoperability",
+        "unit": "boolean01",
+        "direction": "equal",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_inventory_ok"
+      },
+      "risk_ids": [
+        "R-COMPATIBILITY"
+      ],
+      "test_ids": [
+        "AT-CO-STDIO"
+      ]
+    },
+    {
+      "id": "QR-IN-DOCS",
+      "characteristic": "interaction_capability",
+      "statement": "用户文档中的工具数量必须与运行时 inventory 一致。",
+      "metric": {
+        "name": "documentation inventory match",
+        "unit": "boolean01",
+        "direction": "equal",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/documentation_inventory_match"
+      },
+      "risk_ids": [
+        "R-INTERACTION"
+      ],
+      "test_ids": [
+        "AT-IN-DOCS"
+      ]
+    },
+    {
+      "id": "QR-RE-QUALITY",
+      "characteristic": "reliability",
+      "statement": "全部质量命令必须执行成功且无 blocked/missing/timeout。",
+      "metric": {
+        "name": "failed quality commands",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/quality_failed_or_blocked"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-QUALITY"
+      ]
+    },
+    {
+      "id": "QR-RE-FAILED",
+      "characteristic": "reliability",
+      "statement": "冻结测试集失败数必须为零。",
+      "metric": {
+        "name": "failed tests",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_failed"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-FAILED"
+      ]
+    },
+    {
+      "id": "QR-RE-CANCELLED",
+      "characteristic": "reliability",
+      "statement": "冻结测试集取消数必须为零。",
+      "metric": {
+        "name": "cancelled tests",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_cancelled"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-CANCELLED"
+      ]
+    },
+    {
+      "id": "QR-RE-SKIPPED",
+      "characteristic": "reliability",
+      "statement": "冻结测试集跳过数必须为零。",
+      "metric": {
+        "name": "skipped tests",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_skipped"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-SKIPPED"
+      ]
+    },
+    {
+      "id": "QR-RE-TODO",
+      "characteristic": "reliability",
+      "statement": "冻结测试集 todo 数必须为零。",
+      "metric": {
+        "name": "todo tests",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_todo"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-TODO"
+      ]
+    },
+    {
+      "id": "QR-RE-STABLE",
+      "characteristic": "reliability",
+      "statement": "测试前后源码树摘要必须完全相同。",
+      "metric": {
+        "name": "source stable during quality run",
+        "unit": "boolean01",
+        "direction": "equal",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/quality_source_stable"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-STABLE"
+      ]
+    },
+    {
+      "id": "QR-RE-CURRENT",
+      "characteristic": "reliability",
+      "statement": "质量结果绑定的源码摘要必须等于终验当前源码摘要。",
+      "metric": {
+        "name": "quality source is current",
+        "unit": "boolean01",
+        "direction": "equal",
+        "threshold": 1,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/quality_source_matches_current"
+      },
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-CURRENT"
+      ]
+    },
+    {
+      "id": "QR-SE-OPEN",
+      "characteristic": "security",
+      "statement": "安全台账不得存在 open finding。",
+      "metric": {
+        "name": "open security findings",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/security_open_total"
+      },
+      "risk_ids": [
+        "R-SECURITY"
+      ],
+      "test_ids": [
+        "AT-SE-OPEN"
+      ]
+    },
+    {
+      "id": "QR-SE-NOTE",
+      "characteristic": "security",
+      "statement": "任何已接受安全发现都必须有明确处置理由。",
+      "metric": {
+        "name": "accepted findings without note",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/security_accepted_without_note"
+      },
+      "risk_ids": [
+        "R-SECURITY"
+      ],
+      "test_ids": [
+        "AT-SE-NOTE"
+      ]
+    },
+    {
+      "id": "QR-MA-LOC",
+      "characteristic": "maintainability",
+      "statement": "src 与 scripts 中实现文件不得超过既定 500 行预算。",
+      "metric": {
+        "name": "implementation files over budget",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/implementation_files_over_500"
+      },
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-LOC"
+      ]
+    },
+    {
+      "id": "QR-MA-LINES",
+      "characteristic": "maintainability",
+      "statement": "源代码行覆盖率必须至少为 90%。",
+      "metric": {
+        "name": "line coverage",
+        "unit": "percent",
+        "direction": "at_least",
+        "threshold": 90,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/coverage_lines_pct"
+      },
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-LINES"
+      ]
+    },
+    {
+      "id": "QR-MA-BRANCH",
+      "characteristic": "maintainability",
+      "statement": "源代码分支覆盖率必须至少为 85%。",
+      "metric": {
+        "name": "branch coverage",
+        "unit": "percent",
+        "direction": "at_least",
+        "threshold": 85,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/coverage_branches_pct"
+      },
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-BRANCH"
+      ]
+    },
+    {
+      "id": "QR-MA-FUNCTION",
+      "characteristic": "maintainability",
+      "statement": "源代码函数覆盖率必须至少为 90%。",
+      "metric": {
+        "name": "function coverage",
+        "unit": "percent",
+        "direction": "at_least",
+        "threshold": 90,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/coverage_functions_pct"
+      },
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-FUNCTION"
+      ]
+    },
+    {
+      "id": "QR-FL-LANG",
+      "characteristic": "flexibility",
+      "statement": "内置 AST provider 必须覆盖 TS、JS、Python、Go、Rust、Java、Kotlin、C#。",
+      "metric": {
+        "name": "built-in AST languages",
+        "unit": "count",
+        "direction": "at_least",
+        "threshold": 8,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/built_in_ast_languages"
+      },
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-LANG"
+      ]
+    },
+    {
+      "id": "QR-FL-ASSURANCE",
+      "characteristic": "flexibility",
+      "statement": "当前声明源码必须 100% 达到 AST 语义保证。",
+      "metric": {
+        "name": "semantic assurance coverage",
+        "unit": "percent",
+        "direction": "equal",
+        "threshold": 100,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/semantic_assurance_pct"
+      },
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-ASSURANCE"
+      ]
+    },
+    {
+      "id": "QR-FL-RESOLUTION",
+      "characteristic": "flexibility",
+      "statement": "当前内部引用必须 100% 解析。",
+      "metric": {
+        "name": "internal reference resolution",
+        "unit": "percent",
+        "direction": "equal",
+        "threshold": 100,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/internal_resolution_pct"
+      },
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-RESOLUTION"
+      ]
+    },
+    {
+      "id": "QR-FL-FALLBACK",
+      "characteristic": "flexibility",
+      "statement": "严格模式下正则 fallback 文件必须为零。",
+      "metric": {
+        "name": "regex fallback files",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/fallback_files"
+      },
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-FALLBACK"
+      ]
+    },
+    {
+      "id": "QR-FL-UNRESOLVED",
+      "characteristic": "flexibility",
+      "statement": "未解析内部引用必须为零。",
+      "metric": {
+        "name": "unresolved references",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/unresolved_references"
+      },
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-UNRESOLVED"
+      ]
+    },
+    {
+      "id": "QR-FL-VIOLATIONS",
+      "characteristic": "flexibility",
+      "statement": "模块边界、循环、owner 和语义证据违规必须为零。",
+      "metric": {
+        "name": "governance violations",
+        "unit": "count",
+        "direction": "equal",
+        "threshold": 0,
+        "tolerance": 0
+      },
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/governance_violations"
+      },
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-VIOLATIONS"
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-FUNCTIONAL",
+      "title": "功能面遗漏或回归",
+      "description": "功能面遗漏或回归会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "release-engineering",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "treatment": "以运行时 MCP inventory 与完整测试集核对冻结功能面。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-FS-TOOLS",
+        "QR-FS-RESOURCES",
+        "QR-FS-PROMPTS",
+        "QR-FS-TESTS"
+      ],
+      "test_ids": [
+        "AT-FS-TOOLS",
+        "AT-FS-RESOURCES",
+        "AT-FS-PROMPTS",
+        "AT-FS-TESTS"
+      ]
+    },
+    {
+      "id": "R-PERFORMANCE",
+      "title": "超大仓库容量或资源失控",
+      "description": "超大仓库容量或资源失控会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "performance-owner",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "treatment": "以带容量 oracle、RSS 和分阶段时延的 20 GiB 资格证据控制。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-PE-CAPACITY",
+        "QR-PE-ORACLE",
+        "QR-PE-READ",
+        "QR-PE-RSS",
+        "QR-PE-DURATION",
+        "QR-PE-WARM",
+        "QR-PE-STEADY",
+        "QR-PE-SNAPSHOT"
+      ],
+      "test_ids": [
+        "AT-PE-CAPACITY",
+        "AT-PE-ORACLE",
+        "AT-PE-READ",
+        "AT-PE-RSS",
+        "AT-PE-DURATION",
+        "AT-PE-WARM",
+        "AT-PE-STEADY",
+        "AT-PE-SNAPSHOT"
+      ]
+    },
+    {
+      "id": "R-COMPATIBILITY",
+      "title": "stdio 协议面不可用",
+      "description": "stdio 协议面不可用会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "protocol-owner",
+      "likelihood": "unlikely",
+      "impact": "moderate",
+      "inherent_level": "medium",
+      "treatment": "在限定 Windows/Node 环境真实拉起 server 并枚举协议面。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-CO-STDIO"
+      ],
+      "test_ids": [
+        "AT-CO-STDIO"
+      ]
+    },
+    {
+      "id": "R-INTERACTION",
+      "title": "文档与实际能力漂移",
+      "description": "文档与实际能力漂移会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "documentation-owner",
+      "likelihood": "possible",
+      "impact": "moderate",
+      "inherent_level": "medium",
+      "treatment": "自动比较文档 inventory 与真实运行时 inventory。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-IN-DOCS"
+      ],
+      "test_ids": [
+        "AT-IN-DOCS"
+      ]
+    },
+    {
+      "id": "R-RELIABILITY",
+      "title": "失败、跳过或源码漂移制造假绿",
+      "description": "失败、跳过或源码漂移制造假绿会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "quality-owner",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "treatment": "测试计数、命令状态及测试前后源码树摘要全部机器绑定。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-RE-QUALITY",
+        "QR-RE-FAILED",
+        "QR-RE-CANCELLED",
+        "QR-RE-SKIPPED",
+        "QR-RE-TODO",
+        "QR-RE-STABLE",
+        "QR-RE-CURRENT"
+      ],
+      "test_ids": [
+        "AT-RE-QUALITY",
+        "AT-RE-FAILED",
+        "AT-RE-CANCELLED",
+        "AT-RE-SKIPPED",
+        "AT-RE-TODO",
+        "AT-RE-STABLE",
+        "AT-RE-CURRENT"
+      ]
+    },
+    {
+      "id": "R-SECURITY",
+      "title": "未处置发现或无理由接受",
+      "description": "未处置发现或无理由接受会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "security-owner",
+      "likelihood": "unlikely",
+      "impact": "severe",
+      "inherent_level": "high",
+      "treatment": "安全台账要求 open=0，接受项必须留理由并纳入复审。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-SE-OPEN",
+        "QR-SE-NOTE"
+      ],
+      "test_ids": [
+        "AT-SE-OPEN",
+        "AT-SE-NOTE"
+      ]
+    },
+    {
+      "id": "R-MAINTAINABILITY",
+      "title": "低覆盖或巨文件导致回归成本失控",
+      "description": "低覆盖或巨文件导致回归成本失控会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "maintainability-owner",
+      "likelihood": "possible",
+      "impact": "moderate",
+      "inherent_level": "medium",
+      "treatment": "执行 90/85/90 覆盖率门槛并执行 500 行预算。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-MA-LOC",
+        "QR-MA-LINES",
+        "QR-MA-BRANCH",
+        "QR-MA-FUNCTION"
+      ],
+      "test_ids": [
+        "AT-MA-LOC",
+        "AT-MA-LINES",
+        "AT-MA-BRANCH",
+        "AT-MA-FUNCTION"
+      ]
+    },
+    {
+      "id": "R-FLEXIBILITY",
+      "title": "跨语言关系漏报导致错误影响分析",
+      "description": "跨语言关系漏报导致错误影响分析会使本次限定用途的产品验收结论失真或不可依赖。",
+      "owner": "architecture-owner",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "treatment": "八语言 AST、100% assurance/resolution、零 fallback/unresolved/violation。",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "requirement_ids": [
+        "QR-FL-LANG",
+        "QR-FL-ASSURANCE",
+        "QR-FL-RESOLUTION",
+        "QR-FL-FALLBACK",
+        "QR-FL-UNRESOLVED",
+        "QR-FL-VIOLATIONS"
+      ],
+      "test_ids": [
+        "AT-FL-LANG",
+        "AT-FL-ASSURANCE",
+        "AT-FL-RESOLUTION",
+        "AT-FL-FALLBACK",
+        "AT-FL-UNRESOLVED",
+        "AT-FL-VIOLATIONS"
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-FS-TOOLS",
+      "title": "MCP tools machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/mcp_tools 读取值并按冻结阈值比较。",
+      "expected_result": "equal 46 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_tools",
+        "operator": "equal",
+        "expected": 46
+      },
+      "requirement_ids": [
+        "QR-FS-TOOLS"
+      ],
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ]
+    },
+    {
+      "id": "AT-FS-RESOURCES",
+      "title": "MCP resources machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/mcp_resources 读取值并按冻结阈值比较。",
+      "expected_result": "equal 7 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_resources",
+        "operator": "equal",
+        "expected": 7
+      },
+      "requirement_ids": [
+        "QR-FS-RESOURCES"
+      ],
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ]
+    },
+    {
+      "id": "AT-FS-PROMPTS",
+      "title": "MCP prompts machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/mcp_prompts 读取值并按冻结阈值比较。",
+      "expected_result": "equal 5 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_prompts",
+        "operator": "equal",
+        "expected": 5
+      },
+      "requirement_ids": [
+        "QR-FS-PROMPTS"
+      ],
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ]
+    },
+    {
+      "id": "AT-FS-TESTS",
+      "title": "executed tests machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/tests_total 读取值并按冻结阈值比较。",
+      "expected_result": "at_least 160 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_total",
+        "operator": "at_least",
+        "expected": 160
+      },
+      "requirement_ids": [
+        "QR-FS-TESTS"
+      ],
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ]
+    },
+    {
+      "id": "AT-PE-CAPACITY",
+      "title": "qualified payload machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_payload_gib 读取值并按冻结阈值比较。",
+      "expected_result": "at_least 20 GiB",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_payload_gib",
+        "operator": "at_least",
+        "expected": 20
+      },
+      "requirement_ids": [
+        "QR-PE-CAPACITY"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-ORACLE",
+      "title": "volume oracle machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_oracle_consistent 读取值并按冻结阈值比较。",
+      "expected_result": "equal 1 boolean01",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_oracle_consistent",
+        "operator": "equal",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-PE-ORACLE"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-READ",
+      "title": "full content reads machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_disk_read_complete 读取值并按冻结阈值比较。",
+      "expected_result": "equal 1 boolean01",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_disk_read_complete",
+        "operator": "equal",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-PE-READ"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-RSS",
+      "title": "peak RSS machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_peak_rss_mib 读取值并按冻结阈值比较。",
+      "expected_result": "at_most 1024 MiB",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_peak_rss_mib",
+        "operator": "at_most",
+        "expected": 1024
+      },
+      "requirement_ids": [
+        "QR-PE-RSS"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-DURATION",
+      "title": "full qualification duration machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_total_seconds 读取值并按冻结阈值比较。",
+      "expected_result": "at_most 3600 seconds",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_total_seconds",
+        "operator": "at_most",
+        "expected": 3600
+      },
+      "requirement_ids": [
+        "QR-PE-DURATION"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-WARM",
+      "title": "warm structure walk machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_warm_walk_seconds 读取值并按冻结阈值比较。",
+      "expected_result": "at_most 5 seconds",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_warm_walk_seconds",
+        "operator": "at_most",
+        "expected": 5
+      },
+      "requirement_ids": [
+        "QR-PE-WARM"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-STEADY",
+      "title": "steady audit machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_steady_audit_seconds 读取值并按冻结阈值比较。",
+      "expected_result": "at_most 1 seconds",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_steady_audit_seconds",
+        "operator": "at_most",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-PE-STEADY"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-PE-SNAPSHOT",
+      "title": "snapshot machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-BENCH/metrics/volume_snapshot_seconds 读取值并按冻结阈值比较。",
+      "expected_result": "at_most 3 seconds",
+      "expected_evidence_kind": "benchmark",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_snapshot_seconds",
+        "operator": "at_most",
+        "expected": 3
+      },
+      "requirement_ids": [
+        "QR-PE-SNAPSHOT"
+      ],
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ]
+    },
+    {
+      "id": "AT-CO-STDIO",
+      "title": "MCP interoperability machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/mcp_inventory_ok 读取值并按冻结阈值比较。",
+      "expected_result": "equal 1 boolean01",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_inventory_ok",
+        "operator": "equal",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-CO-STDIO"
+      ],
+      "risk_ids": [
+        "R-COMPATIBILITY"
+      ]
+    },
+    {
+      "id": "AT-IN-DOCS",
+      "title": "documentation inventory match machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/documentation_inventory_match 读取值并按冻结阈值比较。",
+      "expected_result": "equal 1 boolean01",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/documentation_inventory_match",
+        "operator": "equal",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-IN-DOCS"
+      ],
+      "risk_ids": [
+        "R-INTERACTION"
+      ]
+    },
+    {
+      "id": "AT-RE-QUALITY",
+      "title": "failed quality commands machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/quality_failed_or_blocked 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/quality_failed_or_blocked",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-RE-QUALITY"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-RE-FAILED",
+      "title": "failed tests machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/tests_failed 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_failed",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-RE-FAILED"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-RE-CANCELLED",
+      "title": "cancelled tests machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/tests_cancelled 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_cancelled",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-RE-CANCELLED"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-RE-SKIPPED",
+      "title": "skipped tests machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/tests_skipped 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_skipped",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-RE-SKIPPED"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-RE-TODO",
+      "title": "todo tests machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/tests_todo 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_todo",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-RE-TODO"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-RE-STABLE",
+      "title": "source stable during quality run machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/quality_source_stable 读取值并按冻结阈值比较。",
+      "expected_result": "equal 1 boolean01",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/quality_source_stable",
+        "operator": "equal",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-RE-STABLE"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-RE-CURRENT",
+      "title": "quality source is current machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/quality_source_matches_current 读取值并按冻结阈值比较。",
+      "expected_result": "equal 1 boolean01",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/quality_source_matches_current",
+        "operator": "equal",
+        "expected": 1
+      },
+      "requirement_ids": [
+        "QR-RE-CURRENT"
+      ],
+      "risk_ids": [
+        "R-RELIABILITY"
+      ]
+    },
+    {
+      "id": "AT-SE-OPEN",
+      "title": "open security findings machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/security_open_total 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/security_open_total",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-SE-OPEN"
+      ],
+      "risk_ids": [
+        "R-SECURITY"
+      ]
+    },
+    {
+      "id": "AT-SE-NOTE",
+      "title": "accepted findings without note machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/security_accepted_without_note 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/security_accepted_without_note",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-SE-NOTE"
+      ],
+      "risk_ids": [
+        "R-SECURITY"
+      ]
+    },
+    {
+      "id": "AT-MA-LOC",
+      "title": "implementation files over budget machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/implementation_files_over_500 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/implementation_files_over_500",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-MA-LOC"
+      ],
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ]
+    },
+    {
+      "id": "AT-MA-LINES",
+      "title": "line coverage machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/coverage_lines_pct 读取值并按冻结阈值比较。",
+      "expected_result": "at_least 90 percent",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/coverage_lines_pct",
+        "operator": "at_least",
+        "expected": 90
+      },
+      "requirement_ids": [
+        "QR-MA-LINES"
+      ],
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ]
+    },
+    {
+      "id": "AT-MA-BRANCH",
+      "title": "branch coverage machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/coverage_branches_pct 读取值并按冻结阈值比较。",
+      "expected_result": "at_least 85 percent",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/coverage_branches_pct",
+        "operator": "at_least",
+        "expected": 85
+      },
+      "requirement_ids": [
+        "QR-MA-BRANCH"
+      ],
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ]
+    },
+    {
+      "id": "AT-MA-FUNCTION",
+      "title": "function coverage machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-TEST/metrics/coverage_functions_pct 读取值并按冻结阈值比较。",
+      "expected_result": "at_least 90 percent",
+      "expected_evidence_kind": "test_result",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/coverage_functions_pct",
+        "operator": "at_least",
+        "expected": 90
+      },
+      "requirement_ids": [
+        "QR-MA-FUNCTION"
+      ],
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ]
+    },
+    {
+      "id": "AT-FL-LANG",
+      "title": "built-in AST languages machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/built_in_ast_languages 读取值并按冻结阈值比较。",
+      "expected_result": "at_least 8 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/built_in_ast_languages",
+        "operator": "at_least",
+        "expected": 8
+      },
+      "requirement_ids": [
+        "QR-FL-LANG"
+      ],
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ]
+    },
+    {
+      "id": "AT-FL-ASSURANCE",
+      "title": "semantic assurance coverage machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/semantic_assurance_pct 读取值并按冻结阈值比较。",
+      "expected_result": "equal 100 percent",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/semantic_assurance_pct",
+        "operator": "equal",
+        "expected": 100
+      },
+      "requirement_ids": [
+        "QR-FL-ASSURANCE"
+      ],
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ]
+    },
+    {
+      "id": "AT-FL-RESOLUTION",
+      "title": "internal reference resolution machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/internal_resolution_pct 读取值并按冻结阈值比较。",
+      "expected_result": "equal 100 percent",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/internal_resolution_pct",
+        "operator": "equal",
+        "expected": 100
+      },
+      "requirement_ids": [
+        "QR-FL-RESOLUTION"
+      ],
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ]
+    },
+    {
+      "id": "AT-FL-FALLBACK",
+      "title": "regex fallback files machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/fallback_files 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/fallback_files",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-FL-FALLBACK"
+      ],
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ]
+    },
+    {
+      "id": "AT-FL-UNRESOLVED",
+      "title": "unresolved references machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/unresolved_references 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/unresolved_references",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-FL-UNRESOLVED"
+      ],
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ]
+    },
+    {
+      "id": "AT-FL-VIOLATIONS",
+      "title": "governance violations machine verification",
+      "procedure": "从已哈希 JSON 证据 EV-AUDIT/metrics/governance_violations 读取值并按冻结阈值比较。",
+      "expected_result": "equal 0 count",
+      "expected_evidence_kind": "audit",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/governance_violations",
+        "operator": "equal",
+        "expected": 0
+      },
+      "requirement_ids": [
+        "QR-FL-VIOLATIONS"
+      ],
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ]
+    }
+  ],
+  "evaluation_plan": [
+    {
+      "stage": "define",
+      "owner": "acceptance-owner",
+      "objective": "define the bounded product-quality evaluation without changing approved thresholds after execution starts.",
+      "entry_criteria": [
+        "Product and intended use are identified."
+      ],
+      "activities": [
+        "Perform and record the define evaluation activities."
+      ],
+      "planned_outputs": [
+        "define stage record and evidence references."
+      ],
+      "exit_criteria": [
+        "define outputs are complete and traceable."
+      ]
+    },
+    {
+      "stage": "design",
+      "owner": "acceptance-owner",
+      "objective": "design the bounded product-quality evaluation without changing approved thresholds after execution starts.",
+      "entry_criteria": [
+        "Previous evaluation stage is complete."
+      ],
+      "activities": [
+        "Perform and record the design evaluation activities."
+      ],
+      "planned_outputs": [
+        "design stage record and evidence references."
+      ],
+      "exit_criteria": [
+        "design outputs are complete and traceable."
+      ]
+    },
+    {
+      "stage": "plan",
+      "owner": "acceptance-owner",
+      "objective": "plan the bounded product-quality evaluation without changing approved thresholds after execution starts.",
+      "entry_criteria": [
+        "Previous evaluation stage is complete."
+      ],
+      "activities": [
+        "Perform and record the plan evaluation activities."
+      ],
+      "planned_outputs": [
+        "plan stage record and evidence references."
+      ],
+      "exit_criteria": [
+        "plan outputs are complete and traceable."
+      ]
+    },
+    {
+      "stage": "execute",
+      "owner": "quality-owner",
+      "objective": "execute the bounded product-quality evaluation without changing approved thresholds after execution starts.",
+      "entry_criteria": [
+        "Previous evaluation stage is complete."
+      ],
+      "activities": [
+        "Run fresh quality gates and collect hash-bound machine evidence."
+      ],
+      "planned_outputs": [
+        "execute stage record and evidence references."
+      ],
+      "exit_criteria": [
+        "execute outputs are complete and traceable."
+      ]
+    },
+    {
+      "stage": "conclude",
+      "owner": "acceptance-owner",
+      "objective": "conclude the bounded product-quality evaluation without changing approved thresholds after execution starts.",
+      "entry_criteria": [
+        "Previous evaluation stage is complete."
+      ],
+      "activities": [
+        "Perform and record the conclude evaluation activities."
+      ],
+      "planned_outputs": [
+        "Immutable JSON, Markdown, and SHA-256 report manifest."
+      ],
+      "exit_criteria": [
+        "All findings are computed and the verdict is machine generated."
+      ]
+    }
+  ],
+  "acceptance_policy": {
+    "require_all_requirements": true,
+    "require_all_tests": true,
+    "require_all_stages": true,
+    "require_independent_evaluator": false,
+    "maximum_residual_risk_level": "low",
+    "authorized_risk_acceptors": [
+      "project-owner",
+      "risk-owner"
+    ]
+  }
+}

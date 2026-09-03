@@ -1,0 +1,348 @@
+{
+  "seq": 12,
+  "sessions": [
+    {
+      "id": "S-0001",
+      "date": "2026-09-01T16:30:57.396Z",
+      "author": "zcode",
+      "summary": "v1 完成：27 工具 + 4 资源 + 3 提示词，40/40 测试通过，tsc 构建成功，并用工具完成本仓库自管理初始化",
+      "files": [
+        "package.json",
+        "tsconfig.json",
+        ".gitignore",
+        "README.md",
+        "LICENSE",
+        "src/index.ts",
+        "src/types.ts",
+        "src/paths.ts",
+        "src/store.ts",
+        "src/init.ts",
+        "src/registry.ts",
+        "src/budget.ts",
+        "src/scan.ts",
+        "src/roadmap.ts",
+        "src/health.ts",
+        "src/audit.ts",
+        "src/security.ts",
+        "src/license.ts",
+        "src/search.ts",
+        "src/dashboard.ts",
+        "src/tools.ts",
+        "test/helpers.ts",
+        "test/budget.test.ts",
+        "test/store.test.ts",
+        "test/roadmap.test.ts",
+        "test/health.test.ts",
+        "test/security.test.ts",
+        "test/license.test.ts",
+        "test/audit.test.ts",
+        "test/search.test.ts",
+        "test/dashboard.test.ts",
+        "test/integration.test.ts"
+      ],
+      "next_steps": [
+        "v2：按 M2 任务推进（OSV/相似度检索/依赖图）"
+      ]
+    },
+    {
+      "id": "S-0002",
+      "date": "2026-09-01T17:07:35.153Z",
+      "author": "zcode",
+      "summary": "完整性测试完成：三层真实测试（场景/完整性/真实仓库）59/59 全绿；发现并修复 5 个真实问题：SDK env 白名单导致注册表污染、测试孤儿进程挂死、Windows 并发 rename EPERM、GPL 头对测试 fixture 误报、路径规范化层级错位",
+      "files": [
+        "test/scenario.test.ts",
+        "test/integrity.test.ts",
+        "test/realrepo.test.ts",
+        "test/integration.test.ts",
+        "src/store.ts",
+        "src/registry.ts",
+        "src/dashboard.ts",
+        "src/license.ts",
+        "src/types.ts",
+        "src/tools.ts",
+        "src/scan.ts",
+        "src/audit.ts"
+      ],
+      "next_steps": [
+        "v2：M2 任务（OSV/相似度检索/依赖图/拆分 tools.ts）"
+      ]
+    },
+    {
+      "id": "S-0003",
+      "date": "2026-09-01T17:22:01.089Z",
+      "author": "zcode",
+      "summary": "红队评审加固：发现并修复 17 项可钻空子（安全闭环/扫描盲区/审计盲区/账本纪律/并发与资源五类），新增钻空失败测试层",
+      "files": [
+        "src/security.ts",
+        "src/scan.ts",
+        "src/license.ts",
+        "src/search.ts",
+        "src/audit.ts",
+        "src/tools.ts",
+        "src/store.ts",
+        "src/types.ts",
+        "src/roadmap.ts",
+        "src/dashboard.ts",
+        "src/index.ts",
+        "test/exploit.test.ts",
+        "test/integrity.test.ts",
+        "test/audit.test.ts",
+        "README.md"
+      ],
+      "next_steps": [
+        "v2：M2 任务（OSV/相似度检索/依赖图/拆分 tools.ts 债务）"
+      ]
+    },
+    {
+      "id": "S-0004",
+      "date": "2026-09-02T03:23:21.494Z",
+      "author": "zcode",
+      "summary": "超大项目适配：修复深度静默丢失与传递依赖盲区，落地增量索引与内容缓存（万文件 audit 19.9s→1.9s）",
+      "files": [
+        "src/scan.ts",
+        "src/search.ts",
+        "src/license.ts",
+        "src/security.ts",
+        "src/types.ts",
+        "test/exploit.test.ts",
+        "test/integrity.test.ts",
+        "test/search.test.ts",
+        "README.md"
+      ],
+      "next_steps": [
+        "v3 候选：目录级枚举缓存（readdir/stat 是剩余瓶颈）、分支级漂移检测、跨仓库聚合"
+      ]
+    },
+    {
+      "id": "S-0005",
+      "date": "2026-09-02T03:35:08.093Z",
+      "author": "zcode",
+      "summary": "落地定时巡检强制层：独立巡检脚本（npm run audit，红旗即非零退出）+ 每 2 小时定时自动化 + 红旗查重自动登记；巡检中发现并处置 2 个高危 fixture 发现",
+      "files": [
+        "scripts/health-check.mts",
+        "test/runner.test.ts",
+        "package.json",
+        "README.md"
+      ],
+      "next_steps": [
+        "观察定时巡检运行情况；v2 继续推进 M2"
+      ]
+    },
+    {
+      "id": "S-0006",
+      "date": "2026-09-02T04:31:28.135Z",
+      "author": "zcode",
+      "summary": "处置定时巡检首报红旗：SEC-010 fixture 带理由接受闭环；修复巡检汇总红旗明细不可见缺陷；巡检复跑转绿",
+      "files": [
+        "scripts/health-check.mts",
+        ".pm/security.json",
+        ".pm/tasks.json"
+      ],
+      "next_steps": []
+    },
+    {
+      "id": "S-0007",
+      "date": "2026-09-02T08:52:48.992Z",
+      "author": "zcode",
+      "summary": "落地 v3 事件驱动架构：探针揪出两个真实缺陷（长走查期间心跳写不进→走查完即续心跳；持锁期事件计数抛错卡死→定时器先行+计数自愈），1M 文件稳态审计 222s→2.85s",
+      "files": [
+        "src/index-store.ts",
+        "src/scan.ts",
+        "src/search.ts",
+        "src/security.ts",
+        "src/license.ts",
+        "src/audit.ts",
+        "src/index.ts",
+        "test/index-store.test.ts",
+        "test/integrity.test.ts",
+        "test/search.test.ts",
+        "test/realrepo.test.ts",
+        "README.md",
+        ".gitignore",
+        "package.json"
+      ],
+      "next_steps": [
+        "变更风暴后免回退全量（pending>0 时只补差异）是 v3.1 候选；Linux inotify 布局适配"
+      ]
+    },
+    {
+      "id": "S-0008",
+      "date": "2026-09-02T10:25:46.103Z",
+      "author": "zcode",
+      "summary": "处置巡检红旗 T-020：sql-concat 改静态 SQL 消除（SEC-011 自动关闭）；实现 watcher 就地排空解决变更风暴回退边界；巡检脚本补派生刷新修仪表盘失同步",
+      "files": [
+        "src/index-store.ts",
+        "scripts/health-check.mts",
+        "test/index-store.test.ts",
+        "README.md"
+      ],
+      "next_steps": [
+        "Linux 无原生递归 watch：维持文档化回退（inotify 每目录监听在 10 万目录级不可行，需 libuv 上游或 chokidar 评估，列为 v3.2 候选）"
+      ]
+    },
+    {
+      "id": "S-0009",
+      "date": "2026-09-02T11:15:12.739Z",
+      "author": "codex",
+      "summary": "修复监管层核验发现：消除 watcher 重启旧索引、巡检基线覆盖/fail-open 和安全 note 泄漏；修复 npm test 与 rg ignore；新增可复跑正确性/性能基准并收紧 README 证据边界。",
+      "files": [
+        "src/index-store.ts",
+        "src/audit.ts",
+        "src/security.ts",
+        "src/search.ts",
+        "src/tools.ts",
+        "src/dashboard.ts",
+        "src/index.ts",
+        "src/scan.ts",
+        "scripts/health-check.mts",
+        "scripts/benchmark.mts",
+        "test/index-store.test.ts",
+        "test/audit.test.ts",
+        "test/security.test.ts",
+        "test/search.test.ts",
+        "test/runner.test.ts",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.scripts.json",
+        "README.md",
+        ".pm/project.json",
+        ".pm/features.json"
+      ],
+      "next_steps": []
+    },
+    {
+      "id": "S-0010",
+      "date": "2026-09-02T12:51:26.159Z",
+      "author": "codex",
+      "summary": "完成20 GiB/约2.983亿行源码仓库基准：结构、watcher、快照、安全与许可证全部通过精确容量oracle；修复大批次物化、强制内容走查与跨项目内容缓存问题，原始JSON和人读报告已留存。",
+      "files": [
+        "scripts/benchmark-volume.mts",
+        "src/search.ts",
+        "src/index-store.ts",
+        "src/scan.ts",
+        "scripts/health-check.mts",
+        "test/search.test.ts",
+        "test/index-store.test.ts",
+        "package.json",
+        "README.md",
+        ".pm/benchmarks/volume-20g-3e8-20260902.json",
+        ".pm/benchmarks/volume-20g-3e8-20260902.md",
+        "dist/search.js",
+        "dist/index-store.js",
+        "dist/scan.js"
+      ],
+      "next_steps": [
+        "按T-023拆分581行volume基准脚本；如需覆盖百万小文件形态，另跑1M×约20KiB；如需容量级检出穿透，另做首/中/尾canary阶段"
+      ]
+    },
+    {
+      "id": "S-0011",
+      "date": "2026-09-02T14:25:25.582Z",
+      "author": "codex",
+      "summary": "完成跨文件/模块/语言语义治理层：结构化owner/接口/依赖策略，多生态manifest与真实质量矩阵，import/call/RPC/FFI图，循环/越界/影响分析，跨仓semver组合；完整gate与133项测试通过。",
+      "files": [
+        "src/governance-model.ts",
+        "src/language-adapters.ts",
+        "src/language-dependencies.ts",
+        "src/semantic-graph.ts",
+        "src/semantic-parsers.ts",
+        "src/governance-audit.ts",
+        "src/portfolio.ts",
+        "src/governance-tools.ts",
+        "src/quality-store.ts",
+        "src/tool-base.ts",
+        "scripts/quality-gate.mts",
+        "src/dashboard.ts",
+        "src/index.ts",
+        "src/init.ts",
+        "src/search.ts",
+        "src/audit.ts",
+        "src/tools.ts",
+        "test/governance-model.test.ts",
+        "test/language-adapters.test.ts",
+        "test/semantic-graph.test.ts",
+        "test/governance-audit.test.ts",
+        "test/portfolio.test.ts",
+        "test/governance-mcp.test.ts",
+        "test/quality-gate.test.ts",
+        "test/audit.test.ts",
+        "test/search.test.ts",
+        "test/store.test.ts",
+        "test/integrity.test.ts",
+        "test/integration.test.ts",
+        "test/realrepo.test.ts",
+        ".pm/governance.json",
+        "README.md",
+        "package.json"
+      ],
+      "next_steps": [
+        "在实际多语言目标仓库用upsert_module/upsert_interface配置边界并运行npm run gate",
+        "编译器/LSP/运行时trace属于增强证据，不把regex启发式冒充运行时真相"
+      ]
+    },
+    {
+      "id": "S-0012",
+      "date": "2026-09-03T01:12:07.396Z",
+      "author": "codex",
+      "summary": "完成标准化产品验收与编译器/多语言AST语义治理：冻结33项量化需求、33项机器测试和8项风险；证据/源码/报告SHA-256防伪；46工具/7资源/5提示词；完整gate通过，183/183且覆盖率96.57/89.47/94.70，AST assurance与解析率100%，正式报告errors=0。",
+      "files": [
+        "src/acceptance-model.ts",
+        "src/acceptance-evaluator.ts",
+        "src/acceptance-report.ts",
+        "src/acceptance-tools.ts",
+        "src/typescript-semantic.ts",
+        "src/polyglot-ast.ts",
+        "src/semantic-evidence.ts",
+        "src/semantic-evidence-store.ts",
+        "src/semantic-parsers.ts",
+        "src/semantic-graph.ts",
+        "src/semantic-graph-algorithms.ts",
+        "src/governance-model.ts",
+        "src/governance-audit.ts",
+        "src/governance-tools.ts",
+        "src/project-fingerprint.ts",
+        "src/quality-store.ts",
+        "src/dashboard.ts",
+        "src/index.ts",
+        "src/tools.ts",
+        "src/project-tools.ts",
+        "src/task-tools.ts",
+        "src/knowledge-tools.ts",
+        "src/audit-tools.ts",
+        "src/index-store.ts",
+        "src/index-db.ts",
+        "scripts/acceptance-gate.mts",
+        "scripts/acceptance-cycle.mts",
+        "scripts/collect-acceptance-evidence.mts",
+        "scripts/create-pm-acceptance-profile.mts",
+        "scripts/create-pm-acceptance-evaluation.mts",
+        "scripts/quality-gate.mts",
+        "scripts/benchmark-volume.mts",
+        "scripts/benchmark-volume-support.mts",
+        "test/acceptance-evaluator.test.ts",
+        "test/acceptance-tools.test.ts",
+        "test/acceptance-gate.test.ts",
+        "test/acceptance-coverage.test.ts",
+        "test/typescript-semantic.test.ts",
+        "test/polyglot-ast.test.ts",
+        "test/semantic-evidence.test.ts",
+        "test/semantic-evidence-store.test.ts",
+        "test/semantic-graph.test.ts",
+        "test/semantic-coverage.test.ts",
+        "test/project-fingerprint.test.ts",
+        "test/quality-evidence.test.ts",
+        "test/tooling-coverage.test.ts",
+        "test/governance-model.test.ts",
+        "test/integration.test.ts",
+        "test/realrepo.test.ts",
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        ".pm/governance.json"
+      ],
+      "next_steps": [
+        "如需把本次第一方本地验收提升为独立/跨平台发布证明，另行配置Git托管CI、MCP当前规范conformance与第三方评价。"
+      ]
+    }
+  ]
+}

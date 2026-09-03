@@ -1,0 +1,67 @@
+{
+  "name": "pm-mcp",
+  "version": "0.1.0",
+  "description": "AI 编码项目的单一事实来源 + 健康台账 MCP 服务（事实来源 / 路线图 / 防幻觉 / 七本账 / 断点续做 / token 经济）",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-coding",
+    "project-management",
+    "code-governance"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/happy520ai/pm-mcp.git"
+  },
+  "homepage": "https://github.com/happy520ai/pm-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/happy520ai/pm-mcp/issues"
+  },
+  "files": [
+    "dist/"
+  ],
+  "bin": {
+    "pm-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
+    "test": "node --test \"test/*.test.ts\"",
+    "coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-lines=90 --test-coverage-branches=85 --test-coverage-functions=90 --test \"test/*.test.ts\"",
+    "audit": "node scripts/health-check.mts",
+    "benchmark": "node scripts/benchmark.mts",
+    "benchmark:volume": "node scripts/benchmark-volume.mts",
+    "quality": "node scripts/quality-gate.mts",
+    "quality:plan": "node scripts/quality-gate.mts --plan",
+    "acceptance:evidence": "node scripts/collect-acceptance-evidence.mts --root .",
+    "acceptance:prepare": "node scripts/create-pm-acceptance-evaluation.mts --root .",
+    "acceptance": "node scripts/acceptance-gate.mts --root . --baseline-id pm-mcp-local-release --baseline-version 1.0.0 --evaluation .pm/acceptance/evaluations/pm-mcp-local-release-1.0.0.json",
+    "acceptance:cycle": "node scripts/acceptance-cycle.mts --root .",
+    "gate": "npm run audit -- --root . && npm run quality && npm run acceptance:cycle",
+    "start": "node dist/index.js",
+    "dev": "node src/index.ts",
+    "inspect": "node dist/index.js"
+  },
+  "dependencies": {
+    "@ast-grep/lang-csharp": "0.0.6",
+    "@ast-grep/lang-go": "0.0.6",
+    "@ast-grep/lang-java": "0.0.7",
+    "@ast-grep/lang-kotlin": "0.0.7",
+    "@ast-grep/lang-python": "0.0.6",
+    "@ast-grep/lang-rust": "0.0.7",
+    "@ast-grep/napi": "0.45.3",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "typescript": "^5.9.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0"
+  }
+}
