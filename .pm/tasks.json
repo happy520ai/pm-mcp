@@ -886,7 +886,7 @@
       "title": "统一所有本地 AI 编程助手的一键 MCP 安装命令",
       "detail": "",
       "type": "feature",
-      "status": "backlog",
+      "status": "in_progress",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -900,7 +900,7 @@
         },
         {
           "text": "完成本地全量门禁和 npm 包冷启动验证",
-          "done": false
+          "done": true
         },
         {
           "text": "发布 npm/GitHub v0.1.2 并确认托管 CI",
@@ -924,10 +924,10 @@
       "result_note": "",
       "verification": "",
       "tags": [],
-      "author": "",
+      "author": "codex",
       "created": "2026-09-03T05:34:27.799Z",
-      "updated": "2026-09-03T05:34:27.799Z",
-      "started_at": null,
+      "updated": "2026-09-03T05:39:14.971Z",
+      "started_at": "2026-09-03T05:39:14.971Z",
       "completed_at": null
     }
   ]

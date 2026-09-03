@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T05:34:27.853Z
+> 生成时间: 2026-09-03T05:39:14.994Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -22,7 +22,7 @@ flowchart LR
 - ⚠️ 重构被挤出: M2 v2 增强 重构类占比 17% < 配额 20%
 
 ## 🎯 当前焦点
-- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
+- 🔄 T-031 统一所有本地 AI 编程助手的一键 MCP 安装命令（步骤 3/4）
 - 当前阶段: v0.1.2 unified installer
 
 ## 🩺 健康摘要
@@ -35,8 +35,8 @@ flowchart LR
 | 调试知识 | 7 条记录 |
 | 测试背书 | 12/12 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-09-03 05:01（4/4） |
-| 标准化验收 | ✅ 2026-09-03 05:01（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-09-03 05:38（4/4） |
+| 标准化验收 | ✅ 2026-09-03 05:38（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
 - pm-mcp [tool] typescript · owner project-maintainers · roots .
@@ -44,7 +44,8 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 23 · backlog 8
+- 总览: done 23 · backlog 7 · in_progress 1
+- [in_progress] T-031 统一所有本地 AI 编程助手的一键 MCP 安装命令 (feature, M2)
 
 ## 🧩 功能清单
 ### src
