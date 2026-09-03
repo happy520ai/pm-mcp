@@ -1,5 +1,5 @@
 {
-  "seq": 5,
+  "seq": 6,
   "entries": [
     {
       "id": "D-0001",
@@ -82,6 +82,22 @@
         "src/dashboard.ts"
       ],
       "task_id": "T-027"
+    },
+    {
+      "id": "D-0006",
+      "date": "2026-09-03T04:49:46.934Z",
+      "author": "",
+      "symptom": "GitHub Actions 首轮在 Node 24 出现 PROJECT.md 验收时间漂移，在 Node 22.18 另出现并发启动 database is locked。",
+      "root_cause": "Git checkout 统一文件 mtime 导致仪表盘按 mtime 选错验收报告；SQLite 在 busy_timeout 设置前执行 journal_mode=WAL，两个 MCP 进程启动时存在锁竞争。",
+      "fix": "改用 report_generated_at 决定最新验收报告并增加相同 mtime 回归测试；在 WAL PRAGMA 前设置 busy_timeout。",
+      "verified_how": "本地 184/184 与完整 gate 通过；GitHub Actions 33716261381 的 Node 22.18 和 24 job 均通过。",
+      "files": [
+        "src/dashboard.ts",
+        "test/dashboard.test.ts",
+        "src/index-db.ts",
+        ".pm/acceptance/evidence/github-ci-first-failure-v0.1.0.md"
+      ],
+      "task_id": "T-029"
     }
   ]
 }

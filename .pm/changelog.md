@@ -2,6 +2,12 @@
 
 ## 2026-09-03 — codex
 
+公开发布 pm-mcp v0.1.0：建立 Git 仓库并推送 GitHub，补齐固定 Release 标签的一键 MCP 安装、精简发布包和双版本 CI；保留首轮托管失败并修复报告排序与 SQLite 并发启动问题，远端 npx MCP smoke 通过。
+
+改动文件（16）: .gitattributes, .github/workflows/ci.yml, .gitignore, README.md, install.ps1, package.json, package-lock.json, src/dashboard.ts, src/index-db.ts, test/dashboard.test.ts, test/exploit.test.ts, test/integration.test.ts, test/runner.test.ts, test/scenario.test.ts, test/security.test.ts, .pm/acceptance/evidence/github-ci-first-failure-v0.1.0.md
+
+## 2026-09-03 — codex
+
 完成标准化产品验收与编译器/多语言AST语义治理：冻结33项量化需求、33项机器测试和8项风险；证据/源码/报告SHA-256防伪；46工具/7资源/5提示词；完整gate通过，183/183且覆盖率96.57/89.47/94.70，AST assurance与解析率100%，正式报告errors=0。
 
 改动文件（53）: src/acceptance-model.ts, src/acceptance-evaluator.ts, src/acceptance-report.ts, src/acceptance-tools.ts, src/typescript-semantic.ts, src/polyglot-ast.ts, src/semantic-evidence.ts, src/semantic-evidence-store.ts, src/semantic-parsers.ts, src/semantic-graph.ts, src/semantic-graph-algorithms.ts, src/governance-model.ts, src/governance-audit.ts, src/governance-tools.ts, src/project-fingerprint.ts, src/quality-store.ts, src/dashboard.ts, src/index.ts, src/tools.ts, src/project-tools.ts, src/task-tools.ts, src/knowledge-tools.ts, src/audit-tools.ts, src/index-store.ts, src/index-db.ts, scripts/acceptance-gate.mts, scripts/acceptance-cycle.mts, scripts/collect-acceptance-evidence.mts, scripts/create-pm-acceptance-profile.mts, scripts/create-pm-acceptance-evaluation.mts, scripts/quality-gate.mts, scripts/benchmark-volume.mts, scripts/benchmark-volume-support.mts, test/acceptance-evaluator.test.ts, test/acceptance-tools.test.ts, test/acceptance-gate.test.ts, test/acceptance-coverage.test.ts, test/typescript-semantic.test.ts, test/polyglot-ast.test.ts, test/semantic-evidence.test.ts, test/semantic-evidence-store.test.ts, test/semantic-graph.test.ts, test/semantic-coverage.test.ts, test/project-fingerprint.test.ts, test/quality-evidence.test.ts, test/tooling-coverage.test.ts, test/governance-model.test.ts, test/integration.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, .pm/governance.json

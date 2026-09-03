@@ -1,5 +1,5 @@
 {
-  "seq": 12,
+  "seq": 13,
   "sessions": [
     {
       "id": "S-0001",
@@ -343,6 +343,31 @@
       "next_steps": [
         "如需把本次第一方本地验收提升为独立/跨平台发布证明，另行配置Git托管CI、MCP当前规范conformance与第三方评价。"
       ]
+    },
+    {
+      "id": "S-0013",
+      "date": "2026-09-03T04:49:46.972Z",
+      "author": "codex",
+      "summary": "公开发布 pm-mcp v0.1.0：建立 Git 仓库并推送 GitHub，补齐固定 Release 标签的一键 MCP 安装、精简发布包和双版本 CI；保留首轮托管失败并修复报告排序与 SQLite 并发启动问题，远端 npx MCP smoke 通过。",
+      "files": [
+        ".gitattributes",
+        ".github/workflows/ci.yml",
+        ".gitignore",
+        "README.md",
+        "install.ps1",
+        "package.json",
+        "package-lock.json",
+        "src/dashboard.ts",
+        "src/index-db.ts",
+        "test/dashboard.test.ts",
+        "test/exploit.test.ts",
+        "test/integration.test.ts",
+        "test/runner.test.ts",
+        "test/scenario.test.ts",
+        "test/security.test.ts",
+        ".pm/acceptance/evidence/github-ci-first-failure-v0.1.0.md"
+      ],
+      "next_steps": []
     }
   ]
 }

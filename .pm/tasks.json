@@ -796,7 +796,7 @@
       "title": "发布 GitHub v0.1.0 并提供一键 MCP 安装",
       "detail": "",
       "type": "chore",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -810,11 +810,11 @@
         },
         {
           "text": "初始化 Git 并推送公开仓库",
-          "done": false
+          "done": true
         },
         {
           "text": "创建 Release 并完成远端 npx smoke",
-          "done": false
+          "done": true
         }
       ],
       "checkpoint": null,
@@ -827,14 +827,14 @@
         ".gitignore"
       ],
       "acceptance": "公开仓库与 v0.1.0 Release 可访问；托管 CI 通过；固定标签的 npx MCP smoke 成功",
-      "result_note": "",
-      "verification": "",
+      "result_note": "已创建公开 GitHub 仓库与 v0.1.0 Release，提供固定标签的一键 MCP 接入；修复托管 CI 暴露的报告排序和 SQLite 并发启动问题。",
+      "verification": "本地 npm run gate PASS；GitHub Actions 33716261381 在 Node 22.18/24 全绿；远端 v0.1.0 npx smoke 返回 46 tools 且 init_project/get_status 成功。",
       "tags": [],
       "author": "codex",
       "created": "2026-09-03T04:35:52.889Z",
-      "updated": "2026-09-03T04:38:37.012Z",
+      "updated": "2026-09-03T04:49:46.899Z",
       "started_at": "2026-09-03T04:38:37.012Z",
-      "completed_at": null
+      "completed_at": "2026-09-03T04:49:46.899Z"
     }
   ]
 }
