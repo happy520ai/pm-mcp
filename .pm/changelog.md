@@ -2,6 +2,12 @@
 
 ## 2026-09-03 — codex
 
+完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
+
+改动文件（22）: src/idempotency.ts, src/tool-base.ts, src/store.ts, src/index.ts, src/acceptance-tools.ts, src/audit-tools.ts, src/governance-tools.ts, src/knowledge-tools.ts, src/project-tools.ts, src/task-tools.ts, src/tools.ts, test/idempotency.test.ts, test/exploit.test.ts, test/integration.test.ts, test/integrity.test.ts, test/store.test.ts, test/tooling-coverage.test.ts, test/realrepo.test.ts, README.md, package.json, package-lock.json, install.ps1
+
+## 2026-09-03 — codex
+
 发布 pm-mcp v0.1.2 统一安装入口：一个 npx setup 命令自动检测五类 AI 编程客户端，支持备份、dry-run、force、显式客户端和通用 JSON；CLI/MCP 双路径分流，npm 冷启动与 GitHub 双版本 CI 均通过。
 
 改动文件（10）: src/cli.ts, src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, install.ps1, src/index.ts, scripts/create-pm-acceptance-profile.mts

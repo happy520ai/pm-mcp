@@ -1,5 +1,5 @@
 {
-  "seq": 7,
+  "seq": 8,
   "entries": [
     {
       "id": "D-0001",
@@ -113,6 +113,22 @@
         "install.ps1"
       ],
       "task_id": "T-030"
+    },
+    {
+      "id": "D-0008",
+      "date": "2026-09-03T06:52:01.153Z",
+      "author": "",
+      "symptom": "首次全量复测出现两个旧并发语义断言失败、LICENSE 新鲜度被 1 秒完成态读缓存遮蔽，首次公网 gate 又检出两条测试锁 token 夹具。",
+      "root_cause": "旧测试把完全相同调用当作不同业务；完成态读缓存无法感知工具外文件变更；固定 token 字段触发通用秘密赋值规则。",
+      "fix": "不同业务测试改用唯一参数；读层只合并仍在执行的请求，完成立即失效；锁测试改用运行时 UUID，不接受风险放行。",
+      "verified_how": "修复后 200/200、完整 gate、GitHub 双版本 CI 及 npm 匿名双 Agent 冷启动全部通过。",
+      "files": [
+        "src/idempotency.ts",
+        "test/integrity.test.ts",
+        "test/scenario.test.ts",
+        "test/store.test.ts"
+      ],
+      "task_id": "T-032"
     }
   ]
 }

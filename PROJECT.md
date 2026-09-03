@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T06:43:35.069Z
+> 生成时间: 2026-09-03T06:52:01.232Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,11 +18,11 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [███████░░░] 68% M2 v2 增强（13/19）
+▶ [███████░░░] 74% M2 v2 增强（14/19）
 - ⚠️ 重构被挤出: M2 v2 增强 重构类占比 16% < 配额 20%
 
 ## 🎯 当前焦点
-- 🔄 T-032 解决多 Agent 并行读取、并发写入与重复工具调用（步骤 3/4）
+- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
 - 当前阶段: v0.1.3 multi-agent idempotency
 
 ## 🩺 健康摘要
@@ -30,9 +30,9 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(13), package.json(10), src/index.ts(8) |
+| churn（变更率） | ⚠️ 热点 README.md(14), package.json(11), src/index.ts(9) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 7 条记录 |
+| 调试知识 | 8 条记录 |
 | 测试背书 | 13/13 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
 | 质量矩阵 | ✅ 2026-09-03 06:43（4/4） |
@@ -44,8 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 24 · backlog 7 · in_progress 1
-- [in_progress] T-032 解决多 Agent 并行读取、并发写入与重复工具调用 (feature, M2)
+- 总览: done 25 · backlog 7
 
 ## 🧩 功能清单
 ### src
@@ -71,6 +70,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-03 [codex] 完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
+  - 改动: src/idempotency.ts, src/tool-base.ts, src/store.ts, src/index.ts, src/acceptance-tools.ts, src/audit-tools.ts, src/governance-tools.ts, src/knowledge-tools.ts 等 22 个
 - 2026-09-03 [codex] 发布 pm-mcp v0.1.2 统一安装入口：一个 npx setup 命令自动检测五类 AI 编程客户端，支持备份、dry-run、force、显式客户端和通用 JSON；CLI/MCP 双路径分流，npm 冷启动与 GitHub 双版本 CI 均通过。
   - 改动: src/cli.ts, src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, install.ps1 等 10 个
 - 2026-09-03 [codex] 发布 @luckychen1993/pm-mcp@0.1.1 到 npm Registry：启用发布账号 2FA，统一包名/版本与安装命令，完成本地 gate、双版本 GitHub CI、匿名 Registry 元数据和全新缓存 MCP 冷启动验证，并创建 GitHub v0.1.1 Release。
@@ -79,8 +80,6 @@ flowchart LR
   - 改动: .gitattributes, .github/workflows/ci.yml, .gitignore, README.md, install.ps1, package.json, package-lock.json, src/dashboard.ts 等 16 个
 - 2026-09-03 [codex] 完成标准化产品验收与编译器/多语言AST语义治理：冻结33项量化需求、33项机器测试和8项风险；证据/源码/报告SHA-256防伪；46工具/7资源/5提示词；完整gate通过，183/183且覆盖率96.57/89.47/94.70，AST assurance与解析率100%，正式报告errors=0。
   - 改动: src/acceptance-model.ts, src/acceptance-evaluator.ts, src/acceptance-report.ts, src/acceptance-tools.ts, src/typescript-semantic.ts, src/polyglot-ast.ts, src/semantic-evidence.ts, src/semantic-evidence-store.ts 等 53 个
-- 2026-09-02 [codex] 完成跨文件/模块/语言语义治理层：结构化owner/接口/依赖策略，多生态manifest与真实质量矩阵，import/call/RPC/FFI图，循环/越界/影响分析，跨仓semver组合；完整gate与133项测试通过。
-  - 改动: src/governance-model.ts, src/language-adapters.ts, src/language-dependencies.ts, src/semantic-graph.ts, src/semantic-parsers.ts, src/governance-audit.ts, src/portfolio.ts, src/governance-tools.ts 等 33 个
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

@@ -935,7 +935,7 @@
       "title": "解决多 Agent 并行读取、并发写入与重复工具调用",
       "detail": "",
       "type": "feature",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -953,7 +953,7 @@
         },
         {
           "text": "发布 npm/GitHub v0.1.3 并完成冷启动验证",
-          "done": false
+          "done": true
         }
       ],
       "checkpoint": null,
@@ -974,14 +974,14 @@
         "test/integration.test.ts"
       ],
       "acceptance": "相同并行读只执行一次并复用；所有写工具支持显式业务键与自动瞬时去重；同键不同参数 fail-closed；活进程长锁不可被抢；本地/托管门禁和 npm 冷启动通过",
-      "result_note": "",
-      "verification": "",
+      "result_note": "已为全部 MCP 读写注册面增加跨进程并行读合并、写业务幂等键、瞬时自动去重、参数冲突拒绝和进程存活锁保护，并发布 v0.1.3。",
+      "verification": "本地 200/200 与完整 gate PASS；GitHub Actions 33724599781 Node 22.18/24 全绿；npm 匿名双 Agent 双缓存冷启动同键并发写最终 taskCount=1，幂等复用可见且冲突参数被拒绝。",
       "tags": [],
       "author": "codex",
       "created": "2026-09-03T06:38:14.716Z",
-      "updated": "2026-09-03T06:43:35.050Z",
+      "updated": "2026-09-03T06:52:01.099Z",
       "started_at": "2026-09-03T06:43:35.050Z",
-      "completed_at": null
+      "completed_at": "2026-09-03T06:52:01.099Z"
     }
   ]
 }
