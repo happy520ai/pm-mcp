@@ -1,0 +1,4 @@
+.lock
+.runtime/
+benchmarks/
+index.db*

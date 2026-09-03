@@ -5,6 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { isInitialized } from "./paths.ts";
 import { normSep } from "./budget.ts";
 import { getIndex, getMeta, setMeta } from "./index-db.ts";
+import { clearWatcherDirty, coordinateWatcherLeader, markWatcherDirty, watcherIsClean } from "./watcher-coordinator.ts";
 export { aggregates, closeIndex, getIndex, getMeta, iterateFileRows, setMeta } from "./index-db.ts";
 export type { Aggregates } from "./index-db.ts";
 import {
@@ -221,7 +222,10 @@ export function walkRefresh(root: string, opts: WalkOptions = {}): WalkRefreshRe
     // 将精确走查绑定到本次 watcher 会话；下次进程启动会换代，旧索引因而必须先对账。
     const watcherSession = getMeta(db, "watcherSession");
     if (watcherSession !== null) setMeta(db, "lastWalkSession", watcherSession);
+    setMeta(db, "watcherError", "");
   }
+  clearWatcherDirty(root);
+  activeWatchers.get(path.resolve(root))?.reconciled();
   return { totalFiles: total, changed: processed, deleted: Number(del.changes ?? 0), hits: total - processed, skippedDeep };
 }
 
@@ -253,6 +257,8 @@ export function freshness(root: string): Freshness {
   const eventAge = lastEvent ? Date.now() - Date.parse(lastEvent) : Number.POSITIVE_INFINITY;
   const watcherSession = getMeta(db, "watcherSession");
   const sessionReconciled = watcherSession !== null && getMeta(db, "lastWalkSession") === watcherSession;
+  const watcherHealthy = !(getMeta(db, "watcherError") ?? "");
+  const watcherClean = watcherIsClean(root);
   // 卡死计数自愈：防抖 150ms，若计数>0 但 30s 无任何事件推进，说明计数器失真（如持锁期抛错），不再信任
   const pendingClean = pending === 0 || eventAge > 30_000;
   const fresh =
@@ -261,6 +267,8 @@ export function freshness(root: string): Freshness {
     owned &&
     mode === "watcher" &&
     sessionReconciled &&
+    watcherHealthy &&
+    watcherClean &&
     pendingClean &&
     beatAge < BEAT_STALE_MS;
   return { mode, fresh, files, lastWalk, lastBeat, pendingEvents: pending };
@@ -284,15 +292,10 @@ export function ensureFresh(root: string): { used: "watcher" | "walk"; freshness
 
 /* --------------------------------- watcher --------------------------------- */
 
-export interface WatcherHandle {
-  stop(): void;
-}
+export interface WatcherHandle { stop(): void; }
 
 /** 本进程内的活跃 watcher（供审计前就地排空事件队列，免回退全量走查） */
-interface ActiveWatcher {
-  timers: Map<string, { timer: NodeJS.Timeout; due: number; run: () => void }>;
-  closed: () => boolean;
-}
+interface ActiveWatcher { timers: Map<string, { timer: NodeJS.Timeout; due: number; run: () => void }>; closed: () => boolean; reconciled: () => void; }
 const activeWatchers = new Map<string, ActiveWatcher>();
 
 /**
@@ -320,30 +323,61 @@ export function drainWatcher(root: string): boolean {
  */
 export function startWatcher(root: string): WatcherHandle | null {
   const abs = path.resolve(root);
-  const db = getIndex(abs);
+  let db: DatabaseSync | null = null;
   let pending = 0;
   const timers = new Map<string, { timer: NodeJS.Timeout; due: number; run: () => void }>();
-  let closed = false;
-
-  const ignored = (rel: string): boolean => {
-    const first = rel.split("/")[0];
-    return DEFAULT_IGNORE_DIRS.has(first) || first === ".pm";
+  let watcher: fs.FSWatcher | null = null;
+  let beat: NodeJS.Timeout | null = null;
+  let leader = false;
+  let stopped = false;
+  let locallyUnhealthy = false;
+  const active: ActiveWatcher = {
+    timers,
+    closed: () => stopped || !leader,
+    reconciled: () => { locallyUnhealthy = false; },
   };
 
-  const bumpPending = (d: number): void => {
+  const ignored = (rel: string): boolean => DEFAULT_IGNORE_DIRS.has(rel.split("/")[0]) || rel.split("/")[0] === ".pm";
+
+  const recordWatcherError = (stage: string, error: unknown): void => {
+    locallyUnhealthy = true;
+    try { markWatcherDirty(abs); } catch (markerError) {
+      console.error(`[pm-mcp] watcher dirty marker failed: ${markerError instanceof Error ? markerError.message : String(markerError)}`);
+    }
+    console.error(`[pm-mcp] watcher ${stage} failed: ${error instanceof Error ? error.message : String(error)}`);
+    if (!db) return;
+    try { setMeta(db, "watcherError", new Date().toISOString()); } catch (metaError) {
+      console.error(`[pm-mcp] watcher error state persistence failed: ${metaError instanceof Error ? metaError.message : String(metaError)}`);
+    }
+  };
+
+  const bumpPending = (d: number, allowClean = false): void => {
     pending = Math.max(0, pending + d);
     try {
-      setMeta(db, "pending", String(pending));
-    } catch {
-      /* 库忙时持久化失败无所谓——内存计数仍准，meta 会随后续写收敛 */
+      if (pending > 0) markWatcherDirty(abs);
+      if (db) setMeta(db, "pending", String(pending));
+      if (pending === 0 && allowClean && !locallyUnhealthy) clearWatcherDirty(abs);
+    } catch (error) {
+      recordWatcherError("persist pending", error);
     }
   };
 
   const process = (rel: string): void => {
-    if (closed) return;
+    if (stopped || !leader || !db) return;
+    let succeeded = false;
     try {
       const full = path.join(abs, ...rel.split("/"));
-      const st = fs.statSync(full);
+      let st: fs.Stats;
+      try {
+        st = fs.statSync(full);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        deleteFile(db, rel);
+        deleteSubtree(db, rel);
+        setMeta(db, "lastEvent", new Date().toISOString());
+        succeeded = true;
+        return;
+      }
       if (st.isDirectory()) {
         // 新目录：补扫该子树（走 walkStatEntries 的 include 限定）
         for (const e of walkStatEntries(abs, { include: [rel + "/**"] }, () => undefined)) {
@@ -354,94 +388,101 @@ export function startWatcher(root: string): WatcherHandle | null {
         if (ignored(rel)) return;
         upsertFile(abs, db, rel, st, computeEntry(abs, rel, st));
       }
-    } catch {
-      // 消失了 → 删行
-      try {
-        deleteFile(db, rel);
-        deleteSubtree(db, rel);
-      } catch {
-        /* ignore */
-      }
+      setMeta(db, "lastEvent", new Date().toISOString());
+      succeeded = true;
+    } catch (error) {
+      // In particular, SQLITE_BUSY must never be reported as a successful
+      // watcher event. Mark the shared cache unhealthy; the next audit walks.
+      recordWatcherError(`event ${rel}`, error);
     } finally {
-      bumpPending(-1);
+      bumpPending(-1, succeeded);
+    }
+  };
+
+  const deactivateLeader = (): void => {
+    if (!leader) return;
+    leader = false;
+    if (activeWatchers.get(abs) === active) activeWatchers.delete(abs);
+    if (beat) clearInterval(beat);
+    beat = null;
+    for (const entry of timers.values()) clearTimeout(entry.timer);
+    timers.clear();
+    pending = 0;
+    try { watcher?.close(); } catch { /* best effort */ }
+    watcher = null;
+    if (db) {
       try {
-        setMeta(db, "lastEvent", new Date().toISOString());
-      } catch {
-        /* ignore */
+        setMeta(db, "pending", "0");
+        setMeta(db, "mode", "walk");
+      } catch (error) {
+        if (!(error instanceof Error && /database is not open/i.test(error.message))) recordWatcherError("demotion", error);
       }
     }
   };
 
-  let watcher: fs.FSWatcher;
-  try {
-    watcher = fs.watch(abs, { recursive: true }, (_event, filename) => {
-      if (closed || !filename) return;
-      let rel: string;
-      try {
-        rel = normSep(String(filename));
-        if (ignored(rel)) return;
-      } catch {
-        return;
-      }
-      // 先建定时器再计数：即使计数持久化撞锁抛错，定时器也已就位（否则计数永不归零）
-      const prev = timers.get(rel);
-      if (prev) {
-        clearTimeout(prev.timer);
-        bumpPending(-1);
-      }
-      bumpPending(1);
-      const run = (): void => {
-        timers.delete(rel);
-        try {
-          process(rel);
-        } catch {
-          bumpPending(-1);
-        }
-      };
-      timers.set(rel, { timer: setTimeout(run, 150), due: Date.now() + 150, run });
-    });
-  } catch {
-    setMeta(db, "mode", "walk");
-    return null;
-  }
-  watcher.unref();
-  // 每次 watcher 启动都换一个会话代次。只有本次会话建立后的精确走查
-  // 会把 lastWalkSession 对齐，因此停机窗口内的增删改不可能被旧心跳掩盖。
-  setMeta(db, "watcherSession", randomUUID());
-  setMeta(db, "pending", "0");
-  setMeta(db, "mode", "watcher");
-  let stopped = false;
-  activeWatchers.set(abs, { timers, closed: () => stopped });
-  const beat = setInterval(() => {
-    if (closed) return;
+  const activateLeader = (): (() => void) | null => {
+    db = getIndex(abs);
     try {
-      setMeta(db, "lastBeat", new Date().toISOString());
-    } catch {
-      /* ignore */
+      watcher = fs.watch(abs, { recursive: true }, (_event, filename) => {
+        if (stopped || !leader || !filename) return;
+        let rel: string;
+        try {
+          rel = normSep(String(filename));
+          if (ignored(rel)) return;
+        } catch {
+          return;
+        }
+        // 先建定时器再计数：即使计数持久化撞锁抛错，定时器也已就位（否则计数永不归零）
+        const prev = timers.get(rel);
+        if (prev) {
+          clearTimeout(prev.timer);
+        } else bumpPending(1);
+        const run = (): void => {
+          timers.delete(rel);
+          try {
+            process(rel);
+          } catch {
+            bumpPending(-1);
+          }
+        };
+        timers.set(rel, { timer: setTimeout(run, 150), due: Date.now() + 150, run });
+      });
+    } catch (error) {
+      try { setMeta(db, "mode", "walk"); } catch { /* freshness also requires a live heartbeat */ }
+      recordWatcherError("activation", error);
+      return null;
     }
-  }, 10_000);
-  beat.unref();
-  // 立刻打一次心跳（避免刚启动的 90s 空窗被判不新鲜）
-  setMeta(db, "lastBeat", new Date().toISOString());
-  return {
-    stop(): void {
-      stopped = true;
-      activeWatchers.delete(abs);
-      closed = true;
-      clearInterval(beat);
-      for (const t of timers.values()) clearTimeout(t.timer);
-      try {
-        watcher.close();
-      } catch {
-        /* ignore */
-      }
-      try {
-        setMeta(db, "mode", "walk");
-      } catch {
-        /* 库可能已被关闭（closeIndex 先行）——telemetry 失败无所谓 */
-      }
-    },
+
+    try {
+      watcher.unref();
+      leader = true;
+      // 每位 leader 都换一个会话代次。强杀/接管之间的停机窗口必须先精确走查。
+      setMeta(db, "watcherSession", randomUUID());
+      setMeta(db, "pending", "0");
+      setMeta(db, "watcherError", "");
+      setMeta(db, "mode", "watcher");
+      setMeta(db, "lastBeat", new Date().toISOString());
+      activeWatchers.set(abs, active);
+      beat = setInterval(() => {
+        if (stopped || !leader || !db) return;
+        try {
+          setMeta(db, "lastBeat", new Date().toISOString());
+          if (!(getMeta(db, "watcherError") ?? "") && watcherIsClean(abs)) locallyUnhealthy = false;
+        } catch (error) {
+          recordWatcherError("heartbeat", error);
+        }
+      }, 10_000);
+      beat.unref();
+      return deactivateLeader;
+    } catch (error) {
+      deactivateLeader();
+      throw error;
+    }
   };
+
+  const coordinator = coordinateWatcherLeader(abs, activateLeader, recordWatcherError);
+  if (!coordinator) return null;
+  return { stop(): void { if (!stopped) { stopped = true; coordinator.stop(); } } };
 }
 
 /** 巡检/诊断用：索引概况一行 */

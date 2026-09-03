@@ -223,6 +223,10 @@ test("paths and registry cover fallback, corruption, replacement and ordering", 
   ensurePmDirs(root);
   assert.equal(fs.existsSync(decisionsDir(root)), true);
   assert.equal(fs.existsSync(snapshotsDir(root)), true);
+  const pmIgnore = fs.readFileSync(path.join(root, ".pm", ".gitignore"), "utf8");
+  for (const entry of [".lock", ".runtime/", "benchmarks/", "index.db*"]) {
+    assert.ok(pmIgnore.split(/\r?\n/).includes(entry), `${entry} must stay local`);
+  }
 
   const file = registryFile();
   fs.mkdirSync(path.dirname(file), { recursive: true });

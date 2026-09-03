@@ -38,22 +38,23 @@ function writeSchema(schema: Record<string, unknown>): Record<string, unknown> {
 }
 
 /** 同步写工具：业务幂等占位 + 跨进程账本锁覆盖完整读-改-写。 */
-export function toolW<Args>(
+export function toolW<Args, Prepared = void>(
   server: McpServer,
   root: string,
   name: string,
   description: string,
   schema: Record<string, unknown>,
-  fn: (args: Args) => string,
+  fn: (args: Args, prepared: Prepared) => string,
+  prepare?: (args: Args) => Prepared,
 ): void {
   server.registerTool(
     name,
     { description: `${description} ${idempotencyDescription}`, inputSchema: writeSchema(schema) as never, annotations: { readOnlyHint: false } },
     ((args: Args) => {
       try {
-        const result = runIdempotentWriteSync(root, name, args, fn);
+        const result = runIdempotentWriteSync(root, name, args, fn, prepare);
         const prefix = result.replayed ? `↩️ 幂等复用 ${result.key}\n` : result.pending ? `⏳ 幂等占位 ${result.key}\n` : "";
-        return { content: [{ type: "text" as const, text: prefix + result.text }] };
+        return { content: [{ type: "text" as const, text: prefix + result.text }], ...(result.pending ? { isError: true } : {}) };
       } catch (error) {
         return { content: [{ type: "text" as const, text: `错误: ${(error as Error).message}` }], isError: true };
       }
@@ -77,7 +78,7 @@ export function toolI<Args>(
       try {
         const result = await runIdempotentWrite(root, name, args, fn);
         const prefix = result.replayed ? `↩️ 幂等复用 ${result.key}\n` : result.pending ? `⏳ 幂等占位 ${result.key}\n` : "";
-        return { content: [{ type: "text" as const, text: prefix + result.text }] };
+        return { content: [{ type: "text" as const, text: prefix + result.text }], ...(result.pending ? { isError: true } : {}) };
       } catch (error) {
         return { content: [{ type: "text" as const, text: `错误: ${(error as Error).message}` }], isError: true };
       }

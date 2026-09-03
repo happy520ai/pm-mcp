@@ -1,9 +1,10 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { atomicWrite, withLedgerLock } from "./store.ts";
-import { pmPath, registryFile } from "./paths.ts";
+import { atomicWrite, withFileRecoveryLock, withLedgerLock } from "./store.ts";
+import { ensurePmRuntimeIgnored, pmPath, registryFile } from "./paths.ts";
 
 export const IdempotencyKeySchema = z.string()
   .trim()
@@ -18,7 +19,7 @@ const OperationRecordSchema = z.object({
   tool: z.string().min(1),
   args_sha256: z.string().regex(/^[a-f0-9]{64}$/),
   mode: z.enum(["read", "write"]),
-  status: z.enum(["pending", "completed"]),
+  status: z.enum(["pending", "completed", "uncertain"]),
   owner_pid: z.number().int().positive(),
   owner_token: z.string().uuid(),
   created_at: z.string().datetime({ offset: true }),
@@ -31,12 +32,18 @@ export interface IdempotentResult {
   text: string;
   replayed: boolean;
   pending: boolean;
+  uncertain: boolean;
   key: string;
 }
 
 const AUTO_REPLAY_MS = 1_000;
-const READ_WAIT_MS = 30_000;
-const LOCK_STALE_MS = 10_000;
+const DEFAULT_PENDING_LEASE_MS = 60 * 60_000;
+const DEFAULT_WRITE_WAIT_MS = 3_000;
+const MAX_CLOCK_SKEW_MS = 5_000;
+const SYNC_WAIT = new Int32Array(new SharedArrayBuffer(4));
+let readWaitMs = 30_000;
+let pendingLeaseMs = DEFAULT_PENDING_LEASE_MS;
+let writeWaitMs = DEFAULT_WRITE_WAIT_MS;
 
 function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -76,7 +83,10 @@ function processAlive(pid: number): boolean {
 }
 
 function operationDirectory(root: string): string {
-  return path.join(path.dirname(registryFile()), "idempotency", sha256(path.resolve(root)));
+  let canonical = path.resolve(root);
+  try { canonical = fs.realpathSync.native(canonical); } catch { /* init_project may not exist yet */ }
+  ensurePmRuntimeIgnored(canonical);
+  return pmPath(canonical, ".runtime", "idempotency");
 }
 
 function revisionFile(root: string): string {
@@ -100,6 +110,23 @@ function operationFile(root: string, key: string): string {
   return path.join(operationDirectory(root), `${sha256(key)}.json`);
 }
 
+function legacyOperationFiles(root: string, key: string): string[] {
+  const resolved = path.resolve(root);
+  let real = resolved;
+  try { real = fs.realpathSync.native(resolved); } catch { /* keep resolved */ }
+  const identities = new Set([resolved, real]);
+  if (process.platform === "win32") {
+    identities.add(resolved.toLowerCase());
+    identities.add(resolved.toUpperCase());
+    identities.add(real.toLowerCase());
+    identities.add(real.toUpperCase());
+  }
+  const homes = new Set([path.dirname(registryFile()), path.join(os.homedir(), ".pm-mcp")]);
+  const name = `${sha256(key)}.json`;
+  return [...homes].flatMap((home) => [...identities].map((identity) =>
+    path.join(home, "idempotency", sha256(identity), name)));
+}
+
 function readRecord(file: string): OperationRecord | null {
   if (!fs.existsSync(file)) return null;
   let raw: unknown;
@@ -113,51 +140,34 @@ function readRecord(file: string): OperationRecord | null {
   return parsed.data;
 }
 
-function lockOwner(file: string): { pid: number; token: string } | null {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as { pid?: unknown; token?: unknown };
-    return typeof parsed.pid === "number" && typeof parsed.token === "string" ? { pid: parsed.pid, token: parsed.token } : null;
-  } catch {
-    return null;
+function migrateLegacyRecord(root: string, key: string, currentFile: string): OperationRecord | null {
+  const legacy = [...new Set(legacyOperationFiles(root, key))].filter((file) => fs.existsSync(file));
+  if (legacy.length === 0) return null;
+  const records = legacy.map((file) => readRecord(file)!);
+  const first = JSON.stringify(records[0]);
+  if (records.some((record) => JSON.stringify(record) !== first)) {
+    throw new Error(`检测到多个不一致的 v0.1.3 幂等记录，拒绝自动迁移业务键: ${key}`);
   }
+  atomicWrite(currentFile, JSON.stringify(OperationRecordSchema.parse(records[0]), null, 2) + "\n");
+  return records[0];
+}
+
+function pendingLeaseExpired(record: OperationRecord): boolean {
+  const age = Date.now() - Date.parse(record.updated_at);
+  return !Number.isFinite(age) || age < -MAX_CLOCK_SKEW_MS || age >= pendingLeaseMs;
 }
 
 function withOperationLock<T>(file: string, fn: () => T): T {
-  const lock = `${file}.lock`;
-  const token = randomUUID();
-  const payload = JSON.stringify({ pid: process.pid, token });
-  let held = false;
-  for (let index = 0; index < 150 && !held; index += 1) {
-    try {
-      fs.writeFileSync(lock, payload, { flag: "wx" });
-      held = true;
-    } catch {
-      try {
-        const current = lockOwner(lock);
-        const stale = Date.now() - fs.statSync(lock).mtimeMs > LOCK_STALE_MS;
-        if (stale && (!current || !processAlive(current.pid))) fs.rmSync(lock, { force: true });
-      } catch {
-        // The lock disappeared between checks; retry.
-      }
-      if (!held) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);
-    }
-  }
-  if (!held) throw new Error("幂等键锁获取超时（3s），请稍后重试同一 idempotency_key。");
-  try {
-    return fn();
-  } finally {
-    try {
-      if (lockOwner(lock)?.token === token) fs.rmSync(lock, { force: true });
-    } catch {
-      // Best-effort release; stale-owner recovery handles process crashes.
-    }
-  }
+  return withFileRecoveryLock(`${file}.lock`, fn, {
+    timeoutMessage: "幂等键锁获取超时（3s），请稍后重试同一 idempotency_key。",
+  });
 }
 
 type Claim =
   | { kind: "execute"; file: string; record: OperationRecord }
   | { kind: "replay"; record: OperationRecord }
-  | { kind: "pending"; file: string; record: OperationRecord };
+  | { kind: "pending"; file: string; record: OperationRecord }
+  | { kind: "uncertain"; record: OperationRecord };
 
 function claim(root: string, tool: string, args: unknown, mode: "read" | "write", explicitKey?: string): Claim {
   const argsHash = operationArgsHash(args);
@@ -165,16 +175,34 @@ function claim(root: string, tool: string, args: unknown, mode: "read" | "write"
   const file = operationFile(root, key);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   return withOperationLock(file, () => {
-    const existing = readRecord(file);
+    const existing = readRecord(file) ?? migrateLegacyRecord(root, key, file);
     if (existing) {
       if (existing.key !== key || existing.tool !== tool || existing.mode !== mode || existing.args_sha256 !== argsHash) {
         throw new Error(`idempotency_key 冲突：${key} 已绑定其他工具或参数，拒绝误复用。`);
       }
       if (existing.status === "completed") {
         const age = Date.now() - Date.parse(existing.updated_at);
-        if (existing.explicit || (mode === "write" && age <= AUTO_REPLAY_MS)) return { kind: "replay", record: existing };
-      } else if (processAlive(existing.owner_pid)) {
-        return { kind: "pending", file, record: existing };
+        if (
+          existing.explicit ||
+          (mode === "write" && age <= AUTO_REPLAY_MS)
+        ) return { kind: "replay", record: existing };
+      } else if (existing.status === "uncertain") {
+        return { kind: "uncertain", record: existing };
+      } else {
+        const expired = pendingLeaseExpired(existing);
+        const ownerAlive = processAlive(existing.owner_pid);
+        if (mode === "write") {
+          if (!expired && ownerAlive) return { kind: "pending", file, record: existing };
+          // A write may already have changed external or ledger state. Neither an
+          // expired lease nor a dead/reused PID proves that replay is safe.
+          existing.status = "uncertain";
+          existing.updated_at = new Date().toISOString();
+          atomicWrite(file, JSON.stringify(OperationRecordSchema.parse(existing), null, 2) + "\n");
+          return { kind: "uncertain", record: existing };
+        }
+        // Reads are side-effect-free by contract. Keep a real active lease, but
+        // replace an expired or dead-owner reservation with a fresh execution.
+        if (!expired && ownerAlive) return { kind: "pending", file, record: existing };
       }
     }
     const timestamp = new Date().toISOString();
@@ -210,6 +238,20 @@ function complete(file: string, reservation: OperationRecord, result: string): v
   });
 }
 
+function markUncertain(file: string, reservation: OperationRecord): void {
+  try {
+    withOperationLock(file, () => {
+      const current = readRecord(file);
+      if (current?.owner_token !== reservation.owner_token || current.status !== "pending") return;
+      current.status = "uncertain";
+      current.updated_at = new Date().toISOString();
+      atomicWrite(file, JSON.stringify(OperationRecordSchema.parse(current), null, 2) + "\n");
+    });
+  } catch {
+    // Preserve the business error. The pending explicit key remains fail-closed.
+  }
+}
+
 function abandon(file: string, reservation: OperationRecord): void {
   try {
     withOperationLock(file, () => {
@@ -222,33 +264,81 @@ function abandon(file: string, reservation: OperationRecord): void {
 }
 
 function replay(record: OperationRecord): IdempotentResult {
+  const uncertain = record.status === "uncertain" || (
+    record.status === "pending" && record.mode === "write" &&
+    (!processAlive(record.owner_pid) || pendingLeaseExpired(record))
+  );
   return {
-    text: record.result ?? `⏳ 相同业务正在由另一 Agent 执行：${record.key}`,
+    text: record.result ?? (uncertain
+      ? `⚠️ 业务结果不确定，已禁止自动重放：${record.key}。请核对目标账本后决定是否使用新的业务键。`
+      : `⏳ 相同业务正在由另一 Agent 执行：${record.key}`),
     replayed: record.status === "completed",
-    pending: record.status === "pending",
+    pending: record.status !== "completed",
+    uncertain,
     key: record.key,
   };
 }
 
-export function runIdempotentWriteSync<Args>(
+function currentWriteSettlement(file: string, reservation: OperationRecord): OperationRecord | null | undefined {
+  const current = readRecord(file);
+  if (!current || current.owner_token !== reservation.owner_token) return null;
+  if (current.status !== "pending") return current;
+  if (!processAlive(current.owner_pid) || pendingLeaseExpired(current)) return null;
+  return undefined;
+}
+
+function waitForWriteSync(file: string, reservation: OperationRecord): OperationRecord | null {
+  const deadline = Date.now() + writeWaitMs;
+  while (Date.now() < deadline) {
+    const current = currentWriteSettlement(file, reservation);
+    if (current !== undefined) return current;
+    Atomics.wait(SYNC_WAIT, 0, 0, Math.min(25, Math.max(0, deadline - Date.now())));
+  }
+  return null;
+}
+
+async function waitForWrite(file: string, reservation: OperationRecord): Promise<OperationRecord | null> {
+  const deadline = Date.now() + writeWaitMs;
+  while (Date.now() < deadline) {
+    const current = currentWriteSettlement(file, reservation);
+    if (current !== undefined) return current;
+    await new Promise((resolve) => setTimeout(resolve, Math.min(25, Math.max(0, deadline - Date.now()))));
+  }
+  return null;
+}
+
+export function runIdempotentWriteSync<Args, Prepared = void>(
   root: string,
   tool: string,
   args: Args,
-  fn: (businessArgs: Args) => string,
+  fn: (businessArgs: Args, prepared: Prepared) => string,
+  prepare?: (businessArgs: Args) => Prepared,
 ): IdempotentResult {
   const { businessArgs, explicitKey } = splitIdempotencyArgs(args);
-  const reservation = claim(root, tool, businessArgs, "write", explicitKey);
+  let reservation = claim(root, tool, businessArgs, "write", explicitKey);
+  if (reservation.kind === "pending") {
+    const settled = waitForWriteSync(reservation.file, reservation.record);
+    if (settled) return replay(settled);
+    reservation = claim(root, tool, businessArgs, "write", explicitKey);
+  }
   if (reservation.kind !== "execute") return replay(reservation.record);
+  let handlerStarted = false;
   try {
+    const prepared = prepare?.(businessArgs) as Prepared;
     const text = withLedgerLock(root, () => {
-      const value = fn(businessArgs);
+      handlerStarted = true;
+      const value = fn(businessArgs, prepared);
+      idempotencyFault("after-business");
       bumpRevision(root);
+      idempotencyFault("after-revision");
       return value;
     });
+    idempotencyFault("before-complete");
     complete(reservation.file, reservation.record, text);
-    return { text, replayed: false, pending: false, key: reservation.record.key };
+    return { text, replayed: false, pending: false, uncertain: false, key: reservation.record.key };
   } catch (error) {
-    abandon(reservation.file, reservation.record);
+    if (handlerStarted) markUncertain(reservation.file, reservation.record);
+    else abandon(reservation.file, reservation.record);
     throw error;
   }
 }
@@ -260,21 +350,32 @@ export async function runIdempotentWrite<Args>(
   fn: (businessArgs: Args) => string | Promise<string>,
 ): Promise<IdempotentResult> {
   const { businessArgs, explicitKey } = splitIdempotencyArgs(args);
-  const reservation = claim(root, tool, businessArgs, "write", explicitKey);
+  let reservation = claim(root, tool, businessArgs, "write", explicitKey);
+  if (reservation.kind === "pending") {
+    const settled = await waitForWrite(reservation.file, reservation.record);
+    if (settled) return replay(settled);
+    reservation = claim(root, tool, businessArgs, "write", explicitKey);
+  }
   if (reservation.kind !== "execute") return replay(reservation.record);
+  let handlerStarted = false;
   try {
+    handlerStarted = true;
     const text = await fn(businessArgs);
+    idempotencyFault("after-business");
     bumpRevision(root);
+    idempotencyFault("after-revision");
+    idempotencyFault("before-complete");
     complete(reservation.file, reservation.record, text);
-    return { text, replayed: false, pending: false, key: reservation.record.key };
+    return { text, replayed: false, pending: false, uncertain: false, key: reservation.record.key };
   } catch (error) {
-    abandon(reservation.file, reservation.record);
+    if (handlerStarted) markUncertain(reservation.file, reservation.record);
+    else abandon(reservation.file, reservation.record);
     throw error;
   }
 }
 
 async function waitForRead(file: string, record: OperationRecord): Promise<OperationRecord | null> {
-  const deadline = Date.now() + READ_WAIT_MS;
+  const deadline = Date.now() + readWaitMs;
   while (Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 25));
     const current = readRecord(file);
@@ -294,23 +395,58 @@ export async function runCoalescedRead<Args>(
   // Read-only calls before project initialization must not create .pm state.
   if (!fs.existsSync(pmPath(root, "project.json"))) {
     const text = await fn(args);
-    return { text, replayed: false, pending: false, key: "uncached:uninitialized" };
+    return { text, replayed: false, pending: false, uncertain: false, key: "uncached:uninitialized" };
   }
   const readClaim = (): Claim => claim(root, tool, { revision: readRevision(root), args }, "read");
   let reservation = readClaim();
   if (reservation.kind === "replay") return replay(reservation.record);
+  if (reservation.kind === "uncertain") throw new Error("并行读取状态不确定；请稍后重试。");
   if (reservation.kind === "pending") {
     const completed = await waitForRead(reservation.file, reservation.record);
     if (completed) return replay(completed);
     reservation = readClaim();
-    if (reservation.kind !== "execute") return replay(reservation.record);
+    if (reservation.kind === "pending") throw new Error(`并行读取等待超过 ${readWaitMs}ms，leader 仍在执行；请稍后重试。`);
+    if (reservation.kind === "uncertain") throw new Error("并行读取状态不确定；请稍后重试。");
+    if (reservation.kind === "replay") return replay(reservation.record);
   }
+  if (reservation.kind !== "execute") throw new Error("并行读取未获得执行权；请稍后重试。");
   try {
     const text = await fn(args);
     complete(reservation.file, reservation.record, text);
-    return { text, replayed: false, pending: false, key: reservation.record.key };
+    return { text, replayed: false, pending: false, uncertain: false, key: reservation.record.key };
   } catch (error) {
     abandon(reservation.file, reservation.record);
     throw error;
   }
+}
+
+type FaultStage = "after-business" | "after-revision" | "before-complete";
+let faultHook: ((stage: FaultStage) => void) | undefined;
+
+function idempotencyFault(stage: FaultStage): void {
+  faultHook?.(stage);
+}
+
+/** 仅供故障注入测试；生产调用方不应设置。 */
+export function setIdempotencyFaultHookForTests(hook?: (stage: FaultStage) => void): void {
+  faultHook = hook;
+}
+
+/** 仅供故障注入测试，传 undefined 恢复生产默认值。 */
+export function setReadWaitMsForTests(value?: number): void {
+  readWaitMs = value ?? 30_000;
+}
+
+/** 仅供 PID 复用与 lease 故障注入测试；传 undefined 恢复生产默认值。 */
+export function setPendingLeaseMsForTests(value?: number): void {
+  if (value !== undefined && (!Number.isFinite(value) || value <= 0)) {
+    throw new RangeError("pending lease 必须大于 0ms。");
+  }
+  pendingLeaseMs = value ?? DEFAULT_PENDING_LEASE_MS;
+}
+
+/** 仅供 follower 等待边界测试；传 undefined 恢复生产默认值。 */
+export function setWriteWaitMsForTests(value?: number): void {
+  if (value !== undefined && (!Number.isFinite(value) || value < 0)) throw new RangeError("write wait 不得小于 0ms。");
+  writeWaitMs = value ?? DEFAULT_WRITE_WAIT_MS;
 }

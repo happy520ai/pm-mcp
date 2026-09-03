@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { loadFileNotes, loadProject } from "./store.ts";
 import { isTestFile, readDirectDeps } from "./scan.ts";
-import { ensureFresh, getIndex, iterateFileRows } from "./index-store.ts";
+import { ensureFresh, getIndex, iterateFileRows, walkRefresh } from "./index-store.ts";
 import { readText } from "./search.ts";
 import { foldLines } from "./budget.ts";
 
@@ -133,7 +133,8 @@ function readNodeLicenses(root: string): { list: DepLicense[]; truncated: number
 
 const GPL_HEADER = /GNU (LESSER |AFFERO )?GENERAL PUBLIC LICENSE/i;
 
-export function auditLicense(root: string, maxLines = 150): string {
+export function auditLicense(root: string, maxLines = 150, forceFresh = false, indexPrepared = false): string {
+  if (forceFresh) walkRefresh(root, { forceContent: true });
   const project = loadProject(root);
   const rootPkg = path.join(root, "package.json");
   let pkgLicense = "";
@@ -209,14 +210,14 @@ export function auditLicense(root: string, maxLines = 150): string {
   /* ③ 可疑许可证头 */
   L.push("");
   L.push("### ③ 源码中的 GPL 家族许可证头（复制带许可证代码的常见痕迹）");
-  ensureFresh(root);
+  if (!forceFresh && !indexPrepared) ensureFresh(root);
   const hits: string[] = [];
   for (const row of iterateFileRows(getIndex(root))) {
     const rel = row.rel;
     if (rel.startsWith(".pm/")) continue;
     // 测试文件常内嵌许可证字符串作为 fixture，不参与该启发式（信号针对混入源码的复制代码）
     if (isTestFile(rel)) continue;
-    const content = readText(root, rel);
+    const content = readText(root, rel, forceFresh);
     if (content === null) continue;
     if (GPL_HEADER.test(content.split("\n").slice(0, 40).join("\n"))) hits.push(rel);
     if (hits.length >= 10) break;

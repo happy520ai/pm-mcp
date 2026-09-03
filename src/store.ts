@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { DatabaseSync } from "node:sqlite";
 import type { ZodTypeAny, output } from "zod";
 import {
   DebugLogFileSchema,
@@ -70,81 +71,210 @@ export function saveJson(file: string, data: unknown): void {
   atomicWrite(file, JSON.stringify(data, null, 2) + "\n");
 }
 
+type FileLockOwner = { pid: number; token?: string; created_at?: string; protocol?: string };
+
+export interface FileRecoveryLockOptions {
+  /** SQLite file used only to serialize lock-file recovery operations. */
+  guardFile?: string;
+  timeoutMs?: number;
+  staleMs?: number;
+  timeoutMessage?: string;
+}
+
+const FILE_LOCK_TIMEOUT_MS = 3_000;
+const FILE_LOCK_STALE_MS = 10_000;
+const FILE_LOCK_POLL_MS = 20;
+const FILE_LOCK_PROTOCOL = "sqlite-guard-v1";
+const FILE_LOCK_WAIT = new Int32Array(new SharedArrayBuffer(4));
+
+function readFileLockOwner(lockFile: string): FileLockOwner | null {
+  let raw: string;
+  try {
+    raw = fs.readFileSync(lockFile, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+  try {
+    const parsed = JSON.parse(raw) as { pid?: unknown; token?: unknown; created_at?: unknown; protocol?: unknown };
+    if (!Number.isSafeInteger(parsed.pid) || (parsed.pid as number) <= 0) return null;
+    return {
+      pid: parsed.pid as number,
+      ...(typeof parsed.token === "string" && parsed.token.length > 0 ? { token: parsed.token } : {}),
+      ...(typeof parsed.created_at === "string" && parsed.created_at.length > 0 ? { created_at: parsed.created_at } : {}),
+      ...(typeof parsed.protocol === "string" && parsed.protocol.length > 0 ? { protocol: parsed.protocol } : {}),
+    };
+  } catch {
+    const pid = Number(raw.trim());
+    return Number.isSafeInteger(pid) && pid > 0 ? { pid } : null;
+  }
+}
+
+function fileLockOwnerAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    // EPERM proves that the process exists even when signalling it is forbidden.
+    return (error as NodeJS.ErrnoException).code === "EPERM";
+  }
+}
+
+function sqliteBusy(error: unknown): boolean {
+  const candidate = error as { errcode?: unknown; message?: unknown };
+  return candidate.errcode === 5 ||
+    (typeof candidate.message === "string" && /database is (?:locked|busy)/i.test(candidate.message));
+}
+
+function rollbackRecoveryGuard(db: DatabaseSync): void {
+  if (!db.isTransaction) return;
+  try {
+    db.exec("ROLLBACK");
+  } catch {
+    // close() below is the final fail-safe and also rolls an open transaction back.
+  }
+}
+
 /**
- * 账本互斥锁：把「读账本 → 改 → 写」整个事务串行化，多客户端（如 ZCode+Codex 并行）
- * 不再互相覆盖丢数据。锁文件 .pm/.lock（O_EXCL 创建）；超过 10s 且持锁进程已死亡
- * 才视为残留并接管。活着的长任务不会被误抢锁；释放时也只删除自己的 token。
- * 等待上限 3s，超时明确报错而非静默丢写。
+ * 通用跨进程文件锁。SQLite 写事务覆盖 .lock 的检查、接管、创建、调用方临界区和
+ * 释放，从而消除 check-then-rm ABA，并在进程崩溃时由操作系统释放真实所有权。
+ * 成功取得同一 guard 后，带当前 protocol 的残留 .lock 可立即核销，即使 PID 已复用；
+ * 无 protocol 的旧版锁仍须「超过 staleMs 且 PID 已死」才接管，以兼容滚动升级。
+ * 释放必须完整匹配 protocol、PID、token 与 created_at，否则保留并 fail-closed。
+ * 共享同一 guardFile 的不同 lockFile 会串行，调用方应只在短元数据事务中共享 guard。
  */
-export function withLedgerLock<T>(root: string, fn: () => T): T {
-  const lockFile = pmPath(root, ".lock");
-  fs.mkdirSync(pmPath(root), { recursive: true });
+export function withFileRecoveryLock<T>(
+  lockFile: string,
+  fn: () => T,
+  options: FileRecoveryLockOptions = {},
+): T {
+  const timeoutMs = options.timeoutMs ?? FILE_LOCK_TIMEOUT_MS;
+  const staleMs = options.staleMs ?? FILE_LOCK_STALE_MS;
+  const guardFile = options.guardFile ?? path.join(path.dirname(lockFile), ".file-recovery-guard.db");
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || !Number.isFinite(staleMs) || staleMs < 0) {
+    throw new RangeError("文件锁 timeoutMs 必须大于 0，staleMs 不得小于 0。");
+  }
+  fs.mkdirSync(path.dirname(lockFile), { recursive: true });
+  fs.mkdirSync(path.dirname(guardFile), { recursive: true });
   const token = randomUUID();
-  const payload = JSON.stringify({ pid: process.pid, token, created_at: new Date().toISOString() });
-  const owner = (): { pid: number; token?: string } | null => {
-    try {
-      const raw = fs.readFileSync(lockFile, "utf8");
-      try {
-        const parsed = JSON.parse(raw) as { pid?: unknown; token?: unknown };
-        return typeof parsed.pid === "number"
-          ? { pid: parsed.pid, ...(typeof parsed.token === "string" ? { token: parsed.token } : {}) }
-          : null;
-      } catch {
-        const pid = Number(raw.trim());
-        return Number.isInteger(pid) && pid > 0 ? { pid } : null;
-      }
-    } catch {
-      return null;
-    }
-  };
-  const alive = (pid: number): boolean => {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch (error) {
-      return (error as NodeJS.ErrnoException).code === "EPERM";
-    }
-  };
-  const acquire = (): boolean => {
+  const createdAt = new Date().toISOString();
+  const payload = JSON.stringify({ pid: process.pid, token, created_at: createdAt, protocol: FILE_LOCK_PROTOCOL });
+  const deadline = Date.now() + timeoutMs;
+  let fileLockHeld = false;
+
+  const acquireFileLock = (): boolean => {
     try {
       fs.writeFileSync(lockFile, payload, { flag: "wx" });
       return true;
-    } catch {
-      try {
-        const st = fs.statSync(lockFile);
-        const current = owner();
-        if (Date.now() - st.mtimeMs > 10_000 && (!current || !alive(current.pid))) {
-          fs.rmSync(lockFile, { force: true });
-          try {
-            fs.writeFileSync(lockFile, payload, { flag: "wx" });
-            return true;
-          } catch {
-            return false;
-          }
-        }
-      } catch {
-        /* 锁文件刚好消失，下轮重试 */
-      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    }
+
+    let stat: fs.Stats;
+    try {
+      stat = fs.statSync(lockFile);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+      throw error;
+    }
+    const current = readFileLockOwner(lockFile);
+    const guardedResidual = current?.protocol === FILE_LOCK_PROTOCOL;
+    if (!guardedResidual && (Date.now() - stat.mtimeMs <= staleMs || (current && fileLockOwnerAlive(current.pid)))) {
       return false;
     }
-  };
-  let held = false;
-  for (let i = 0; i < 150 && !held; i++) {
-    held = acquire();
-    if (!held) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);
-  }
-  if (!held) {
-    throw new Error("账本锁获取超时（3s）：另一进程正在写入本项目，请稍后重试。");
-  }
-  try {
-    return fn();
-  } finally {
+
+    // Every current-version acquirer and releaser holds the SQLite write transaction
+    // here, so no compliant peer can replace .lock between this removal and creation.
     try {
-      if (owner()?.token === token) fs.rmSync(lockFile, { force: true });
+      fs.rmSync(lockFile);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+      throw error;
+    }
+    try {
+      fs.writeFileSync(lockFile, payload, { flag: "wx" });
+      return true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST") return false;
+      throw error;
+    }
+  };
+
+  const beginGuard = (db: DatabaseSync, until: number): boolean => {
+    while (Date.now() < until) {
+      const remaining = until - Date.now();
+      if (remaining <= 0) return false;
+      db.exec(`PRAGMA busy_timeout=${Math.max(1, Math.min(100, remaining))}`);
+      try {
+        db.exec("BEGIN IMMEDIATE");
+        return true;
+      } catch (error) {
+        if (!sqliteBusy(error)) throw error;
+        const pause = Math.min(FILE_LOCK_POLL_MS, Math.max(0, until - Date.now()));
+        if (pause > 0) Atomics.wait(FILE_LOCK_WAIT, 0, 0, pause);
+      }
+    }
+    return false;
+  };
+
+  const acquisitionGuard = new DatabaseSync(guardFile);
+  try {
+    while (!fileLockHeld && Date.now() < deadline) {
+      if (!beginGuard(acquisitionGuard, deadline)) break;
+      try {
+        fileLockHeld = acquireFileLock();
+      } catch (error) {
+        rollbackRecoveryGuard(acquisitionGuard);
+        throw error;
+      }
+      if (!fileLockHeld) {
+        rollbackRecoveryGuard(acquisitionGuard);
+        const pause = Math.min(FILE_LOCK_POLL_MS, Math.max(0, deadline - Date.now()));
+        if (pause > 0) Atomics.wait(FILE_LOCK_WAIT, 0, 0, pause);
+      }
+    }
+
+    if (!fileLockHeld) {
+      throw new Error(options.timeoutMessage ?? "文件锁获取超时（3s），请稍后重试。");
+    }
+
+    try {
+      return fn();
+    } finally {
+      try {
+        const current = readFileLockOwner(lockFile);
+        if (
+          current?.protocol === FILE_LOCK_PROTOCOL &&
+          current.pid === process.pid &&
+          current.token === token &&
+          current.created_at === createdAt
+        ) {
+          fs.rmSync(lockFile);
+        }
+      } catch {
+        // Ownership cannot be proven: leave the file for guarded recovery.
+      }
+    }
+  } finally {
+    rollbackRecoveryGuard(acquisitionGuard);
+    try {
+      acquisitionGuard.close();
     } catch {
-      /* 尽力释放 */
+      /* close after rollback is best effort */
     }
   }
+}
+
+/**
+ * 账本专用互斥锁：把「读账本 → 改 → 写」整个事务串行化。活着的长任务不会被误抢，
+ * 等待上限 3s，超时明确报错而非静默丢写。
+ */
+export function withLedgerLock<T>(root: string, fn: () => T): T {
+  const runtimeDirectory = pmPath(root, ".runtime");
+  return withFileRecoveryLock(pmPath(root, ".lock"), fn, {
+    guardFile: path.join(runtimeDirectory, "ledger-lock.db"),
+    timeoutMessage: "账本锁获取超时（3s）：另一进程正在写入本项目，请稍后重试。",
+  });
 }
 
 export function loadJson<S extends ZodTypeAny>(file: string, schema: S, fallback: output<S>): output<S>;

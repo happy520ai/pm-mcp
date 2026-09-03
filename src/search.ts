@@ -68,7 +68,7 @@ let cacheHits = 0;
 let contentReadObserver: ((stats: { diskReadFiles: number; diskReadBytes: number; cacheHits: number }) => void) | null = null;
 
 /** 读取文本内容：mtime+size 未变走进程缓存（server 常驻，二次搜索/扫描免重读）。返回 null=不可读/二进制。 */
-export function readText(root: string, rel: string): string | null {
+export function readText(root: string, rel: string, force = false): string | null {
   const abs = path.join(root, rel);
   // 缓存必须按“项目根 + 相对路径”隔离；仅用 rel 会让两个项目在
   // mtime/size 恰好相同时串用彼此内容，安全与许可证扫描会随之失真。
@@ -80,7 +80,7 @@ export function readText(root: string, rel: string): string | null {
     return null;
   }
   const hit = contentCache.get(cacheKey);
-  if (hit && hit.mtime === st.mtimeMs && hit.size === st.size) {
+  if (!force && hit && hit.mtime === st.mtimeMs && hit.size === st.size) {
     // LRU touch
     contentCache.delete(cacheKey);
     contentCache.set(cacheKey, hit);

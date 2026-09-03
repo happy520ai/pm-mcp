@@ -1,5 +1,5 @@
 {
-  "seq": 32,
+  "seq": 33,
   "tasks": [
     {
       "id": "T-001",
@@ -982,6 +982,62 @@
       "updated": "2026-09-03T06:52:01.099Z",
       "started_at": "2026-09-03T06:43:35.050Z",
       "completed_at": "2026-09-03T06:52:01.099Z"
+    },
+    {
+      "id": "T-033",
+      "title": "强化多 Agent 强杀恢复、路径别名与持续压力",
+      "detail": "",
+      "type": "fix",
+      "status": "in_progress",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "强杀故障注入与不确定态 fail-closed",
+          "done": true
+        },
+        {
+          "text": "20进程锁恢复、PID复用与路径别名验证",
+          "done": true
+        },
+        {
+          "text": "单 watcher leader、强杀接管与 SQLite busy 降级",
+          "done": true
+        },
+        {
+          "text": "10/20 Agent 各30轮持续压力与全量门禁",
+          "done": true
+        },
+        {
+          "text": "发布 npm/GitHub v0.1.4 并完成冷安装与托管CI",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/idempotency.ts",
+        "src/store.ts",
+        "src/index-store.ts",
+        "src/watcher-coordinator.ts",
+        "src/index.ts",
+        "src/paths.ts",
+        "src/tool-base.ts",
+        "scripts/benchmark-agents.mts",
+        "test/idempotency-crash.test.ts",
+        "test/idempotency-lease.test.ts",
+        "test/lock-stampede.test.ts",
+        "test/watcher-leader.test.ts",
+        "test/agent-benchmark.test.ts"
+      ],
+      "acceptance": "三个业务提交间隙外部强杀均禁止自动重放；20进程陈旧锁争抢无重叠；真实/junction/大小写路径共享幂等域；10/20 Agent各30轮严格压力通过；本地门禁、托管CI、npm冷安装通过后发布v0.1.4",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-03T08:06:16.821Z",
+      "updated": "2026-09-03T08:06:16.868Z",
+      "started_at": "2026-09-03T08:06:16.868Z",
+      "completed_at": null
     }
   ]
 }

@@ -6,7 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$packageSpec = "@luckychen1993/pm-mcp@0.1.3"
+$packageSpec = "@luckychen1993/pm-mcp@0.1.4"
 $serverName = "pm-mcp"
 
 function Assert-NodeVersion {

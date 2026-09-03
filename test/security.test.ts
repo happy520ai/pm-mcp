@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { auditSecurity, listFindings, resolveFinding } from "../src/security.ts";
+import fs from "node:fs";
+import path from "node:path";
+import { auditSecurity, listFindings, prepareSecurityAudit, resolveFinding } from "../src/security.ts";
 import { initTestProject, mkProj, readRel, rmRel, writeRel } from "./helpers.ts";
 
 const AWS_KEY = "AKIA" + "IOSFODNN7EXAMPLE"; // AWS 官方文档示例值，非真实密钥
@@ -143,4 +145,21 @@ test("新增依赖与幻觉版本号进入报告", () => {
   initTestProject(root);
   const r = auditSecurity(root);
   assert.ok(r.riskyDeps.some((d) => d.includes("leftpad")), "* 版本被点名");
+});
+
+test("强制安全审计不被相同 mtime/size 的内容替换与进程缓存欺骗", () => {
+  const malicious = `export const x = "${AWS_KEY}";\n`;
+  const benign = `export const x = "${"x".repeat(AWS_KEY.length)}";\n`;
+  const root = mkProj({ "src/swap.ts": benign });
+  initTestProject(root);
+  assert.equal(auditSecurity(root).openCount, 0);
+  const file = path.join(root, "src", "swap.ts");
+  const original = fs.statSync(file).mtime;
+  fs.writeFileSync(file, malicious, "utf8");
+  fs.utimesSync(file, original, original);
+  assert.equal(fs.statSync(file).size, Buffer.byteLength(benign));
+
+  const forced = auditSecurity(root, prepareSecurityAudit(root));
+  assert.ok(forced.openCount >= 1);
+  assert.ok(listFindings(root, "open").some((finding) => finding.rule === "secret.aws-access-key"));
 });

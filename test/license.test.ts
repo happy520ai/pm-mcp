@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { auditLicense } from "../src/license.ts";
 import { loadFileNotes, saveFileNotes } from "../src/store.ts";
 import { now } from "../src/types.ts";
@@ -52,4 +54,19 @@ test("来源登记（provenance）出现在报告中", () => {
   const out = auditLicense(root);
   assert.ok(out.includes("src/vendored.ts"));
   assert.ok(out.includes("example.com"));
+});
+
+test("强制许可证审计绕过相同 mtime/size 的旧内容缓存", () => {
+  const header = "GNU GENERAL PUBLIC LICENSE";
+  const malicious = `// ${header}\nexport const x = 1;\n`;
+  const benign = `// ${"x".repeat(header.length)}\nexport const x = 1;\n`;
+  const root = mkProj({ "src/swap.ts": benign });
+  initTestProject(root);
+  assert.doesNotMatch(auditLicense(root), /src\/swap\.ts/);
+  const file = path.join(root, "src", "swap.ts");
+  const original = fs.statSync(file).mtime;
+  fs.writeFileSync(file, malicious, "utf8");
+  fs.utimesSync(file, original, original);
+  assert.equal(fs.statSync(file).size, Buffer.byteLength(benign));
+  assert.match(auditLicense(root, 150, true), /src\/swap\.ts/);
 });

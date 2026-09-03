@@ -25,7 +25,7 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 | 调试过程随会话消失 | `log_debug` 调试知识账（症状/根因/修法/验证） |
 | 长任务崩溃、上下文丢失 | 任务步骤清单 + `checkpoint` 断点存档，新会话从恢复点续做 |
 | 团队协作与知识传递 | Git 项目中共享 `.pm/` + 会话署名 + `onboard` 入职简报工作流 |
-| 多 Agent 重复读写 | 并行读请求跨进程合并；写工具支持业务幂等键并自动抑制瞬时完全重复调用 |
+| 多 Agent 重复读写 | 实际重叠的同参读跨进程合并；写工具支持业务幂等键、瞬时自动去重与故障不确定态 fail-closed |
 | token 猛烧 | 三段式定位 + 读类工具输出硬预算 + 文件用途索引 |
 | 法律知识产权 | `audit_license` 依赖许可证/copyleft 冲突 + 来源登记（provenance） |
 | 测试投机（删测试、skip 凑绿） | 禁用/蒸发/空测试检测 + 功能测试背书占比 + done 必附验证 |
@@ -53,7 +53,7 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 Codex 的本地客户端共享同一份 MCP 配置。复制执行：
 
 ```bash
-codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.3
+codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.4
 ```
 
 重启客户端后可用 `codex mcp list` 检查。该命令遵循 [OpenAI 官方 MCP CLI 格式](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
@@ -61,7 +61,7 @@ codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.3
 #### Claude Code
 
 ```bash
-claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.3
+claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.4
 ```
 
 #### ZCode、Cursor、VS Code（Windows 备用脚本）
@@ -69,7 +69,7 @@ claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.3
 将 `<client>` 替换为 `zcode`、`cursor` 或 `vscode`，整行复制到 PowerShell：
 
 ```powershell
-$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.3/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
+$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.4/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
 ```
 
 脚本只写对应客户端的 MCP 配置；已有 JSON 配置会先生成带时间戳的备份。建议执行前先打开 [`install.ps1`](install.ps1) 审阅。ZCode 默认写入 `$ZCODE_HOME/cli/config.json` 或 `~/.zcode/cli/config.json`，Cursor 默认写入 `~/.cursor/mcp.json`；也可用 `-ConfigPath` 指定路径。
@@ -81,7 +81,7 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.3/install.ps1'; $f=
   "mcpServers": {
     "pm-mcp": {
       "command": "npx",
-      "args": ["-y", "@luckychen1993/pm-mcp@0.1.3"],
+      "args": ["-y", "@luckychen1993/pm-mcp@0.1.4"],
       "env": {}
     }
   }
@@ -156,6 +156,8 @@ Resources：`pm://dashboard`、`pm://roadmap`、`pm://tasks`、`pm://changelog`�
 
 所有写工具都接受可选 `idempotency_key`。同一业务的多个 Agent 应传同一个稳定键（例如 `T-123:add-login-task`）：同键同参数只执行一次并复用首次结果，同键不同参数直接拒绝。即使没有显式键，完全相同的并发写也会在短窗口内自动合并；完全相同的并行读会等待首个执行者并复用结果。
 
+并发保证有明确边界：正常运行的同键写只落一次，follower 最多等待 3 秒复用首次结果；仍未完成时以 MCP error 返回 pending，不把占位冒充成功。若进程在业务写入后、幂等完成记录前被强杀，pm-mcp 会把该键标为 `uncertain` 并禁止自动重放。它提供的是 **at-most-once + 不确定时 fail-closed**，不是跨多个 JSON 文件的事务型 exactly-once；核对目标账本后才能决定是否换新键。v0.1.3 的标准全局幂等记录会在首次复用时迁移到项目运行态，旧文件保留以便回滚。读合并只覆盖业务处理实际重叠的在途请求，完成结果不会继续缓存，避免外部代码刚变化却返回旧内容。每个项目由 SQLite 生命周期选举一个 watcher leader，其余进程低频待命；leader 被强杀后由一个 standby 接管。结构、安全、许可证与快照等权威审计强制重读内容，不把 `fs.watch` 或 mtime/size 缓存的最终一致性冒充强一致性。
+
 ## 数据模型（被管理项目内的 `.pm/`；JSON/Markdown 账本可 git diff，`index.db` 是忽略并可重建的缓存）
 
 ```
@@ -178,7 +180,7 @@ PROJECT.md        # 仓库根，自动生成的仪表盘（勿手改）
 changelog.md      # 自动生成
 ```
 
-全局注册表：`~/.pm-mcp/registry.json`。跨进程读合并/写幂等运行态位于 `~/.pm-mcp/idempotency/<项目路径哈希>/`，不会污染被管理项目或进入 Git。
+全局注册表：`~/.pm-mcp/registry.json`。跨进程读合并、写幂等、恢复锁与 watcher 选举运行态位于被管理项目的 `.pm/.runtime/`，由 `.pm/.gitignore` 排除；因此路径别名、不同客户端或不同 `PM_MCP_HOME` 仍共享同一协调域，但运行态不会进入 Git。
 
 ## 跨文件、跨模块、跨语言治理
 

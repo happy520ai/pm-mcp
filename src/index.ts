@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { resolveRoot, isInitialized } from "./paths.ts";
+import { resolveRoot, isInitialized, ensurePmRuntimeIgnored } from "./paths.ts";
 import { registerAllTools } from "./tools.ts";
 import { loadFeatures, loadRoadmap, loadSessions, loadTasks } from "./store.ts";
 import { renderRoadmap } from "./roadmap.ts";
@@ -14,6 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { listAcceptanceBaselines } from "./acceptance-tools.ts";
 import { AcceptanceReportSchema } from "./acceptance-report.ts";
+import { runCoalescedRead } from "./idempotency.ts";
 
 /* --root 参数 > PM_ROOT 环境变量 > 启动时工作目录 */
 const argv = process.argv.slice(2);
@@ -24,7 +25,7 @@ for (let i = 0; i < argv.length; i++) {
 const root = resolveRoot(explicitRoot);
 
 const server = new McpServer(
-  { name: "pm-mcp", version: "0.1.3" },
+  { name: "pm-mcp", version: "0.1.4" },
   {
     instructions: [
       "多 Agent 规则：相同业务的所有写工具调用必须携带相同 idempotency_key（建议 task-id:operation）；同键同参数只执行一次，同键不同参数会被拒绝。",
@@ -45,16 +46,20 @@ function safeText(fn: () => string): string {
   }
 }
 
+async function resourceText(name: string, fn: () => string): Promise<string> {
+  return (await runCoalescedRead(root, `resource:${name}`, {}, () => safeText(fn))).text;
+}
+
 server.registerResource(
   "dashboard",
   "pm://dashboard",
   { description: "项目仪表盘（与仓库根 PROJECT.md 同源），路线图/健康摘要/任务/功能清单" },
-  (uri) => ({
+  async (uri) => ({
     contents: [
       {
         uri: uri.href,
         mimeType: "text/markdown",
-        text: safeText(() => fs.readFileSync(dashboardFile(root), "utf8")),
+        text: await resourceText("dashboard", () => fs.readFileSync(dashboardFile(root), "utf8")),
       },
     ],
   }),
@@ -64,12 +69,12 @@ server.registerResource(
   "roadmap",
   "pm://roadmap",
   { description: "路线图（里程碑进度 + 活跃里程碑任务明细）" },
-  (uri) => ({
+  async (uri) => ({
     contents: [
       {
         uri: uri.href,
         mimeType: "text/markdown",
-        text: safeText(() => renderRoadmap(loadRoadmap(root).milestones, loadTasks(root).tasks, 2).join("\n")),
+        text: await resourceText("roadmap", () => renderRoadmap(loadRoadmap(root).milestones, loadTasks(root).tasks, 2).join("\n")),
       },
     ],
   }),
@@ -79,12 +84,12 @@ server.registerResource(
   "tasks",
   "pm://tasks",
   { description: "任务清单原始数据（tasks.json；超 100 条截断，完整数据用 list_tasks 过滤）" },
-  (uri) => ({
+  async (uri) => ({
     contents: [
       {
         uri: uri.href,
         mimeType: "application/json",
-        text: safeText(() => {
+        text: await resourceText("tasks", () => {
           const tasks = loadTasks(root).tasks;
           // 资源也要守 token 预算：全量 dump 大账本会吃爆上下文（截断后仍是合法 JSON）
           if (tasks.length <= 100) return JSON.stringify(tasks, null, 2);
@@ -104,12 +109,12 @@ server.registerResource(
   "changelog",
   "pm://changelog",
   { description: "变更日志（由 sessions.json 生成的人类可读版本）" },
-  (uri) => ({
+  async (uri) => ({
     contents: [
       {
         uri: uri.href,
         mimeType: "text/markdown",
-        text: safeText(() => buildChangelog(root)),
+        text: await resourceText("changelog", () => buildChangelog(root)),
       },
     ],
   }),
@@ -119,8 +124,8 @@ server.registerResource(
   "architecture",
   "pm://architecture",
   { description: "跨文件/模块/语言治理审计：语义覆盖、依赖边界、接口、循环与质量矩阵" },
-  (uri) => ({
-    contents: [{ uri: uri.href, mimeType: "text/markdown", text: safeText(() => auditGovernance(root, 150).report) }],
+  async (uri) => ({
+    contents: [{ uri: uri.href, mimeType: "text/markdown", text: await resourceText("architecture", () => auditGovernance(root, 150).report) }],
   }),
 );
 
@@ -128,11 +133,11 @@ server.registerResource(
   "portfolio",
   "pm://portfolio",
   { description: "当前项目的组合视图与跨仓依赖/版本风险" },
-  (uri) => ({
+  async (uri) => ({
     contents: [{
       uri: uri.href,
       mimeType: "application/json",
-      text: safeText(() => JSON.stringify(buildPortfolioReport({ projects: [loadPortfolioProject(root)], projectsRequested: 1 }), null, 2)),
+      text: await resourceText("portfolio", () => JSON.stringify(buildPortfolioReport({ projects: [loadPortfolioProject(root)], projectsRequested: 1 }), null, 2)),
     }],
   }),
 );
@@ -141,11 +146,11 @@ server.registerResource(
   "acceptance",
   "pm://acceptance",
   { description: "标准化产品验收概览：版本化预批准基线与最近一次机器判定报告" },
-  (uri) => ({
+  async (uri) => ({
     contents: [{
       uri: uri.href,
       mimeType: "application/json",
-      text: safeText(() => {
+      text: await resourceText("acceptance", () => {
         const reportDir = pmPath(root, "acceptance", "reports");
         let latestReport: unknown = null;
         if (fs.existsSync(reportDir)) {
@@ -282,8 +287,9 @@ await server.connect(new StdioServerTransport());
 // 超大项目核心：server 常驻期间用递归 watcher 持续保鲜 SQLite 索引，
 // audit/快照稳态下免全量走查（失败自动降级为纯走查模式）
 if (isInitialized(root)) {
+  ensurePmRuntimeIgnored(root);
   const watcher = startWatcher(root);
-  console.error(`[pm-mcp] watcher: ${watcher ? "active" : "unavailable（降级为按需全量走查）"}`);
+  console.error(`[pm-mcp] watcher coordinator: ${watcher ? "active（同项目单 leader）" : "unavailable（降级为按需全量走查）"}`);
 }
 // stdio 是协议通道，日志只能走 stderr
 console.error(`[pm-mcp] ready. project root: ${root}`);

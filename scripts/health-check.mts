@@ -12,7 +12,7 @@
 import { withLedgerLock, loadProject, loadTasks, saveTasks, nextId } from "../src/store.ts";
 import { listRegistry } from "../src/registry.ts";
 import { auditStructure, snapshotCodebase } from "../src/audit.ts";
-import { auditSecurity, listFindings } from "../src/security.ts";
+import { auditSecurity, listFindings, prepareSecurityAudit } from "../src/security.ts";
 import { auditLicense } from "../src/license.ts";
 import { walkRefresh } from "../src/index-store.ts";
 import { TaskSchema, now } from "../src/types.ts";
@@ -83,6 +83,9 @@ interface ProjectReport {
 async function inspectProject(root: string): Promise<ProjectReport> {
   const abs = path.resolve(root);
   const project = loadProject(abs);
+  const { refreshDerived } = await import("../src/dashboard.ts");
+  // 把本次巡检自身会维护的派生文件先建立，再冻结唯一一次精确索引基线。
+  refreshDerived(abs);
   // 独立巡检/CI 必须建立自己的精确文件基线，不能仅凭另一个 MCP 进程
   // 留下的心跳推断索引完整；这条路径以正确性优先，稳态低延迟由 MCP watcher 提供。
   const exactWalk = walkRefresh(abs, { forceContent: true });
@@ -96,13 +99,13 @@ async function inspectProject(root: string): Promise<ProjectReport> {
       if (HARD_FLAG.test(line)) hardFlags.push(line.trim());
     }
   };
-  collect(auditStructure(abs, 120));
+  collect(auditStructure(abs, 120, false, true));
   // 安全扫描会更新台账；与 MCP 写工具使用同一把跨进程锁，避免巡检与客户端
   // 同时读-改-写 security.json 时覆盖彼此的发现或处置结果。
-  const sec = withLedgerLock(abs, () => auditSecurity(abs));
+  const preparedSecurity = prepareSecurityAudit(abs, { forceIndex: false, forceContent: true, indexPrepared: true });
+  const sec = withLedgerLock(abs, () => auditSecurity(abs, preparedSecurity));
   // 巡检经领域层写安全台账（闭环/自动关闭），必须同步刷新派生仪表盘——
   // tools 层会刷，这里不刷会导致 PROJECT.md 与状态失同步（被 realrepo 测试抓到过）
-  const { refreshDerived } = await import("../src/dashboard.ts");
   refreshDerived(abs);
   collect(sec.text.join("\n"));
   // 门禁使用结构化发现，不能依赖报告文案里恰好出现哪种 emoji。
@@ -117,10 +120,10 @@ async function inspectProject(root: string): Promise<ProjectReport> {
   } else if (sec.highCount > 0) {
     hardFlags.push(`安全体检：高危未处理 ${sec.highCount} 个（含 ${sec.newFindings} 个本次新发现）`);
   }
-  collect(auditLicense(abs, 120));
+  collect(auditLicense(abs, 120, false, true));
   // 只有无硬红旗的完整巡检才推进基线。否则同一坏状态在持久化工作区内
   // 第二次运行会因“已成为新基线”而假绿；显式修复后再由绿灯运行推进。
-  if (hardFlags.length === 0) snapshotCodebase(abs);
+  if (hardFlags.length === 0) snapshotCodebase(abs, false, true);
   return { name: project.name, root: abs, sections, hardFlags };
 }
 

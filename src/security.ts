@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { loadExtraRules, loadProject, loadSecurity, saveSecurity } from "./store.ts";
 import { latestSnapshot } from "./audit.ts";
 import { readDirectDeps } from "./scan.ts";
-import { ensureFresh, getIndex, iterateFileRows } from "./index-store.ts";
+import { ensureFresh, getIndex, iterateFileRows, walkRefresh } from "./index-store.ts";
 import { readText } from "./search.ts";
 import { now, type Finding, type Severity } from "./types.ts";
 
@@ -102,7 +102,7 @@ interface Detection {
   message: string;
 }
 
-function scanDetections(root: string): Detection[] {
+function scanDetections(root: string, forceContent = false, indexPrepared = false): Detection[] {
   const out: Detection[] = [];
   const rules: Rule[] = [...SECRET_PATTERNS, ...DANGEROUS_PATTERNS];
   // 用户自定义规则
@@ -120,7 +120,7 @@ function scanDetections(root: string): Detection[] {
     }
   }
 
-  ensureFresh(root);
+  if (!indexPrepared) ensureFresh(root);
   const db = getIndex(root);
   // .env 类文件存在性检查（是否被 git 提交需人工确认）
   for (const row of iterateFileRows(db, { excludeOversize: false })) {
@@ -140,7 +140,7 @@ function scanDetections(root: string): Detection[] {
     const rel = row.rel;
     if (row.oversize === 1) continue;
     if (rel.startsWith(".pm/")) continue;
-    const content = readText(root, rel);
+    const content = readText(root, rel, forceContent);
     if (content === null) continue;
     const lines = content.split("\n");
     for (const rule of rules) {
@@ -173,11 +173,26 @@ export interface SecurityReport {
   text: string[];
 }
 
+export interface PreparedSecurityAudit {
+  detections: Detection[];
+}
+
+/** 昂贵的全仓扫描阶段；调用方可在账本锁外完成，再把脱敏发现提交到账本。 */
+export function prepareSecurityAudit(
+  root: string,
+  options: { forceIndex?: boolean; forceContent?: boolean; indexPrepared?: boolean } = {},
+): PreparedSecurityAudit {
+  const forceIndex = options.forceIndex ?? true;
+  const forceContent = options.forceContent ?? true;
+  if (forceIndex) walkRefresh(root, { forceContent: true });
+  return { detections: scanDetections(root, forceContent, forceIndex || options.indexPrepared === true) };
+}
+
 /** 扫描并更新台账（幂等：重复扫描不产生重复条目） */
-export function auditSecurity(root: string): SecurityReport {
+export function auditSecurity(root: string, prepared?: PreparedSecurityAudit): SecurityReport {
   const project = loadProject(root);
   const stamp = now();
-  const detections = scanDetections(root);
+  const detections = prepared?.detections ?? scanDetections(root);
   const security = loadSecurity(root);
   const existing = new Map(security.findings.map((f) => [f.fingerprint, f]));
   const acceptedRefound: Finding[] = [];

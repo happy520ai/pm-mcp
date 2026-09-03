@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
+import { randomUUID } from "node:crypto";
 
 /** 项目根解析顺序：--root 参数 > PM_ROOT 环境变量 > 当前工作目录 */
 export function resolveRoot(explicit?: string): string {
@@ -61,4 +62,33 @@ export function ensurePmDirs(root: string): void {
   fs.mkdirSync(pmPath(root), { recursive: true });
   fs.mkdirSync(decisionsDir(root), { recursive: true });
   fs.mkdirSync(snapshotsDir(root), { recursive: true });
+  ensurePmRuntimeIgnored(root);
+}
+
+/** 本机协调/缓存状态必须留在 .pm 内共享，但绝不能进入项目 Git。 */
+export function ensurePmRuntimeIgnored(root: string): void {
+  const directory = pmPath(root);
+  fs.mkdirSync(directory, { recursive: true });
+  fs.mkdirSync(path.join(directory, ".runtime", "idempotency"), { recursive: true });
+  const file = path.join(directory, ".gitignore");
+  const required = [".lock", ".runtime/", "benchmarks/", "index.db*"];
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const current = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
+    const lines = current.split(/\r?\n/).map((line) => line.trim());
+    const missing = required.filter((entry) => !lines.includes(entry));
+    if (missing.length === 0) return;
+    const separator = current.length === 0 || current.endsWith("\n") ? "" : "\n";
+    const content = `${current}${separator}${missing.join("\n")}\n`;
+    const temporary = `${file}.${process.pid}.${randomUUID()}.tmp`;
+    fs.writeFileSync(temporary, content, "utf8");
+    try {
+      fs.renameSync(temporary, file);
+    } catch (error) {
+      try { fs.rmSync(temporary, { force: true }); } catch { /* best effort */ }
+      const converged = fs.existsSync(file) && required.every((entry) =>
+        fs.readFileSync(file, "utf8").split(/\r?\n/).map((line) => line.trim()).includes(entry));
+      if (converged) return;
+      if (attempt === 2) throw error;
+    }
+  }
 }

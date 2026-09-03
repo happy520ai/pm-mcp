@@ -1,5 +1,5 @@
 {
-  "seq": 13,
+  "seq": 14,
   "features": [
     {
       "id": "F-001",
@@ -229,6 +229,28 @@
       "status": "implemented",
       "created": "2026-09-03T06:38:14.756Z",
       "updated": "2026-09-03T06:38:14.756Z"
+    },
+    {
+      "id": "F-014",
+      "name": "多 Agent 故障恢复与单 watcher 协调",
+      "description": "业务提交间隙强杀采用 at-most-once + uncertain fail-closed；SQLite 生命周期锁消除 stale-lock ABA/PID 复用；同项目仅一个 watcher leader；路径别名共享协调域。",
+      "module": "src",
+      "entry_files": [
+        "src/idempotency.ts",
+        "src/store.ts",
+        "src/watcher-coordinator.ts",
+        "src/index-store.ts"
+      ],
+      "test_files": [
+        "test/idempotency-crash.test.ts",
+        "test/idempotency-lease.test.ts",
+        "test/lock-stampede.test.ts",
+        "test/watcher-leader.test.ts",
+        "test/agent-benchmark.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-03T08:06:16.910Z",
+      "updated": "2026-09-03T08:06:16.910Z"
     }
   ]
 }

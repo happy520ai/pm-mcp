@@ -6,8 +6,9 @@ import { refreshDerived } from "./dashboard.ts";
 import { auditLicense } from "./license.ts";
 import { isInitialized, requireInitialized } from "./paths.ts";
 import { listRegistry } from "./registry.ts";
-import { auditSecurity, listFindings, resolveFinding } from "./security.ts";
+import { auditSecurity, listFindings, prepareSecurityAudit, resolveFinding, type PreparedSecurityAudit } from "./security.ts";
 import { budgetLines, toolR, toolW } from "./tool-base.ts";
+import { walkRefresh } from "./index-store.ts";
 
 export function registerAuditTools(server: McpServer, root: string): void {
   toolW(server, root, "snapshot_codebase", "给代码结构拍快照（文件数/行数/目录分布/测试数/skip 标记/依赖清单）。之后 audit_structure 会与上次快照 diff。建议每个会话或每个里程碑结束时拍一次。", {}, () => {
@@ -15,19 +16,19 @@ export function registerAuditTools(server: McpServer, root: string): void {
     const { snapshot, summary } = snapshotCodebase(root);
     refreshDerived(root);
     return [...summary, `下次 audit_structure 将以此为基线（${snapshot.file}）。`].join("\n");
-  });
+  }, () => { requireInitialized(root); walkRefresh(root, { forceContent: true }); });
 
   toolR(server, root, "audit_structure", "八项结构对账（定期做）：①增长与新增依赖 ②漂移对账（功能↔文件，防幻觉）③债务与重构配额 ④churn 热点 ⑤复杂度预算 ⑥索引覆盖率 ⑦足迹/产出 ⑧测试健康（禁用/蒸发/空测试/背书占比）。", {}, () => {
     requireInitialized(root);
-    return auditStructure(root, budgetLines(root));
+    return auditStructure(root, budgetLines(root), true);
   });
 
-  toolW(server, root, "audit_security", "安全体检（只扫描本地、不联网，结果写入安全台账）：密钥泄露 / 危险模式（eval、SQL 拼接、禁用证书校验等）/ 依赖风险。修复后重扫自动关闭；接受风险必须留理由。", {}, () => {
+  toolW<Record<string, never>, PreparedSecurityAudit>(server, root, "audit_security", "安全体检（只扫描本地、不联网，结果写入安全台账）：密钥泄露 / 危险模式（eval、SQL 拼接、禁用证书校验等）/ 依赖风险。修复后重扫自动关闭；接受风险必须留理由。", {}, (_args, prepared) => {
     requireInitialized(root);
-    const report = auditSecurity(root);
+    const report = auditSecurity(root, prepared);
     refreshDerived(root);
     return report.text.join("\n");
-  });
+  }, () => { requireInitialized(root); return prepareSecurityAudit(root); });
 
   toolR<{ status?: "open" | "fixed" | "accepted" }>(
     server, root,
@@ -62,7 +63,7 @@ export function registerAuditTools(server: McpServer, root: string): void {
 
   toolR(server, root, "audit_license", "许可证审计（法律账）：依赖许可证清单与 copyleft 冲突、源码中的 GPL 家族许可证头、LICENSE 文件检查、来源登记清单。离线启发式，不替代法务。", {}, () => {
     requireInitialized(root);
-    return auditLicense(root, budgetLines(root));
+    return auditLicense(root, budgetLines(root), true);
   });
 }
 

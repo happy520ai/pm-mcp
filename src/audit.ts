@@ -13,7 +13,7 @@ import {
 import { decisionsDir, pmPath, snapshotsDir } from "./paths.ts";
 import { normSep, foldLines } from "./budget.ts";
 import { readDirectDeps } from "./scan.ts";
-import { aggregates, ensureFresh, getIndex, getMeta } from "./index-store.ts";
+import { aggregates, ensureFresh, freshness, getIndex, getMeta, walkRefresh } from "./index-store.ts";
 import { quotaWarnings, milestoneStats } from "./roadmap.ts";
 import { blastRadiusWarning, churnStats, debtAging, footprint } from "./health.ts";
 import { now, type Snapshot } from "./types.ts";
@@ -31,8 +31,8 @@ export function annotatedCount(root: string, db: ReturnType<typeof getIndex>): n
   return n;
 }
 
-export function snapshotCodebase(root: string): { snapshot: Snapshot; summary: string[] } {
-  ensureFresh(root);
+export function snapshotCodebase(root: string, forceFresh = false, indexPrepared = false): { snapshot: Snapshot; summary: string[] } {
+  if (forceFresh) walkRefresh(root, { forceContent: true }); else if (!indexPrepared) ensureFresh(root);
   const db = getIndex(root);
   const agg = aggregates(db);
   const annotated = annotatedCount(root, db);
@@ -187,13 +187,15 @@ export function gitAudit(root: string): GitAudit {
 }
 
 /** 完整结构对账：九项报告 */
-export function auditStructure(root: string, maxLines = 150): string {
+export function auditStructure(root: string, maxLines = 150, forceFresh = false, indexPrepared = false): string {
   const project = loadProject(root);
   const { features } = loadFeatures(root);
   const { tasks } = loadTasks(root);
   const { milestones } = loadRoadmap(root);
   const { sessions } = loadSessions(root);
-  const fresh = ensureFresh(root);
+  const fresh = forceFresh
+    ? { used: "walk" as const, freshness: (walkRefresh(root, { forceContent: true }), freshness(root)) }
+    : indexPrepared ? { used: "walk" as const, freshness: freshness(root) } : ensureFresh(root);
   const db = getIndex(root);
   const agg = aggregates(db);
   const deps = readDirectDeps(root).deps;

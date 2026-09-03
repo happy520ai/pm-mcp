@@ -1,11 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { initProject } from "../src/init.ts";
 import {
   operationArgsHash,
   runCoalescedRead,
   runIdempotentWrite,
   runIdempotentWriteSync,
+  setReadWaitMsForTests,
+  setWriteWaitMsForTests,
   splitIdempotencyArgs,
 } from "../src/idempotency.ts";
 import { mkProj } from "./helpers.ts";
@@ -46,12 +50,29 @@ test("未传键的完全相同瞬时写调用自动去重", () => {
   assert.equal(executions, 1);
 });
 
-test("并行异步写首个执行，其余调用得到进行中占位", async () => {
+test("昂贵写前置检查发生在账本锁外，业务 handler 仍在锁内", () => {
+  const root = mkProj();
+  initProject(root, { name: "prepare-outside-lock" });
+  let prepared = false;
+  const result = runIdempotentWriteSync(root, "prepared-write", { value: 1 }, () => {
+    assert.equal(prepared, true);
+    assert.equal(fs.existsSync(path.join(root, ".pm", ".lock")), true, "handler 必须受账本锁保护");
+    return "done";
+  }, () => {
+    assert.equal(fs.existsSync(path.join(root, ".pm", ".lock")), false, "前置全仓扫描不能占用账本锁");
+    prepared = true;
+  });
+  assert.equal(result.text, "done");
+});
+
+test("并行异步写超过 follower 等待窗后返回进行中占位", async (t) => {
   const root = mkProj();
   initProject(root, { name: "x" });
   let executions = 0;
   let release!: () => void;
   const gate = new Promise<void>((resolve) => { release = resolve; });
+  setWriteWaitMsForTests(30);
+  t.after(() => setWriteWaitMsForTests());
   const firstPromise = runIdempotentWrite(root, "async-write", { value: 1, idempotency_key: "ASYNC-1" }, async () => {
     executions += 1;
     await gate;
@@ -90,4 +111,27 @@ test("未初始化项目的只读失败不创建 .pm 运行态", async () => {
   const root = mkProj();
   await assert.rejects(() => runCoalescedRead(root, "read", {}, async () => { throw new Error("not initialized"); }), /not initialized/);
   assert.equal(await import("node:fs").then((fs) => fs.existsSync(`${root}/.pm`)), false);
+});
+
+test("并行读取等待超时必须报错，不能把 pending 文本冒充成功结果", async () => {
+  const root = mkProj();
+  initProject(root, { name: "x" });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  setReadWaitMsForTests(30);
+  try {
+    const leader = runCoalescedRead(root, "slow-read", { query: "x" }, async () => {
+      await gate;
+      return "real-result";
+    });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    await assert.rejects(
+      () => runCoalescedRead(root, "slow-read", { query: "x" }, async () => "must-not-run"),
+      /等待超过|仍在执行/,
+    );
+    release();
+    assert.equal((await leader).text, "real-result");
+  } finally {
+    setReadWaitMsForTests();
+  }
 });

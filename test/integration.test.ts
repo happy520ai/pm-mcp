@@ -75,6 +75,9 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
   const badDone = await client.callTool({ name: "update_task", arguments: { id: "T-001", status: "done" } });
   assert.equal((badDone as { isError?: boolean }).isError, true);
   assert.ok(text(badDone as never).includes("result_note"), "报错要说明缺 result_note");
+  const uncertainRetry = await client.callTool({ name: "update_task", arguments: { id: "T-001", status: "done" } });
+  assert.equal((uncertainRetry as { isError?: boolean }).isError, true, "不确定写结果不能冒充 MCP 成功");
+  assert.match(text(uncertainRetry as never), /结果不确定|禁止自动重放/);
 
   // 带笔记通过，且 feature 类无 verification 有提示
   const okDone = await client.callTool({
