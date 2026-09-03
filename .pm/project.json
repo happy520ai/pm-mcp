@@ -6,7 +6,7 @@
     "Node.js>=22.18"
   ],
   "goals": [],
-  "phase": "v0.1.0 public release",
+  "phase": "v0.1.1 npm release",
   "modules": [
     "src",
     "test",
@@ -21,5 +21,5 @@
     "outputBudgetLines": 150
   },
   "created": "2026-09-01T16:30:56.142Z",
-  "updated": "2026-09-03T04:44:13.762Z"
+  "updated": "2026-09-03T04:58:40.708Z"
 }

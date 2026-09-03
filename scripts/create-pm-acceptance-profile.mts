@@ -133,7 +133,7 @@ function buildBaseline(createdAt: string): AcceptanceBaselineInput {
     baseline_id: "pm-mcp-local-release",
     baseline_version: "1.0.0",
     title: "pm-mcp local product acceptance baseline",
-    product: "pm-mcp 0.1.0",
+    product: "pm-mcp 0.1.1",
     scope: "First-party product-quality acceptance for pm-mcp as a local stdio MCP service on Windows x64 with Node.js 25.8.1; distributable engine floor remains Node.js 22.13. Includes the implemented project brain, strict AST governance for the declared source tree, quality gates, and the recorded 20 GiB synthetic qualification workload. Excludes hosted CI, production HA/DR, independent certification, safety-critical use, and universal runtime execution claims.",
     created_at: createdAt,
     approval: { status: "draft", approved_by: null, approved_at: null, rationale: null },

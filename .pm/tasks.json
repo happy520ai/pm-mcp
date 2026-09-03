@@ -1,5 +1,5 @@
 {
-  "seq": 29,
+  "seq": 30,
   "tasks": [
     {
       "id": "T-001",
@@ -835,6 +835,51 @@
       "updated": "2026-09-03T04:49:46.899Z",
       "started_at": "2026-09-03T04:38:37.012Z",
       "completed_at": "2026-09-03T04:49:46.899Z"
+    },
+    {
+      "id": "T-030",
+      "title": "发布 @luckychen1993/pm-mcp 到 npm Registry",
+      "detail": "",
+      "type": "chore",
+      "status": "backlog",
+      "priority": "P0",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "切换公开 npm 作用域并统一版本与安装命令",
+          "done": true
+        },
+        {
+          "text": "执行本地完整门禁与发布包检查",
+          "done": false
+        },
+        {
+          "text": "发布 npm 并完成匿名 registry/npx 验证",
+          "done": false
+        },
+        {
+          "text": "创建 GitHub v0.1.1 Release 并确认托管 CI",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/index.ts",
+        "scripts/create-pm-acceptance-profile.mts"
+      ],
+      "acceptance": "npm latest 为 0.1.1；公开包可匿名读取；从 npm 冷启动 MCP 返回 46 tools 且 init_project/get_status 成功；GitHub v0.1.1 与 CI 全绿",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-03T04:58:40.753Z",
+      "updated": "2026-09-03T04:58:40.753Z",
+      "started_at": null,
+      "completed_at": null
     }
   ]
 }

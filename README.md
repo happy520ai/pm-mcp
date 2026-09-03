@@ -1,6 +1,7 @@
 # pm-mcp — AI 编码项目的「项目大脑」MCP 服务
 
 [![CI](https://github.com/happy520ai/pm-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/happy520ai/pm-mcp/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@luckychen1993/pm-mcp.svg)](https://www.npmjs.com/package/@luckychen1993/pm-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 给每个用 AI 写代码的项目一个**单一事实来源（Single Source of Truth）**：结构化状态文件（`.pm/`，在 Git 项目中随仓库提交）+ 带校验的 MCP 读写工具 + 对账审计。人和任何 AI 客户端（ZCode / Codex / Cursor…）可共享同一份项目状态；未初始化 Git 时，审计会明确提示 Git 对账尚未启用。
@@ -30,14 +31,14 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 
 ## 一键添加到 AI 编程助手
 
-要求：Node.js ≥ 22.18。下面的配置固定到 GitHub Release `v0.1.0`；首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
+要求：Node.js ≥ 22.18。下面的配置固定到 npm 版本 `0.1.1`；首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
 
 ### Codex / ChatGPT 桌面版 / Codex IDE 扩展
 
 Codex 的本地客户端共享同一份 MCP 配置。复制执行：
 
 ```bash
-codex mcp add pm-mcp -- npx -y github:happy520ai/pm-mcp#v0.1.0
+codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.1
 ```
 
 重启客户端后可用 `codex mcp list` 检查。该命令遵循 [OpenAI 官方 MCP CLI 格式](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
@@ -45,7 +46,7 @@ codex mcp add pm-mcp -- npx -y github:happy520ai/pm-mcp#v0.1.0
 ### Claude Code
 
 ```bash
-claude mcp add pm-mcp --scope user -- npx -y github:happy520ai/pm-mcp#v0.1.0
+claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.1
 ```
 
 ### ZCode、Cursor、VS Code（Windows 一键脚本）
@@ -53,7 +54,7 @@ claude mcp add pm-mcp --scope user -- npx -y github:happy520ai/pm-mcp#v0.1.0
 将 `<client>` 替换为 `zcode`、`cursor` 或 `vscode`，整行复制到 PowerShell：
 
 ```powershell
-$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.0/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
+$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.1/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
 ```
 
 脚本只写对应客户端的 MCP 配置；已有 JSON 配置会先生成带时间戳的备份。建议执行前先打开 [`install.ps1`](install.ps1) 审阅。ZCode 默认写入 `$ZCODE_HOME/cli/config.json` 或 `~/.zcode/cli/config.json`，Cursor 默认写入 `~/.cursor/mcp.json`；也可用 `-ConfigPath` 指定路径。
@@ -65,7 +66,7 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.0/install.ps1'; $f=
   "mcpServers": {
     "pm-mcp": {
       "command": "npx",
-      "args": ["-y", "github:happy520ai/pm-mcp#v0.1.0"],
+      "args": ["-y", "@luckychen1993/pm-mcp@0.1.1"],
       "env": {}
     }
   }
