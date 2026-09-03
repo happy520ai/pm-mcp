@@ -1,0 +1,133 @@
+{
+  "taken_at": "2026-09-03T09:20:39.830Z",
+  "file": ".pm/snapshots/snap-20260903-092039.json",
+  "total_files": 112,
+  "total_loc": 21608,
+  "test_files": 42,
+  "skip_markers": 4,
+  "deps": [
+    "@ast-grep/lang-csharp",
+    "@ast-grep/lang-go",
+    "@ast-grep/lang-java",
+    "@ast-grep/lang-kotlin",
+    "@ast-grep/lang-python",
+    "@ast-grep/lang-rust",
+    "@ast-grep/napi",
+    "@modelcontextprotocol/sdk",
+    "typescript",
+    "zod",
+    "@types/node"
+  ],
+  "by_ext": [
+    {
+      "ext": "ts",
+      "files": 88,
+      "loc": 18114
+    },
+    {
+      "ext": "mts",
+      "files": 12,
+      "loc": 2671
+    },
+    {
+      "ext": "md",
+      "files": 3,
+      "loc": 518
+    },
+    {
+      "ext": "ps1",
+      "files": 1,
+      "loc": 130
+    },
+    {
+      "ext": "json",
+      "files": 3,
+      "loc": 101
+    },
+    {
+      "ext": "(无扩展名)",
+      "files": 3,
+      "loc": 42
+    },
+    {
+      "ext": "yml",
+      "files": 1,
+      "loc": 32
+    }
+  ],
+  "top_dirs": [
+    {
+      "dir": "src",
+      "files": 46,
+      "loc": 11301
+    },
+    {
+      "dir": "test",
+      "files": 42,
+      "loc": 6813
+    },
+    {
+      "dir": "scripts",
+      "files": 12,
+      "loc": 2671
+    },
+    {
+      "dir": ".",
+      "files": 10,
+      "loc": 686
+    },
+    {
+      "dir": ".zcode/plans",
+      "files": 1,
+      "loc": 105
+    },
+    {
+      "dir": ".github/workflows",
+      "files": 1,
+      "loc": 32
+    }
+  ],
+  "largest_files": [
+    {
+      "path": "src/language-adapters.ts",
+      "loc": 499
+    },
+    {
+      "path": "src/index-store.ts",
+      "loc": 498
+    },
+    {
+      "path": "src/semantic-graph.ts",
+      "loc": 490
+    },
+    {
+      "path": "src/acceptance-model.ts",
+      "loc": 486
+    },
+    {
+      "path": "src/idempotency.ts",
+      "loc": 453
+    },
+    {
+      "path": "src/portfolio.ts",
+      "loc": 447
+    },
+    {
+      "path": "test/semantic-coverage.test.ts",
+      "loc": 415
+    },
+    {
+      "path": "test/exploit.test.ts",
+      "loc": 400
+    },
+    {
+      "path": "src/audit.ts",
+      "loc": 394
+    },
+    {
+      "path": "src/store.ts",
+      "loc": 388
+    }
+  ],
+  "index_coverage_pct": 23
+}
