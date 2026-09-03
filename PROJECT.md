@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T08:06:16.922Z
+> 生成时间: 2026-09-03T09:07:43.313Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -72,6 +72,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-03 [codex] 修复 v0.1.4 发布门禁首败：将 stale-lock 测试中的 secret-shaped 固定 token 改为运行时 UUID；保留 SEC-016 首次发现并由复扫自动关闭。
+  - 改动: test/lock-stampede.test.ts
 - 2026-09-03 [codex] 完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
   - 改动: src/idempotency.ts, src/tool-base.ts, src/store.ts, src/index.ts, src/acceptance-tools.ts, src/audit-tools.ts, src/governance-tools.ts, src/knowledge-tools.ts 等 22 个
 - 2026-09-03 [codex] 发布 pm-mcp v0.1.2 统一安装入口：一个 npx setup 命令自动检测五类 AI 编程客户端，支持备份、dry-run、force、显式客户端和通用 JSON；CLI/MCP 双路径分流，npm 冷启动与 GitHub 双版本 CI 均通过。
@@ -80,8 +82,6 @@ flowchart LR
   - 改动: package.json, package-lock.json, README.md, install.ps1, src/index.ts, scripts/create-pm-acceptance-profile.mts
 - 2026-09-03 [codex] 公开发布 pm-mcp v0.1.0：建立 Git 仓库并推送 GitHub，补齐固定 Release 标签的一键 MCP 安装、精简发布包和双版本 CI；保留首轮托管失败并修复报告排序与 SQLite 并发启动问题，远端 npx MCP smoke 通过。
   - 改动: .gitattributes, .github/workflows/ci.yml, .gitignore, README.md, install.ps1, package.json, package-lock.json, src/dashboard.ts 等 16 个
-- 2026-09-03 [codex] 完成标准化产品验收与编译器/多语言AST语义治理：冻结33项量化需求、33项机器测试和8项风险；证据/源码/报告SHA-256防伪；46工具/7资源/5提示词；完整gate通过，183/183且覆盖率96.57/89.47/94.70，AST assurance与解析率100%，正式报告errors=0。
-  - 改动: src/acceptance-model.ts, src/acceptance-evaluator.ts, src/acceptance-report.ts, src/acceptance-tools.ts, src/typescript-semantic.ts, src/polyglot-ast.ts, src/semantic-evidence.ts, src/semantic-evidence-store.ts 等 53 个
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

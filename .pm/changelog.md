@@ -2,6 +2,14 @@
 
 ## 2026-09-03 — codex
 
+修复 v0.1.4 发布门禁首败：将 stale-lock 测试中的 secret-shaped 固定 token 改为运行时 UUID；保留 SEC-016 首次发现并由复扫自动关闭。
+
+改动文件（1）: test/lock-stampede.test.ts
+
+下一步: 提交门禁修复后从干净提交重新执行完整 gate
+
+## 2026-09-03 — codex
+
 完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
 
 改动文件（22）: src/idempotency.ts, src/tool-base.ts, src/store.ts, src/index.ts, src/acceptance-tools.ts, src/audit-tools.ts, src/governance-tools.ts, src/knowledge-tools.ts, src/project-tools.ts, src/task-tools.ts, src/tools.ts, test/idempotency.test.ts, test/exploit.test.ts, test/integration.test.ts, test/integrity.test.ts, test/store.test.ts, test/tooling-coverage.test.ts, test/realrepo.test.ts, README.md, package.json, package-lock.json, install.ps1

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { withLedgerLock } from "../src/store.ts";
 
@@ -92,7 +93,7 @@ test("20 processes reclaim one dead stale owner without ABA or overlapping write
   const stateFile = path.join(pm, "stampede.json");
   fs.mkdirSync(ready);
   fs.writeFileSync(stateFile, JSON.stringify({ active: 0, peak: 0, records: [] }));
-  fs.writeFileSync(lock, JSON.stringify({ pid: deadPid(), token: "dead-owner", created_at: new Date(0).toISOString() }));
+  fs.writeFileSync(lock, JSON.stringify({ pid: deadPid(), token: randomUUID(), created_at: new Date(0).toISOString() }));
   const stale = new Date(Date.now() - 20_000);
   fs.utimesSync(lock, stale, stale);
 

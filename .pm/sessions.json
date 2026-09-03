@@ -1,5 +1,5 @@
 {
-  "seq": 16,
+  "seq": 17,
   "sessions": [
     {
       "id": "S-0001",
@@ -433,6 +433,18 @@
         "install.ps1"
       ],
       "next_steps": []
+    },
+    {
+      "id": "S-0017",
+      "date": "2026-09-03T09:07:43.281Z",
+      "author": "codex",
+      "summary": "修复 v0.1.4 发布门禁首败：将 stale-lock 测试中的 secret-shaped 固定 token 改为运行时 UUID；保留 SEC-016 首次发现并由复扫自动关闭。",
+      "files": [
+        "test/lock-stampede.test.ts"
+      ],
+      "next_steps": [
+        "提交门禁修复后从干净提交重新执行完整 gate"
+      ]
     }
   ]
 }
