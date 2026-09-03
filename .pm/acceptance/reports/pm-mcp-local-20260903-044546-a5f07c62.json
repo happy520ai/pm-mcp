@@ -1,0 +1,2115 @@
+{
+  "schema_version": 1,
+  "report_id": "pm-mcp-local-20260903-044546-a5f07c62",
+  "evaluation_id": "EVAL-PM-MCP-LOCAL-1.0.0",
+  "report_generated_at": "2026-09-03T04:45:49.778Z",
+  "product": "pm-mcp 0.1.0",
+  "scope": "First-party product-quality acceptance for pm-mcp as a local stdio MCP service on Windows x64 with Node.js 25.8.1; distributable engine floor remains Node.js 22.13. Includes the implemented project brain, strict AST governance for the declared source tree, quality gates, and the recorded 20 GiB synthetic qualification workload. Excludes hosted CI, production HA/DR, independent certification, safety-critical use, and universal runtime execution claims.",
+  "baseline": {
+    "id": "pm-mcp-local-release",
+    "version": "1.0.0",
+    "title": "pm-mcp local product acceptance baseline",
+    "fingerprint_sha256": "168301bde37500dfee0d6cbba9a76efee7d30752d6ff86eef44e101027c1a195",
+    "approval": {
+      "status": "approved",
+      "approved_by": "project-owner",
+      "approved_at": "2026-09-02T16:03:38.734Z",
+      "rationale": "User explicitly directed completion to final pass under the strict acceptance criteria on 2026-09-02/03."
+    }
+  },
+  "evaluator": {
+    "name": "Codex machine-assisted evaluator",
+    "organization": "pm-mcp development",
+    "role": "first-party evaluator",
+    "independent": false
+  },
+  "standard_basis": [
+    "ISO/IEC 25010:2023",
+    "ISO/IEC 25023:2016",
+    "ISO/IEC 25030:2019",
+    "ISO/IEC 25040:2024",
+    "ISO/IEC/IEEE 29119-2:2021"
+  ],
+  "verdict": "accepted",
+  "summary": {
+    "applicable_characteristics": 8,
+    "accepted_characteristics": 8,
+    "requirements_total": 33,
+    "requirements_passed": 33,
+    "tests_total": 33,
+    "tests_passed": 33,
+    "risks_total": 8,
+    "risks_controlled": 8,
+    "stages_total": 5,
+    "stages_completed": 5,
+    "errors": 0,
+    "warnings": 0
+  },
+  "stage_results": [
+    {
+      "stage": "define",
+      "status": "completed",
+      "passed": true,
+      "evidence_ids": [
+        "EV-BASELINE"
+      ],
+      "result_note": "Product, intended use, environment and exclusions were frozen in the approved baseline."
+    },
+    {
+      "stage": "design",
+      "status": "completed",
+      "passed": true,
+      "evidence_ids": [
+        "EV-BASELINE"
+      ],
+      "result_note": "Nine characteristics, quantitative requirements, risks, tests and evidence pointers were designed before execution."
+    },
+    {
+      "stage": "plan",
+      "status": "completed",
+      "passed": true,
+      "evidence_ids": [
+        "EV-BASELINE"
+      ],
+      "result_note": "Entry, stop, retest and reporting rules were frozen; the readable plan is supplementary evidence."
+    },
+    {
+      "stage": "execute",
+      "status": "completed",
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-BENCH",
+        "EV-FIRST-FAILURE",
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "result_note": "The first failed coverage run was preserved; remediation added tests without lowering thresholds, followed by fresh quality and evidence collection."
+    },
+    {
+      "stage": "conclude",
+      "status": "completed",
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-BENCH",
+        "EV-MEASURE",
+        "EV-PLAN",
+        "EV-TEST"
+      ],
+      "result_note": "All evidence hashes and frozen JSON assertions are ready for evaluator recomputation and immutable report generation."
+    }
+  ],
+  "characteristic_results": [
+    {
+      "id": "functional_suitability",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-FS-PROMPTS",
+        "QR-FS-RESOURCES",
+        "QR-FS-TESTS",
+        "QR-FS-TOOLS"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "performance_efficiency",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-PE-CAPACITY",
+        "QR-PE-DURATION",
+        "QR-PE-ORACLE",
+        "QR-PE-READ",
+        "QR-PE-RSS",
+        "QR-PE-SNAPSHOT",
+        "QR-PE-STEADY",
+        "QR-PE-WARM"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "compatibility",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-CO-STDIO"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "interaction_capability",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-IN-DOCS"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "reliability",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-RE-CANCELLED",
+        "QR-RE-CURRENT",
+        "QR-RE-FAILED",
+        "QR-RE-QUALITY",
+        "QR-RE-SKIPPED",
+        "QR-RE-STABLE",
+        "QR-RE-TODO"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "security",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-SE-NOTE",
+        "QR-SE-OPEN"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "maintainability",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-MA-BRANCH",
+        "QR-MA-FUNCTION",
+        "QR-MA-LINES",
+        "QR-MA-LOC"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "flexibility",
+      "status": "accepted",
+      "requirement_ids": [
+        "QR-FL-ASSURANCE",
+        "QR-FL-FALLBACK",
+        "QR-FL-LANG",
+        "QR-FL-RESOLUTION",
+        "QR-FL-UNRESOLVED",
+        "QR-FL-VIOLATIONS"
+      ],
+      "tailoring_reason": null
+    },
+    {
+      "id": "safety",
+      "status": "tailored_out",
+      "requirement_ids": [],
+      "tailoring_reason": "This local development-governance tool is not accepted for safety-critical decisions; such use requires a separate hazard analysis and evaluation."
+    }
+  ],
+  "requirement_results": [
+    {
+      "id": "QR-CO-STDIO",
+      "characteristic": "compatibility",
+      "metric_name": "MCP interoperability",
+      "unit": "boolean01",
+      "direction": "equal",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 1,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_inventory_ok"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-COMPATIBILITY"
+      ],
+      "test_ids": [
+        "AT-CO-STDIO"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FL-ASSURANCE",
+      "characteristic": "flexibility",
+      "metric_name": "semantic assurance coverage",
+      "unit": "percent",
+      "direction": "equal",
+      "threshold": 100,
+      "tolerance": 0,
+      "observed_value": 100,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/semantic_assurance_pct"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-ASSURANCE"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FL-FALLBACK",
+      "characteristic": "flexibility",
+      "metric_name": "regex fallback files",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/fallback_files"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-FALLBACK"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FL-LANG",
+      "characteristic": "flexibility",
+      "metric_name": "built-in AST languages",
+      "unit": "count",
+      "direction": "at_least",
+      "threshold": 8,
+      "tolerance": 0,
+      "observed_value": 8,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/built_in_ast_languages"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-LANG"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FL-RESOLUTION",
+      "characteristic": "flexibility",
+      "metric_name": "internal reference resolution",
+      "unit": "percent",
+      "direction": "equal",
+      "threshold": 100,
+      "tolerance": 0,
+      "observed_value": 100,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/internal_resolution_pct"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-RESOLUTION"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FL-UNRESOLVED",
+      "characteristic": "flexibility",
+      "metric_name": "unresolved references",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/unresolved_references"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-UNRESOLVED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FL-VIOLATIONS",
+      "characteristic": "flexibility",
+      "metric_name": "governance violations",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/governance_violations"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-VIOLATIONS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FS-PROMPTS",
+      "characteristic": "functional_suitability",
+      "metric_name": "MCP prompts",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 5,
+      "tolerance": 0,
+      "observed_value": 5,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_prompts"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-PROMPTS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FS-RESOURCES",
+      "characteristic": "functional_suitability",
+      "metric_name": "MCP resources",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 7,
+      "tolerance": 0,
+      "observed_value": 7,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_resources"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-RESOURCES"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FS-TESTS",
+      "characteristic": "functional_suitability",
+      "metric_name": "executed tests",
+      "unit": "count",
+      "direction": "at_least",
+      "threshold": 160,
+      "tolerance": 0,
+      "observed_value": 184,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_total"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-TESTS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-FS-TOOLS",
+      "characteristic": "functional_suitability",
+      "metric_name": "MCP tools",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 46,
+      "tolerance": 0,
+      "observed_value": 46,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/mcp_tools"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-TOOLS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-IN-DOCS",
+      "characteristic": "interaction_capability",
+      "metric_name": "documentation inventory match",
+      "unit": "boolean01",
+      "direction": "equal",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 1,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/documentation_inventory_match"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-INTERACTION"
+      ],
+      "test_ids": [
+        "AT-IN-DOCS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-MA-BRANCH",
+      "characteristic": "maintainability",
+      "metric_name": "branch coverage",
+      "unit": "percent",
+      "direction": "at_least",
+      "threshold": 85,
+      "tolerance": 0,
+      "observed_value": 89.44,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/coverage_branches_pct"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-BRANCH"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-MA-FUNCTION",
+      "characteristic": "maintainability",
+      "metric_name": "function coverage",
+      "unit": "percent",
+      "direction": "at_least",
+      "threshold": 90,
+      "tolerance": 0,
+      "observed_value": 94.94,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/coverage_functions_pct"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-FUNCTION"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-MA-LINES",
+      "characteristic": "maintainability",
+      "metric_name": "line coverage",
+      "unit": "percent",
+      "direction": "at_least",
+      "threshold": 90,
+      "tolerance": 0,
+      "observed_value": 96.52,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/coverage_lines_pct"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-LINES"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-MA-LOC",
+      "characteristic": "maintainability",
+      "metric_name": "implementation files over budget",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/implementation_files_over_500"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-LOC"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-CAPACITY",
+      "characteristic": "performance_efficiency",
+      "metric_name": "qualified payload",
+      "unit": "GiB",
+      "direction": "at_least",
+      "threshold": 20,
+      "tolerance": 0,
+      "observed_value": 20,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_payload_gib"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-CAPACITY"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-DURATION",
+      "characteristic": "performance_efficiency",
+      "metric_name": "full qualification duration",
+      "unit": "seconds",
+      "direction": "at_most",
+      "threshold": 3600,
+      "tolerance": 0,
+      "observed_value": 2409.103,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_total_seconds"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-DURATION"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-ORACLE",
+      "characteristic": "performance_efficiency",
+      "metric_name": "volume oracle",
+      "unit": "boolean01",
+      "direction": "equal",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 1,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_oracle_consistent"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-ORACLE"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-READ",
+      "characteristic": "performance_efficiency",
+      "metric_name": "full content reads",
+      "unit": "boolean01",
+      "direction": "equal",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 1,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_disk_read_complete"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-READ"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-RSS",
+      "characteristic": "performance_efficiency",
+      "metric_name": "peak RSS",
+      "unit": "MiB",
+      "direction": "at_most",
+      "threshold": 1024,
+      "tolerance": 0,
+      "observed_value": 500.11,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_peak_rss_mib"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-RSS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-SNAPSHOT",
+      "characteristic": "performance_efficiency",
+      "metric_name": "snapshot",
+      "unit": "seconds",
+      "direction": "at_most",
+      "threshold": 3,
+      "tolerance": 0,
+      "observed_value": 0.03479,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_snapshot_seconds"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-SNAPSHOT"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-STEADY",
+      "characteristic": "performance_efficiency",
+      "metric_name": "steady audit",
+      "unit": "seconds",
+      "direction": "at_most",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 0.053177,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_steady_audit_seconds"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-STEADY"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-PE-WARM",
+      "characteristic": "performance_efficiency",
+      "metric_name": "warm structure walk",
+      "unit": "seconds",
+      "direction": "at_most",
+      "threshold": 5,
+      "tolerance": 0,
+      "observed_value": 3.034186,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/volume_warm_walk_seconds"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-WARM"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-CANCELLED",
+      "characteristic": "reliability",
+      "metric_name": "cancelled tests",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_cancelled"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-CANCELLED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-CURRENT",
+      "characteristic": "reliability",
+      "metric_name": "quality source is current",
+      "unit": "boolean01",
+      "direction": "equal",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 1,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/quality_source_matches_current"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-CURRENT"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-FAILED",
+      "characteristic": "reliability",
+      "metric_name": "failed tests",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_failed"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-FAILED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-QUALITY",
+      "characteristic": "reliability",
+      "metric_name": "failed quality commands",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/quality_failed_or_blocked"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-QUALITY"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-SKIPPED",
+      "characteristic": "reliability",
+      "metric_name": "skipped tests",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_skipped"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-SKIPPED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-STABLE",
+      "characteristic": "reliability",
+      "metric_name": "source stable during quality run",
+      "unit": "boolean01",
+      "direction": "equal",
+      "threshold": 1,
+      "tolerance": 0,
+      "observed_value": 1,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/quality_source_stable"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-STABLE"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-RE-TODO",
+      "characteristic": "reliability",
+      "metric_name": "todo tests",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/tests_todo"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-TODO"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-SE-NOTE",
+      "characteristic": "security",
+      "metric_name": "accepted findings without note",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/security_accepted_without_note"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-SECURITY"
+      ],
+      "test_ids": [
+        "AT-SE-NOTE"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    },
+    {
+      "id": "QR-SE-OPEN",
+      "characteristic": "security",
+      "metric_name": "open security findings",
+      "unit": "count",
+      "direction": "equal",
+      "threshold": 0,
+      "tolerance": 0,
+      "observed_value": 0,
+      "measurement_source": {
+        "evidence_id": "EV-MEASURE",
+        "json_pointer": "/metrics/security_open_total"
+      },
+      "passed": true,
+      "risk_ids": [
+        "R-SECURITY"
+      ],
+      "test_ids": [
+        "AT-SE-OPEN"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE"
+      ]
+    }
+  ],
+  "test_results": [
+    {
+      "id": "AT-CO-STDIO",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_inventory_ok",
+        "operator": "equal",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-FL-ASSURANCE",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/semantic_assurance_pct",
+        "operator": "equal",
+        "expected": 100
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-FL-FALLBACK",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/fallback_files",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-FL-LANG",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/built_in_ast_languages",
+        "operator": "at_least",
+        "expected": 8
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-FL-RESOLUTION",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/internal_resolution_pct",
+        "operator": "equal",
+        "expected": 100
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-FL-UNRESOLVED",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/unresolved_references",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-FL-VIOLATIONS",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/governance_violations",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-FS-PROMPTS",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_prompts",
+        "operator": "equal",
+        "expected": 5
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-FS-RESOURCES",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_resources",
+        "operator": "equal",
+        "expected": 7
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-FS-TESTS",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_total",
+        "operator": "at_least",
+        "expected": 160
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-FS-TOOLS",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/mcp_tools",
+        "operator": "equal",
+        "expected": 46
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-IN-DOCS",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/documentation_inventory_match",
+        "operator": "equal",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-MA-BRANCH",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/coverage_branches_pct",
+        "operator": "at_least",
+        "expected": 85
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-MA-FUNCTION",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/coverage_functions_pct",
+        "operator": "at_least",
+        "expected": 90
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-MA-LINES",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/coverage_lines_pct",
+        "operator": "at_least",
+        "expected": 90
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-MA-LOC",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/implementation_files_over_500",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-PE-CAPACITY",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_payload_gib",
+        "operator": "at_least",
+        "expected": 20
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-DURATION",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_total_seconds",
+        "operator": "at_most",
+        "expected": 3600
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-ORACLE",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_oracle_consistent",
+        "operator": "equal",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-READ",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_disk_read_complete",
+        "operator": "equal",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-RSS",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_peak_rss_mib",
+        "operator": "at_most",
+        "expected": 1024
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-SNAPSHOT",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_snapshot_seconds",
+        "operator": "at_most",
+        "expected": 3
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-STEADY",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_steady_audit_seconds",
+        "operator": "at_most",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-PE-WARM",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-BENCH",
+        "json_pointer": "/metrics/volume_warm_walk_seconds",
+        "operator": "at_most",
+        "expected": 5
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-BENCH"
+      ]
+    },
+    {
+      "id": "AT-RE-CANCELLED",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_cancelled",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-RE-CURRENT",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/quality_source_matches_current",
+        "operator": "equal",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-RE-FAILED",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_failed",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-RE-QUALITY",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/quality_failed_or_blocked",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-RE-SKIPPED",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_skipped",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-RE-STABLE",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/quality_source_stable",
+        "operator": "equal",
+        "expected": 1
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-RE-TODO",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-TEST",
+        "json_pointer": "/metrics/tests_todo",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-TEST"
+      ]
+    },
+    {
+      "id": "AT-SE-NOTE",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/security_accepted_without_note",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    },
+    {
+      "id": "AT-SE-OPEN",
+      "status": "passed",
+      "verification_mode": "automated",
+      "assertion": {
+        "evidence_id": "EV-AUDIT",
+        "json_pointer": "/metrics/security_open_total",
+        "operator": "equal",
+        "expected": 0
+      },
+      "passed": true,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ]
+    }
+  ],
+  "risk_results": [
+    {
+      "id": "R-COMPATIBILITY",
+      "owner": "protocol-owner",
+      "likelihood": "unlikely",
+      "impact": "moderate",
+      "inherent_level": "medium",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-FLEXIBILITY",
+      "owner": "architecture-owner",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-FUNCTIONAL",
+      "owner": "release-engineering",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-INTERACTION",
+      "owner": "documentation-owner",
+      "likelihood": "possible",
+      "impact": "moderate",
+      "inherent_level": "medium",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-MAINTAINABILITY",
+      "owner": "maintainability-owner",
+      "likelihood": "possible",
+      "impact": "moderate",
+      "inherent_level": "medium",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-PERFORMANCE",
+      "owner": "performance-owner",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-BENCH"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-RELIABILITY",
+      "owner": "quality-owner",
+      "likelihood": "possible",
+      "impact": "major",
+      "inherent_level": "high",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "mitigated",
+      "accepted_by": null,
+      "evidence_ids": [
+        "EV-TEST"
+      ],
+      "controlled": true
+    },
+    {
+      "id": "R-SECURITY",
+      "owner": "security-owner",
+      "likelihood": "unlikely",
+      "impact": "severe",
+      "inherent_level": "high",
+      "compensating_controls": [
+        "证据文件 SHA-256 复算",
+        "批准基线不可覆盖",
+        "失败与缺失均 fail-closed"
+      ],
+      "residual_level": "low",
+      "disposition": "accepted",
+      "accepted_by": "project-owner",
+      "evidence_ids": [
+        "EV-AUDIT"
+      ],
+      "controlled": true
+    }
+  ],
+  "traceability_matrix": [
+    {
+      "requirement_id": "QR-CO-STDIO",
+      "risk_ids": [
+        "R-COMPATIBILITY"
+      ],
+      "test_ids": [
+        "AT-CO-STDIO"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FL-ASSURANCE",
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-ASSURANCE"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FL-FALLBACK",
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-FALLBACK"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FL-LANG",
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-LANG"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FL-RESOLUTION",
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-RESOLUTION"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FL-UNRESOLVED",
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-UNRESOLVED"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FL-VIOLATIONS",
+      "risk_ids": [
+        "R-FLEXIBILITY"
+      ],
+      "test_ids": [
+        "AT-FL-VIOLATIONS"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FS-PROMPTS",
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-PROMPTS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FS-RESOURCES",
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-RESOURCES"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FS-TESTS",
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-TESTS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-FS-TOOLS",
+      "risk_ids": [
+        "R-FUNCTIONAL"
+      ],
+      "test_ids": [
+        "AT-FS-TOOLS"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-IN-DOCS",
+      "risk_ids": [
+        "R-INTERACTION"
+      ],
+      "test_ids": [
+        "AT-IN-DOCS"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-MA-BRANCH",
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-BRANCH"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-MA-FUNCTION",
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-FUNCTION"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-MA-LINES",
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-LINES"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-MA-LOC",
+      "risk_ids": [
+        "R-MAINTAINABILITY"
+      ],
+      "test_ids": [
+        "AT-MA-LOC"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-CAPACITY",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-CAPACITY"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-DURATION",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-DURATION"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-ORACLE",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-ORACLE"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-READ",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-READ"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-RSS",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-RSS"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-SNAPSHOT",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-SNAPSHOT"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-STEADY",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-STEADY"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-PE-WARM",
+      "risk_ids": [
+        "R-PERFORMANCE"
+      ],
+      "test_ids": [
+        "AT-PE-WARM"
+      ],
+      "evidence_ids": [
+        "EV-BENCH",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-CANCELLED",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-CANCELLED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-CURRENT",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-CURRENT"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-FAILED",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-FAILED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-QUALITY",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-QUALITY"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-SKIPPED",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-SKIPPED"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-STABLE",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-STABLE"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-RE-TODO",
+      "risk_ids": [
+        "R-RELIABILITY"
+      ],
+      "test_ids": [
+        "AT-RE-TODO"
+      ],
+      "evidence_ids": [
+        "EV-MEASURE",
+        "EV-TEST"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-SE-NOTE",
+      "risk_ids": [
+        "R-SECURITY"
+      ],
+      "test_ids": [
+        "AT-SE-NOTE"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    },
+    {
+      "requirement_id": "QR-SE-OPEN",
+      "risk_ids": [
+        "R-SECURITY"
+      ],
+      "test_ids": [
+        "AT-SE-OPEN"
+      ],
+      "evidence_ids": [
+        "EV-AUDIT",
+        "EV-MEASURE"
+      ],
+      "complete": true
+    }
+  ],
+  "findings": [],
+  "conclusion": "本次评价所引用的预批准质量基线、量化需求、测试证据、双向追踪、残余风险处置及 ISO/IEC 25040 五阶段记录均满足既定准则，产品在本报告限定范围内通过验收。"
+}
