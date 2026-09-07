@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { initProject } from "./init.ts";
 import { isInitialized } from "./paths.ts";
 import { refreshDerived } from "./dashboard.ts";
@@ -112,7 +112,7 @@ export function mergeJsonServer(document: unknown, shape: "zcode" | "standard"):
 
 function backupName(file: string): string {
   const stamp = new Date().toISOString().replace(/[-:.TZ]/g, "");
-  return `${file}.backup-${stamp}-${process.pid}`;
+  return `${file}.backup-${stamp}-${process.pid}-${randomUUID()}`;
 }
 
 export function writeJsonClientConfig(file: string, shape: "zcode" | "standard", dryRun = false): string | null {

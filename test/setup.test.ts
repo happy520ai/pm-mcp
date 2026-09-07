@@ -95,6 +95,23 @@ test("写配置前备份，重复执行可更新且不破坏已有字段", () =>
   assert.equal(saved.mcp.servers["pm-mcp"].args[1], PACKAGE_SPEC);
 });
 
+test("同一毫秒连续写配置仍保留每一次独立备份", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: 1700000000000 });
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "pm-setup-backup-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const file = path.join(root, "config.json");
+  fs.writeFileSync(file, JSON.stringify({ retained: true }));
+  const backups = new Set<string>();
+  for (let i = 0; i < 3; i++) {
+    const before = fs.readFileSync(file, "utf8");
+    const backup = writeJsonClientConfig(file, "standard");
+    assert.ok(backup);
+    assert.equal(fs.readFileSync(backup, "utf8"), before);
+    backups.add(backup);
+  }
+  assert.equal(backups.size, 3);
+});
+
 test("坏 JSON fail-closed，不覆盖原文件或制造备份", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "pm-setup-bad-"));
   const file = path.join(root, "config.json");
