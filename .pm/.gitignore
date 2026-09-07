@@ -2,3 +2,7 @@
 .runtime/
 benchmarks/
 index.db*
+usage-log.jsonl*
+runtime-log.jsonl*
+usage-log*.jsonl*
+runtime-log*.jsonl*

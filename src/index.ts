@@ -15,6 +15,8 @@ import path from "node:path";
 import { listAcceptanceBaselines } from "./acceptance-tools.ts";
 import { AcceptanceReportSchema } from "./acceptance-report.ts";
 import { runCoalescedRead } from "./idempotency.ts";
+import { recordUsage } from "./tool-base.ts";
+import { logRuntime } from "./usage-log.ts";
 
 /* --root 参数 > PM_ROOT 环境变量 > 启动时工作目录 */
 const argv = process.argv.slice(2);
@@ -25,7 +27,7 @@ for (let i = 0; i < argv.length; i++) {
 const root = resolveRoot(explicitRoot);
 
 const server = new McpServer(
-  { name: "pm-mcp", version: "0.1.4" },
+  { name: "pm-mcp", version: "0.1.5" },
   {
     instructions: [
       "多 Agent 规则：相同业务的所有写工具调用必须携带相同 idempotency_key（建议 task-id:operation）；同键同参数只执行一次，同键不同参数会被拒绝。",
@@ -47,7 +49,15 @@ function safeText(fn: () => string): string {
 }
 
 async function resourceText(name: string, fn: () => string): Promise<string> {
-  return (await runCoalescedRead(root, `resource:${name}`, {}, () => safeText(fn))).text;
+  const started = Date.now();
+  try {
+    const text = (await runCoalescedRead(root, `resource:${name}`, {}, () => safeText(fn))).text;
+    recordUsage(root, `resource:${name}`, "read", started, { ok: true, text });
+    return text;
+  } catch (error) {
+    recordUsage(root, `resource:${name}`, "read", started, { ok: false, error: (error as Error).message });
+    throw error;
+  }
 }
 
 server.registerResource(
@@ -290,6 +300,8 @@ if (isInitialized(root)) {
   ensurePmRuntimeIgnored(root);
   const watcher = startWatcher(root);
   console.error(`[pm-mcp] watcher coordinator: ${watcher ? "active（同项目单 leader）" : "unavailable（降级为按需全量走查）"}`);
+  logRuntime(root, watcher ? "info" : "warn", watcher ? "watcher.active" : "watcher.unavailable", watcher ? undefined : "降级为按需全量走查");
 }
+logRuntime(root, "info", "server.ready", `pid=${process.pid} node=${process.versions.node}`);
 // stdio 是协议通道，日志只能走 stderr
 console.error(`[pm-mcp] ready. project root: ${root}`);

@@ -17,6 +17,7 @@ import {
 } from "./store.ts";
 import { now, type Task } from "./types.ts";
 import { budgetLines, toolI, toolR, toolW } from "./tool-base.ts";
+import { renderRuntimeLogLines, renderUsageLogLines } from "./usage-log.ts";
 
 function taskLine(t: Task, withNext = false): string {
   const parts = [`[${t.status}]`, t.id, t.title, `(${t.type}${t.milestone ? `,${t.milestone}` : ""})`];
@@ -27,10 +28,10 @@ function taskLine(t: Task, withNext = false): string {
 }
 
 export function registerProjectTools(server: McpServer, root: string): void {
-  toolW<{ name: string; description?: string; stack?: string[]; goals?: string[]; license?: string; exposure?: "local" | "network" | "public"; modules?: string[] }>(
+  toolW<{ name: string; description?: string; stack?: string[]; goals?: string[]; license?: string; exposure?: "local" | "network" | "public"; modules?: string[]; agents_md?: boolean }>(
     server, root,
     "init_project",
-    "初始化当前项目的 .pm/ 状态目录（单一事实来源）。每个新项目只调用一次；已初始化请用 update_project。",
+    "初始化当前项目的 .pm/ 状态目录（单一事实来源），并自动写入 AGENTS.md 工作规矩（已存在则增量合并，不覆盖你的内容）。每个新项目只调用一次；已初始化请用 update_project。",
     {
       name: z.string().min(1).describe("项目名"),
       description: z.string().optional().describe("一句话描述"),
@@ -39,14 +40,16 @@ export function registerProjectTools(server: McpServer, root: string): void {
       license: z.string().optional().describe("项目许可证（SPDX 名，如 MIT）"),
       exposure: z.enum(["local", "network", "public"]).optional().describe("暴露面，影响安全告警力度"),
       modules: z.array(z.string()).optional().describe("初始模块登记"),
+      agents_md: z.boolean().optional().describe("默认 true：自动写入/合并 AGENTS.md 工作规矩（false 关闭）"),
     },
     (args) => {
-      const project = initProject(root, args);
+      const project = initProject(root, { ...args, agentsMd: args.agents_md });
       refreshDerived(root);
       return [
         `✅ 项目已初始化: ${project.name}`,
         `状态目录: ${pmPath(root, "")}（随 git 提交，团队/AI 共享）`,
         "仪表盘已生成: PROJECT.md",
+        args.agents_md === false ? "AGENTS.md 规矩：按要求跳过（agents_md:false）" : "AGENTS.md 工作规矩已写入（已存在则合并；ZCode 每次打开该项目自动加载）",
         "建议顺序: upsert_module 声明模块/owner/语言 → add_milestone 建里程碑 → add_task 拆任务 → 开工前 get_status / 收工后 log_session。",
       ].join("\n");
     },
@@ -119,6 +122,38 @@ export function registerProjectTools(server: McpServer, root: string): void {
       L.push("");
       L.push("> 三段式定位：本状态 → search_code 精确到行 → 才读具体文件。别全量读代码。");
       return foldLines(L, { maxLines: budgetLines(root) });
+    },
+  );
+
+  toolR<{ last?: number; tool?: string; ok?: boolean; since?: string }>(
+    server, root,
+    "get_usage_log",
+    "使用日志：pm-mcp 被用了哪些工具、成败、耗时，以及输出 token 估算与「折叠省下的 token」——回答“用它到底省不省 token”。只记工具名与计量，不记参数内容。日志滚动保留约 2MB。",
+    {
+      last: z.number().int().min(1).max(200).optional().describe("返回最近 N 条明细（默认 20；汇总始终覆盖全部保留日志）"),
+      tool: z.string().optional().describe("只看某工具，如 get_status"),
+      ok: z.boolean().optional().describe("true 只看成，false 只看败"),
+      since: z.string().optional().describe("ISO 日期/时间，只看该时间之后的明细"),
+    },
+    (args) => {
+      requireInitialized(root);
+      return foldLines(renderUsageLogLines(root, args), { maxLines: budgetLines(root) });
+    },
+  );
+
+  toolR<{ last?: number; level?: "info" | "warn" | "error"; event?: string; since?: string }>(
+    server, root,
+    "get_runtime_log",
+    "运行日志：server 就绪、watcher 状态、工具报错等服务级事件（info/warn/error），判断 pm-mcp 运行是否健康、哪里在反复出错。",
+    {
+      last: z.number().int().min(1).max(200).optional().describe("返回最近 N 条明细（默认 20）"),
+      level: z.enum(["info", "warn", "error"]).optional().describe("只看某级别"),
+      event: z.string().optional().describe("只看某事件，如 tool.error / server.ready"),
+      since: z.string().optional().describe("ISO 日期/时间，只看该时间之后的明细"),
+    },
+    (args) => {
+      requireInitialized(root);
+      return foldLines(renderRuntimeLogLines(root, args), { maxLines: budgetLines(root) });
     },
   );
 

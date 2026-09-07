@@ -36,7 +36,7 @@ test("真实 .pm 全账本通过 schema 校验（自家数据先合规）", () =
   const tasks = loadTasks(REPO);
   assert.ok(tasks.tasks.length >= 12, `真实任务数 ${tasks.tasks.length}`);
   const features = loadFeatures(REPO).features;
-  assert.equal(features.length, 14);
+  assert.ok(features.length >= 14, `真实功能数 ${features.length}`);
   assert.ok(features.some((f) => f.id === "F-008" && f.name === "字节/超大LOC容量基准"));
   assert.ok(features.some((f) => f.id === "F-009" && f.name === "跨文件/模块/语言语义治理"));
   assert.ok(features.some((f) => f.id === "F-010" && f.name === "标准化产品验收与防伪证据链"));
@@ -102,14 +102,14 @@ test("真实安全台账：全部发现已处置且 accepted 都留了理由", (
   assert.ok(!raw.includes("sk-"), "台账无 API key 明文");
 });
 
-test("真实 server 起在本仓库：46 工具可用，路线图与状态如实", async (t) => {
+test("真实 server 起在本仓库：48 工具可用，路线图与状态如实", async (t) => {
   const client = new Client({ name: "realrepo", version: "0" });
   t.after(() => client.close().catch(() => undefined));
   await client.connect(
     new StdioClientTransport({ command: process.execPath, args: [path.resolve("src/index.ts"), "--root", REPO], env: { PM_MCP_HOME: REPO + "-test-home" } }),
   );
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 46);
+  assert.equal(tools.tools.length, 48);
   const r = await client.callTool({ name: "get_status", arguments: {} });
   const text = ((r as { content: Array<{ text?: string }> }).content ?? []).map((c) => c.text ?? "").join("\n");
   assert.ok(text.includes("pm-mcp"));

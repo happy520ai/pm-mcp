@@ -71,7 +71,7 @@ export function ensurePmRuntimeIgnored(root: string): void {
   fs.mkdirSync(directory, { recursive: true });
   fs.mkdirSync(path.join(directory, ".runtime", "idempotency"), { recursive: true });
   const file = path.join(directory, ".gitignore");
-  const required = [".lock", ".runtime/", "benchmarks/", "index.db*"];
+  const required = [".lock", ".runtime/", "benchmarks/", "index.db*", "usage-log*.jsonl*", "runtime-log*.jsonl*"];
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const current = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
     const lines = current.split(/\r?\n/).map((line) => line.trim());
