@@ -1,9 +1,34 @@
 import { relative as pathRelative } from "node:path";
+import { estimateTokens } from "./usage-log.ts";
 
 /**
  * token 经济：读类工具输出硬预算。
  * 超出预算自动折叠为 "Top N + 另有 M 项已折叠"，引导模型用过滤参数缩小范围。
+ * 折叠/截断省下的字符与 token 会记账，供使用日志统计「省了多少 token」。
  */
+
+let foldSavedChars = 0;
+let foldSavedTokens = 0;
+
+function noteFoldSavings(full: string, out: string): void {
+  const savedChars = full.length - out.length;
+  if (savedChars <= 0) return;
+  foldSavedChars += savedChars;
+  foldSavedTokens += Math.max(0, estimateTokens(full) - estimateTokens(out));
+}
+
+/**
+ * 取走自上次调用以来折叠/截断省下的字符与 token（估算）。
+ * 单进程内计数：并发异步调用之间的归因可能漂移，但总量精确（每次折叠恰好记一次）。
+ * 工具包装器在业务函数返回后调用，把省量归到本次工具调用。
+ */
+export function drainFoldSavings(): { chars: number; tokens: number } | null {
+  if (foldSavedChars <= 0) return null;
+  const out = { chars: foldSavedChars, tokens: foldSavedTokens };
+  foldSavedChars = 0;
+  foldSavedTokens = 0;
+  return out;
+}
 
 export interface FoldOptions {
   /** 最大输出行数 */
@@ -25,7 +50,11 @@ export function capLine(line: string, maxChars = 300): string {
 export function foldLines(lines: string[], opts: FoldOptions): string {
   const { maxLines, hint } = opts;
   const capped = lines.map((l) => capLine(l));
-  if (capped.length <= maxLines) return capped.join("\n");
+  if (capped.length <= maxLines) {
+    const out = capped.join("\n");
+    noteFoldSavings(lines.join("\n"), out);
+    return out;
+  }
   const keep = Math.max(1, Math.floor(maxLines * 0.8));
   const tail = Math.max(0, maxLines - keep - 1);
   const hidden = capped.length - keep - tail;
@@ -34,7 +63,9 @@ export function foldLines(lines: string[], opts: FoldOptions): string {
     `…（另有 ${hidden} 项已折叠${hint ? "，" + hint : ""}，请用过滤参数缩小范围）`,
   );
   if (tail > 0) parts.push(...capped.slice(-tail));
-  return parts.join("\n");
+  const out = parts.join("\n");
+  noteFoldSavings(lines.join("\n"), out);
+  return out;
 }
 
 /** 对整段文本按行折叠 */

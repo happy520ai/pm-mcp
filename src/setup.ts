@@ -2,8 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash, randomUUID } from "node:crypto";
+import { initProject } from "./init.ts";
+import { isInitialized } from "./paths.ts";
+import { refreshDerived } from "./dashboard.ts";
 
-export const PACKAGE_SPEC = "@luckychen1993/pm-mcp@0.1.4";
+export const PACKAGE_SPEC = "@luckychen1993/pm-mcp@0.1.5";
 export const SERVER_NAME = "pm-mcp";
 
 export type SetupClient = "auto" | "all" | "codex" | "claude" | "zcode" | "cursor" | "vscode" | "print";
@@ -14,11 +18,15 @@ export interface SetupOptions {
   force: boolean;
   dryRun: boolean;
   help: boolean;
+  /** --project：把当前（或指定）目录按项目钉定注册到 Codex 并初始化 .pm（新项目一条命令上手） */
+  project: boolean;
+  projectDir?: string;
 }
 
 export interface DetectionContext {
   env: NodeJS.ProcessEnv;
   home: string;
+  cwd?: string;
   commandExists: (command: string) => boolean;
   exists: (target: string) => boolean;
 }
@@ -26,7 +34,7 @@ export interface DetectionContext {
 const CLIENTS: ConcreteClient[] = ["codex", "claude", "zcode", "cursor", "vscode"];
 
 export function parseSetupArgs(argv: string[]): SetupOptions {
-  const options: SetupOptions = { client: "auto", force: false, dryRun: false, help: false };
+  const options: SetupOptions = { client: "auto", force: false, dryRun: false, help: false, project: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--client") {
@@ -36,6 +44,13 @@ export function parseSetupArgs(argv: string[]): SetupOptions {
       }
       options.client = value;
       index += 1;
+    } else if (arg === "--project") {
+      options.project = true;
+      const value = argv[index + 1];
+      if (value && !value.startsWith("--")) {
+        options.projectDir = value;
+        index += 1;
+      }
     } else if (arg === "--force") {
       options.force = true;
     } else if (arg === "--dry-run") {
@@ -97,7 +112,7 @@ export function mergeJsonServer(document: unknown, shape: "zcode" | "standard"):
 
 function backupName(file: string): string {
   const stamp = new Date().toISOString().replace(/[-:.TZ]/g, "");
-  return `${file}.backup-${stamp}-${process.pid}`;
+  return `${file}.backup-${stamp}-${process.pid}-${randomUUID()}`;
 }
 
 export function writeJsonClientConfig(file: string, shape: "zcode" | "standard", dryRun = false): string | null {
@@ -157,6 +172,83 @@ function appendCodexConfig(file: string, dryRun: boolean, log: (message: string)
   fs.appendFileSync(absolute, block, "utf8");
 }
 
+function canonicalProjectRoot(projectRoot: string): string {
+  const absolute = path.resolve(projectRoot);
+  let resolved: string;
+  try { resolved = fs.realpathSync.native(absolute); } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    resolved = absolute;
+  }
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+}
+
+function legacyProjectServerKey(projectRoot: string): string {
+  const base = path.basename(projectRoot);
+  const safe = base.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  return `${SERVER_NAME}-${safe || "project"}`;
+}
+
+/** 完整规范路径参与命名，区分中文目录和位于不同父目录下的同名项目。 */
+export function codexProjectServerKey(projectRoot: string): string {
+  const canonical = canonicalProjectRoot(projectRoot);
+  return `${legacyProjectServerKey(canonical)}-${createHash("sha256").update(canonical).digest("hex").slice(0, 12)}`;
+}
+
+/** 只解析本安装器生成的单行 JSON 兼容 args；手写复杂 TOML 不猜测其绑定。 */
+function projectEntry(text: string, server: string): { root?: string } | undefined {
+  const header = new RegExp(`^\\s*\\[mcp_servers\\.(?:${server}|"${server}"|'${server}')\\]\\s*(?:#.*)?$`, "m").exec(text);
+  if (!header) return undefined;
+  const tail = text.slice(header.index + header[0].length);
+  const nextHeader = tail.search(/^\s*\[/m);
+  const section = nextHeader < 0 ? tail : tail.slice(0, nextHeader);
+  const argsLine = /^\s*args\s*=\s*(\[[^\r\n]*\])\s*(?:#.*)?$/m.exec(section);
+  try {
+    const args: unknown = argsLine ? JSON.parse(argsLine[1]) : undefined;
+    if (!Array.isArray(args) || !args.every((value) => typeof value === "string")) return {};
+    const positions = args.flatMap((value, index) => value === "--root" ? [index] : []);
+    if (positions.length !== 1 || !path.isAbsolute(args[positions[0] + 1] ?? "")) return {};
+    return { root: canonicalProjectRoot(args[positions[0] + 1]) };
+  } catch { return {}; }
+}
+
+/**
+ * --project 模式：把指定目录作为钉定项目写进 Codex config.toml（npx + --root）。
+ * 桌面版 Codex 起 MCP 服务时 cwd 不在工作区，必须逐项目钉根；同名条目已存在则跳过（fail-closed，不产生重复 TOML 表头）。
+ */
+export function appendCodexProjectConfig(
+  file: string,
+  projectRoot: string,
+  force: boolean,
+  dryRun: boolean,
+  log: (message: string) => void,
+): void {
+  const absolute = path.resolve(file);
+  const server = codexProjectServerKey(projectRoot);
+  const canonical = canonicalProjectRoot(projectRoot);
+  const existing = fs.existsSync(absolute) ? fs.readFileSync(absolute, "utf8") : "";
+  const entry = projectEntry(existing, server);
+  const legacy = legacyProjectServerKey(canonical);
+  const legacyEntry = projectEntry(existing, legacy);
+  if (entry && entry.root !== canonical) {
+    throw new Error(`已有 [mcp_servers.${server}] 指向不同项目或无法确认 --root；未修改配置。`);
+  }
+  if (entry || legacyEntry?.root === canonical) {
+    const reused = entry ? server : legacy;
+    if (!force) log(`[skip] Codex already has [mcp_servers.${reused}] for this project; nothing to change.`);
+    else throw new Error(`Codex already has [mcp_servers.${reused}]; 请先手工删除该段再 --force 重加。`);
+    return;
+  }
+  log(`[${dryRun ? "plan" : "write"}] Codex: ${absolute}`);
+  if (dryRun) return;
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  if (fs.existsSync(absolute)) fs.copyFileSync(absolute, backupName(absolute), fs.constants.COPYFILE_EXCL);
+  const tomlRoot = path.resolve(projectRoot).replace(/\\/g, "/");
+  const separator = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
+  const block = `${separator}\n[mcp_servers.${server}]\ncommand = "npx"\nargs = ["-y", ${JSON.stringify(PACKAGE_SPEC)}, "--root", ${JSON.stringify(tomlRoot)}]\n`;
+  fs.appendFileSync(absolute, block, "utf8");
+  log(`[entry] [mcp_servers.${server}] → --root ${tomlRoot}`);
+}
+
 function run(command: string, args: string[], visible: boolean): number {
   const result = spawnSync(command, args, {
     shell: false,
@@ -195,8 +287,13 @@ function configureClient(
   options: SetupOptions,
   context: DetectionContext,
   log: (message: string) => void,
+  projectRoot?: string,
 ): void {
   if (client === "codex") {
+    if (options.project && projectRoot) {
+      appendCodexProjectConfig(codexConfigPath(context.env, context.home), projectRoot, options.force, options.dryRun, log);
+      return;
+    }
     if (configureCliClient("codex", options, context.commandExists("codex"), log)) return;
     appendCodexConfig(codexConfigPath(context.env, context.home), options.dryRun, log);
     return;
@@ -221,8 +318,9 @@ function configureClient(
 function printHelp(log: (message: string) => void): void {
   log("pm-mcp setup — configure local AI coding clients");
   log("");
-  log(`Usage: npx -y ${PACKAGE_SPEC} setup [--client auto|all|codex|claude|zcode|cursor|vscode|print] [--force] [--dry-run]`);
+  log(`Usage: npx -y ${PACKAGE_SPEC} setup [--client auto|all|codex|claude|zcode|cursor|vscode|print] [--project [dir]] [--force] [--dry-run]`);
   log("Default auto mode configures every detected supported client.");
+  log("--project [dir]: 在 Codex 把该目录注册为钉定项目并初始化 .pm（新项目一条命令上手；默认当前目录）");
 }
 
 export function runSetup(
@@ -244,30 +342,49 @@ export function runSetup(
   const context: DetectionContext = {
     env,
     home,
+    cwd: overrides.cwd,
     commandExists: overrides.commandExists ?? ((command) => commandExists(command, env)),
     exists: overrides.exists ?? fs.existsSync,
   };
+  const projectRoot = options.project ? path.resolve(options.projectDir?.trim() || context.cwd || process.cwd()) : undefined;
   const selected = options.client === "all"
     ? CLIENTS
     : options.client === "auto"
       ? detectClients(context)
       : [options.client];
-  if (selected.length === 0) {
+  if (selected.length === 0 && !options.project) {
     log("No supported client was detected. Use --client <name>, or --client print for generic JSON.");
     return 1;
   }
   log(`pm-mcp setup ${PACKAGE_SPEC}`);
-  log(`clients: ${selected.join(", ")}`);
+  if (selected.length > 0) log(`clients: ${selected.join(", ")}`);
+  if (options.project && projectRoot) {
+    const name = path.basename(projectRoot) || "project";
+    log(`project: ${projectRoot}`);
+    if (options.dryRun) {
+      log(`[plan] init_project ${name}（.pm/ + PROJECT.md + AGENTS.md 工作规矩）`);
+    } else if (isInitialized(projectRoot)) {
+      log("[skip] 项目已初始化（.pm/project.json 已存在）。");
+    } else {
+      initProject(projectRoot, { name });
+      refreshDerived(projectRoot);
+      log(`[init] ✅ ${name} 已初始化：.pm/ 状态目录 + PROJECT.md 仪表盘 + AGENTS.md 工作规矩`);
+    }
+  }
   let failures = 0;
   for (const client of selected) {
     try {
-      configureClient(client, options, context, log);
+      configureClient(client, options, context, log, projectRoot);
     } catch (error) {
       failures += 1;
       console.error(`[failed] ${client}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   if (failures > 0) return 1;
-  log("Done. Restart the configured client and ask it to call pm-mcp get_status.");
+  if (options.project && selected.includes("codex")) {
+    log("完成。请完全退出并重启 Codex，开新会话即可使用（工具名前缀 pm-mcp-<项目名>）。");
+  } else {
+    log("Done. Restart the configured client and ask it to call pm-mcp get_status.");
+  }
   return 0;
 }

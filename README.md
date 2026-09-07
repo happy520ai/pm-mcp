@@ -32,6 +32,8 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 
 ## 一个命令自动添加到 AI 编程助手
 
+本页安装示例固定使用 **0.1.5**，包含安全扫描、项目命名和字面量搜索修复。0.1.4 不支持 `setup --project`；验证这些能力时请确认实际运行版本为 0.1.5 或更新版本。
+
 要求：Node.js ≥ 22.18。Windows、macOS 和 Linux 使用同一条命令：
 
 ```bash
@@ -46,6 +48,16 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 
 非标准安装路径无法自动发现时，可在同一命令末尾指定 `--client codex|claude|zcode|cursor|vscode`；`--client print` 输出通用 MCP JSON。首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
 
+### 新项目一条命令上手（Codex 必用）
+
+Codex 桌面版启动 MCP 服务时不带工作区路径，逐项目钉根才能用。在项目目录里跑一条命令，自动完成「注册钉定条目 + 初始化 .pm + 写 AGENTS.md 工作规矩」：
+
+```bash
+npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
+```
+
+跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
+
 ### 客户端官方命令（自动检测失败时备用）
 
 #### Codex / ChatGPT 桌面版 / Codex IDE 扩展
@@ -53,7 +65,7 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 Codex 的本地客户端共享同一份 MCP 配置。复制执行：
 
 ```bash
-codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.4
+codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.5
 ```
 
 重启客户端后可用 `codex mcp list` 检查。该命令遵循 [OpenAI 官方 MCP CLI 格式](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
@@ -61,7 +73,7 @@ codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.4
 #### Claude Code
 
 ```bash
-claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.4
+claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.5
 ```
 
 #### ZCode、Cursor、VS Code（Windows 备用脚本）
@@ -69,7 +81,7 @@ claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.4
 将 `<client>` 替换为 `zcode`、`cursor` 或 `vscode`，整行复制到 PowerShell：
 
 ```powershell
-$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.4/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
+$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.5/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
 ```
 
 脚本只写对应客户端的 MCP 配置；已有 JSON 配置会先生成带时间戳的备份。建议执行前先打开 [`install.ps1`](install.ps1) 审阅。ZCode 默认写入 `$ZCODE_HOME/cli/config.json` 或 `~/.zcode/cli/config.json`，Cursor 默认写入 `~/.cursor/mcp.json`；也可用 `-ConfigPath` 指定路径。
@@ -81,7 +93,7 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.4/install.ps1'; $f=
   "mcpServers": {
     "pm-mcp": {
       "command": "npx",
-      "args": ["-y", "@luckychen1993/pm-mcp@0.1.4"],
+      "args": ["-y", "@luckychen1993/pm-mcp@0.1.5"],
       "env": {}
     }
   }
@@ -131,7 +143,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 也可以直接用内置 prompts：`start-session` / `end-session` / `onboard` / `architecture-review` / `acceptance-review`；其中 `onboard` 会引导客户端读取状态并生成新人/AI 入职简报。
 
-## 工具清单（46 个）
+## 工具清单（48 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
@@ -146,6 +158,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 | 审计 | `snapshot_codebase` / `audit_structure` | 结构快照；完整性/增长/漂移/债务/churn/复杂度/索引/足迹/测试/Git 十节对账 |
 | 安全 | `audit_security` / `list_findings` / `resolve_finding` | 密钥+危险模式+新增/通配依赖提示；扫描命中原文不落盘，处置 note 拒绝内置密钥形态 |
 | 法律 | `audit_license` | 依赖许可证清单、copyleft 冲突、GPL 头检测、LICENSE 检查、来源登记 |
+| 可观测 | `get_usage_log` / `get_runtime_log` | 使用日志（工具调用统计、错误率、耗时、输出与折叠省下的 token 估算——验证省不省 token）与运行日志（server/watcher/工具报错）；只记计量不记参数内容 |
 | 注册表 | `list_projects` | 本机所有被管理项目 |
 | 治理模型 | `init_governance` / `get_governance` / `upsert_module` / `upsert_interface` / `upsert_repository` / `set_governance_policies` | 结构化模块根、owner、语言、公开接口、允许/禁止依赖、跨仓版本约束与强制策略 |
 | 语义治理 | `discover_languages` / `audit_governance` / `impact_analysis` / `list_semantic_evidence` / `save_semantic_evidence` | 编译器/Tree-sitter AST 关系、hash-bound 原生分析器/运行时证据、循环/越界/unresolved/覆盖率与变更反向闭包 |
@@ -312,7 +325,7 @@ npm run gate          # 完整本地门禁
 | 单元 | budget/store/roadmap/health/security/license/audit/search/dashboard | 各账本与机制的正确性（含伪造密钥/危险模式 fixture、已识别命中原文不落盘断言） |
 | 治理 | governance-model/language-adapters/semantic-graph/semantic-evidence/polyglot-ast/portfolio/governance-audit | 模块 schema、八语言 AST、symbol-bound call、原生/runtime证据、私有接口、循环、影响闭包、semver 与跨仓 fail-closed |
 | 标准化验收 | acceptance-evaluator/acceptance-tools/acceptance-gate/quality-evidence | 九特性/五阶段、冻结指标与断言、双向追踪、风险接受、源码/证据/报告 SHA-256、伪造 PASS 失败 |
-| 集成 | integration/governance-mcp/quality-gate | 真实拉起 stdio server 全链路：46 工具、7 资源、5 提示词；真实执行安全 argv 质量命令 |
+| 集成 | integration/governance-mcp/quality-gate | 真实拉起 stdio server 全链路：48 工具、7 资源、5 提示词；真实执行安全 argv 质量命令 |
 | 场景 | scenario.test.ts | **对 dist 产物**跑三段会话生命周期：中文+空格路径、CRLF、断点跨进程恢复、故障注入（删测试/加 skip/删入口文件/新增依赖/伪造密钥/GPL 头）、三种根解析方式（cwd / PM_ROOT / --root）各用一遍 |
 | 完整性 + 真实仓库 | integrity.test.ts / realrepo.test.ts | 状态不变式（全账本 schema、派生逐字节一致、原子性、损坏恢复、500 任务规模折叠、并发双进程零丢失）；并以本仓库真实 `.pm` 为被测对象（漂移为零、PROJECT.md 同步、done 纪律、全仓拷贝审计不误报） |
 | 钻空（红队） | exploit.test.ts | 每个反制机制配一个「先钻、再断言钻不进」的测试（见上表） |

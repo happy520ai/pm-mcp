@@ -29,6 +29,19 @@ test("search_code 正则非法时按字面量处理", () => {
   assert.equal(res.matches.length, 1);
 });
 
+test("字面量搜索中的选项前缀不改变 rg 的搜索行为", () => {
+  const queries = ["--files", "--pre=node", "-e", "--", "-n"];
+  const root = mkProj({ "src/options.txt": queries.join("\n") + "\nordinary\n" });
+  initTestProject(root);
+  for (const query of queries) {
+    const result = searchCode(root, query, "src/*.txt");
+    assert.ok(result.matches.some((match) => match.text === query), `应找到字面量 ${query}`);
+    assert.ok(result.matches.every((match) => match.rel === "src/options.txt"));
+  }
+  assert.equal(searchCode(root, "ordinary").matches[0]?.line, 6);
+  assert.equal(searchCode(root, "^--files$", undefined, 30, true).matches[0]?.line, 1);
+});
+
 test("search_knowledge 检索调试记录（用历史结论代替重新推理）", () => {
   const root = mkProj({ "src/a.ts": "export const x = 1;\n" });
   initTestProject(root);

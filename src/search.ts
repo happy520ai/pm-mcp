@@ -38,7 +38,7 @@ export function rgSearch(root: string, query: string, glob: string | undefined, 
   }
   args.push("--max-count", String(maxResults * 3));
   if (regex) args.push("-e", query);
-  else args.push("-F", query);
+  else args.push("-F", "-e", query);
   if (glob) args.push("--glob", glob);
   args.push(".");
   const r = spawnSync("rg", args, { cwd: root, encoding: "utf8", timeout: 120_000, maxBuffer: 64 * 1024 * 1024 });

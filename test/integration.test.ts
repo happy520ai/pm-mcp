@@ -34,6 +34,16 @@ async function connect(root: string): Promise<Client> {
   return client;
 }
 
+test("init_project 的 agents_md:false 经 MCP 调用真实关闭规则文件生成", async (t) => {
+  const root = mkTmpProject();
+  const client = await connect(root);
+  t.after(() => client.close());
+  const result = await client.callTool({ name: "init_project", arguments: { name: "不生成规则文件", agents_md: false } });
+  assert.ok(!(result as { isError?: boolean }).isError);
+  assert.equal(fs.existsSync(path.join(root, ".pm/project.json")), true);
+  assert.equal(fs.existsSync(path.join(root, "AGENTS.md")), false, "显式关闭必须到达 initProject");
+});
+
 function text(result: { content: Array<{ type: string; text?: string }> }): string {
   return (result.content ?? []).map((c) => c.text ?? "").join("\n");
 }
@@ -45,7 +55,7 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
 
   // 工具清单：基础工具 + AST/运行时语义证据 + 标准化验收工具
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 46, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
+  assert.equal(tools.tools.length, 48, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
   assert.ok(tools.tools.some((x) => x.name === "evaluate_acceptance"));
   assert.ok(tools.tools.some((x) => x.name === "save_semantic_evidence"));
   const writeTools = tools.tools.filter((item) => item.annotations?.readOnlyHint === false);
