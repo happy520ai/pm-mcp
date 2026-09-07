@@ -1,0 +1,60 @@
+name: Publish verified npm 0.1.5
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified 0.1.5 tarball (false only validates)
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-publish-0.1.5
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'happy520ai/pm-mcp' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TARBALL: luckychen1993-pm-mcp-0.1.5.tgz
+      EXPECTED_SHA256: 1d4d791fa9161c1517a45bc2a1bfdf33c96f1e26b61de4923ddf9ce5b1ec91c6
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Use the verified OIDC-capable npm CLI
+        run: npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+      - name: Download and verify the released artifact
+        run: |
+          curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.1.5/$TARBALL"
+          echo "$EXPECTED_SHA256  $TARBALL" | sha256sum --check --strict
+          npm publish "$TARBALL" --dry-run --ignore-scripts --access public --tag latest
+      - name: Publish to npm using the configured trusted publisher
+        if: inputs.publish
+        run: npm publish "$TARBALL" --ignore-scripts --access public --tag latest
+      - name: Verify the public registry artifact
+        if: inputs.publish
+        run: |
+          npm view @luckychen1993/pm-mcp@0.1.5 dist.integrity --json > published-integrity.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const expected = 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(process.env.TARBALL)).digest('base64');
+          const actual = JSON.parse(fs.readFileSync('published-integrity.json', 'utf8'));
+          if (actual !== expected) throw new Error('Published tarball integrity does not match the verified release');
+          console.log('Verified npm 0.1.5 artifact integrity');
+          NODE
