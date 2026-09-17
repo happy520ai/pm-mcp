@@ -94,6 +94,16 @@ npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
 
 跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
 
+### 新项目一条命令上手（Codex 必用）
+
+Codex 桌面版启动 MCP 服务时不带工作区路径，逐项目钉根才能用。在项目目录里跑一条命令，自动完成「注册钉定条目 + 初始化 .pm + 写 AGENTS.md 工作规矩」：
+
+```bash
+npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
+```
+
+跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
+
 ### 客户端官方命令（自动检测失败时备用）
 
 #### Codex / ChatGPT 桌面版 / Codex IDE 扩展
