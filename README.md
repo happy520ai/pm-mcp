@@ -134,19 +134,30 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.5/install.ps1'; $f=
 
 #### WorkBuddy 桌面版
 
+> **要求 pm-mcp ≥ 0.3.0**：`--client workbuddy` 是 0.3.0 新增的客户端；npm 上当前的 0.1.5 **不支持**该参数，直接跑会报 `--client must be auto, all, codex, claude, zcode, cursor, vscode, or print`。
+
+0.3.0 发布后：
+
 ```bash
 npx -y @luckychen1993/pm-mcp@latest setup --client workbuddy
+```
+
+0.3.0 发布前，从源码构建后用本地入口接入（`--local` 绑定本包已构建的 `dist/index.js`）：
+
+```bash
+npm ci && npm run build
+node dist/cli.js setup --client workbuddy --local
 ```
 
 写入 `<WorkBuddy 数据目录>/mcp.json`，结构与下方通用 JSON 一致。数据目录按 `WORKBUDDY_CONFIG_DIR` → `~/.workbuddy-ai`（当前版本）→ `~/.workbuddy`（旧版）顺序解析，写入前会生成带时间戳的备份，未知顶层字段与既有 server 全部保留。
 
 与其他客户端的关键差别：**WorkBuddy 的条目刻意不写 `--root`**。它的 MCP 子进程由会话工作区拉起，cwd 即当前项目，服务端按 cwd 解析项目根——因此一条配置同时服务所有工作区，不需要逐项目钉根；未初始化的目录只返回「未初始化」，不会写入任何文件。
 
-未发布候选可绑定已构建的本地入口，并用 `doctor` 做真实握手核验：
+⚠️ 注意该设计的边界：**跨项目操作会失效**。若在 A 项目的会话里让 pm-mcp 去改 B 项目，它读到的始终是 A（MCP 子进程的 cwd 就是会话工作区）。跨项目时请在目标项目的会话内操作，或改用显式钉根的配置。
+
+接入后用 `doctor` 核验（它会读取该 `mcp.json` 的 pm-mcp 条目并做真实握手）：
 
 ```bash
-node dist/cli.js setup --client workbuddy --local --dry-run   # 先预览
-node dist/cli.js setup --client workbuddy --local             # 再写入
 node dist/cli.js doctor --root . --client workbuddy           # 核验 48 工具与项目根
 ```
 
