@@ -1683,7 +1683,7 @@
       "files": [],
       "acceptance": "",
       "result_note": "已解决，且非改代码解决：用户在 2026-09-11 20:36 把 WorkBuddy 的 sandbox.safeDeleteBulkThreshold 从默认 50 提升到 99999。时间线吻合——最后一次 SAFE_DELETE_BULK 拦截发生在 2026-09-11T12:35:30Z（北京时间 20:35），恰在配置变更前 1 分钟；此后 .pm/runtime-log.jsonl 再无任何拦截记录。2026-09-17 多次写工具调用（记账 S-0046 / S-0047）均返回 is_error:false 正常结果。根因分析保持有效并值得留存：该钩子按 scope=turn 累计删除数计阈值（决定性证据是 update_task 那条 targets 只有 .pm/.lock、targetCount=1 而 count=73），累计超限后连删除单个锁文件也会被拦，进而使 pm-mcp 写工具报错、业务可能不落账。",
-      "verification": "",
+      "verification": "三处独立核对均确认已解决：① ~/.workbuddy-ai/settings.json 中 sandbox.safeDeleteBulkThreshold 已由默认 50 提升至 99999；② .pm/runtime-log.jsonl 最后一次 SAFE_DELETE_BULK 拦截时间为 2026-09-11T12:35:30Z，早于配置变更时间 2026-09-11 20:36，且此后无任何新增拦截记录；③ 2026-09-17 两次写工具调用（log_session 记录 S-0046、S-0047）均返回 is_error:false。反向复现路径：把阈值调回 50，并在同一轮对话内累计删除超过 50 次，即可复现写工具因无法删除 .pm/.lock 而报错。",
       "tags": [
         "idempotency",
         "observability",
@@ -1691,7 +1691,7 @@
       ],
       "author": "workbuddy",
       "created": "2026-09-11T12:33:13.879Z",
-      "updated": "2026-09-17T14:43:19.972Z",
+      "updated": "2026-09-17T15:02:41.921Z",
       "started_at": null,
       "completed_at": "2026-09-17T14:43:19.972Z"
     }

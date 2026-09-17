@@ -1,0 +1,150 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-17T15:00:23.502Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "evidence_level": "unverified",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v22.22.2"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "1666c87b264b8b12b8d553eb75400f5f697be0e7c313c7879015e151de1657f7",
+      "files": 130,
+      "bytes": 1249628
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "1666c87b264b8b12b8d553eb75400f5f697be0e7c313c7879015e151de1657f7",
+      "files": 130,
+      "bytes": 1249628
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 105194,
+      "output_truncated": true,
+      "output_summary": {
+        "stdout_bytes": 65536,
+        "stderr_bytes": 0,
+        "output_sha256": "b6271d983c95ee5f4a7772ed15e49da5ec43fbb2ae18f916d0610c087318deb8",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "build",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "typecheck",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "coverage",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "error": "Blocked by an earlier failed quality command"
+    }
+  ]
+}
