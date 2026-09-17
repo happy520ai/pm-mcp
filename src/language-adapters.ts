@@ -55,10 +55,7 @@ const LANGUAGE_ORDER: Language[] = [
 ];
 const KIND_ORDER: QualityKind[] = ["test", "build", "lint", "typecheck", "coverage", "security"];
 const DEFAULT_TIMEOUT_MS = 5 * 60_000;
-// 测试运行器的计数汇总（"# tests N / # pass N"）位于输出**末尾**，而截断只保留头部，
-// 一旦超限就会把汇总一起截掉，导致计数器解析为 null、验收门禁把实测值判成 -1。
-// 0.3.0 的测试量（288 项约 75KB）已使 64KB 不够用，故放宽到 1MB 留出余量。
-// 若测试量继续增长到接近该值，应改为「头部 + 尾部」双保留而非继续抬高上限。
+// 计数汇总（"# tests N"）在输出末尾，截断只留头部会把它一起丢掉 → 计数器解析为 null → 验收门禁把实测值判成 -1；0.3.0 的 288 项约 75KB 已超旧的 64KB，故放宽到 1MB。
 const DEFAULT_OUTPUT_BYTES = 1024 * 1024;
 
 function normalize(value: string): string {

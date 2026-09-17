@@ -1,0 +1,154 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-17T15:13:10.248Z",
+  "ok": true,
+  "reported_ok": true,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v22.22.2"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "480db71741b11fa02c1bcfb34e8192525f60538e48446e00c51ab0abdc99a86a",
+      "files": 130,
+      "bytes": 1250069
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "480db71741b11fa02c1bcfb34e8192525f60538e48446e00c51ab0abdc99a86a",
+      "files": 130,
+      "bytes": 1250069
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 76983,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 80667,
+        "stderr_bytes": 0,
+        "output_sha256": "1874c67ed56fac85cba432fa5c45696beed054253b9b9987550d194f0acb2cc8",
+        "tests": 288,
+        "passed": 288,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "build",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 5842,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 61,
+        "stderr_bytes": 0,
+        "output_sha256": "3761378b61d3def7343fcdcd8de859c5946a7f4d8354bee49138006c8aa6c4bf",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "typecheck",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 10618,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 106,
+        "stderr_bytes": 0,
+        "output_sha256": "d283b66777f9493d253feeadd853f7fbb1a1a66d14bdbc76c57b9b355db5bf94",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "coverage",
+      "command": "C:\\Users\\Administrator\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node.exe",
+      "args": [
+        "D:\\WorkBuddyAI\\.workbuddy-ai\\binaries\\node\\versions\\22.22.2-2\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 92618,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 86473,
+        "stderr_bytes": 0,
+        "output_sha256": "4827a8e2967feb0aeda2badc391b4ebc091b3c6c7b1ab808513f3ea9f16bc84b",
+        "tests": 288,
+        "passed": 288,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": {
+          "lines_pct": 96.28,
+          "branches_pct": 87.21,
+          "functions_pct": 95.11
+        },
+        "counter_source": "node_test_summary",
+        "evidence_level": "coverage_observed"
+      },
+      "error": ""
+    }
+  ]
+}
