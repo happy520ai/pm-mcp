@@ -1,5 +1,13 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-09-17 — workbuddy
+
+将本地 0.3.0 候选合并远程 v0.1.5 历史并推送到 GitHub main（4557cea → 13fec02，4 个提交）。本地 HEAD 原为远程祖先、工作区含 0.3.0 全部未提交工作：先分两个提交固化（feat: 0.3.0 任务分页/证据分级/WorkBuddy 客户端；chore: 账本与验收证据），再 merge origin/main。12 个冲突文件全部取本地，并逐一核验远程独有内容均为 0.1.5 旧实现（旧版本号、_TRUNCATED_ 截断逻辑、旧 setup.ts 无 WorkBuddy/无 version.ts 抽取），确认本地 0.3.0 已取代；合并额外引入远程的 .github/workflows/publish-npm.yml。全量 287 项测试 286 通过；唯一失败的「真实 PROJECT.md 与状态同步」经 regenerate_dashboard 修复后 realrepo 7/7 通过。类型检查与构建通过。已 push。
+
+改动文件（13）: package.json, package-lock.json, README.md, install.ps1, PROJECT.md, .github/workflows/publish-npm.yml, src/setup.ts, src/index.ts, src/tool-base.ts, src/project-tools.ts, src/agents-md.ts, test/setup.test.ts, .pm/changelog.md
+
+下一步: 等待 CI（run 35231890524）结果；若失败优先看 coverage 门槛；如需正式发布 0.3.0：统一 README 示例版本号、打 v0.3.0 tag、再走 publish-npm 工作流
+
 ## 2026-09-13 — zcode
 
 修复到清零会话：T-034/T-045 根治（SCAN_IGNORE_DIRS 增补 10 个运行时/缓存目录；touchRegistry 温目录跳过+大小写去重；quality-gate 测试补沙箱；真实注册表 74→3）；修复 update_task type 字段 schema-handler 失配 bug；网关项目（跨仓库，改动已记其自身账本）元数据补全+首拍快照+安全台账 577 条全闭环；积压任务 7 项全部事实核销

@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-17T14:08:52.023Z
+> 生成时间: 2026-09-17T14:11:48.161Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -30,7 +30,7 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ⚠️ 1 条，最老 6 天 |
-| churn（变更率） | ⚠️ 热点 README.md(21), package.json(15), src/index.ts(13) |
+| churn（变更率） | ⚠️ 热点 README.md(22), package.json(16), src/index.ts(14) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 19 条记录 |
 | 测试背书 | 21/21 个功能带测试 |
@@ -81,6 +81,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-17 [workbuddy] 将本地 0.3.0 候选合并远程 v0.1.5 历史并推送到 GitHub main（4557cea → 13fec02，4 个提交）。本地 HEAD 原为远程祖先、工作区含 0.3.0 全部未提交工作：先分两个提交固化（feat: 0.3.0 任务分页/证据分级/WorkBuddy 客户端；chore: 账本与验收证据），再 merge origin/main。12 个冲突文件全部取本地，并逐一核验远程独有内容均为 0.1.5 旧实现（旧版本号、_TRUNCATED_ 截断逻辑、旧 setup.ts 无 WorkBuddy/无 version.ts 抽取），确认本地 0.3.0 已取代；合并额外引入远程的 .github/workflows/publish-npm.yml。全量 287 项测试 286 通过；唯一失败的「真实 PROJECT.md 与状态同步」经 regenerate_dashboard 修复后 realrepo 7/7 通过。类型检查与构建通过。已 push。
+  - 改动: package.json, package-lock.json, README.md, install.ps1, PROJECT.md, .github/workflows/publish-npm.yml, src/setup.ts, src/index.ts 等 13 个
 - 2026-09-13 [zcode] 修复到清零会话：T-034/T-045 根治（SCAN_IGNORE_DIRS 增补 10 个运行时/缓存目录；touchRegistry 温目录跳过+大小写去重；quality-gate 测试补沙箱；真实注册表 74→3）；修复 update_task type 字段 schema-handler 失配 bug；网关项目（跨仓库，改动已记其自身账本）元数据补全+首拍快照+安全台账 577 条全闭环；积压任务 7 项全部事实核销
   - 改动: src/scan-policy.ts, src/registry.ts, src/task-tools.ts, test/quality-gate.test.ts, .pm/tasks.json, .pm/sessions.json, .pm/security.json
 - 2026-09-11 [workbuddy] 覆盖率补口与复核：为 localProjectLaunch 补直接单元测试（此前唯一未覆盖的本次新增代码），setup.ts 覆盖率升至 line 83.04% / branch 68.55% / funcs 80.95%（funcs +4.76）；此时未覆盖行全部为既有的 --help、commandExists、appendCodexConfig、configureCliClient 等路径。doctor.ts line 98.2%、setup-project.ts line 100%。setup+upgrade-030 共 38 项通过。注：单文件覆盖率是只跑安装器测试的抽样值，不代表 CI 的全局门槛。
@@ -89,8 +91,6 @@ flowchart LR
   - 改动: src/setup.ts, test/setup.test.ts
 - 2026-09-11 [workbuddy] 收尾 WorkBuddy 接入：跑通 pm-mcp 自带巡检并消除两处自造红旗（临时脚本 .tmp-*.mjs 触发 javascript 未声明语言、巡检输出文件触发未入账变更）；.gitignore 增加 .workbuddy-ai/（与既有 .zcode/ 同类工具工作区目录，否则每次 memory 写入都会产生未入账变更）；补充边界测试：WorkBuddy 检测的 5 种入口条件、doctor 对缺失文件/坏 JSON/args 非数组/缺 command 的 fail-closed 及「已带 --root 不重复追加」。setup+upgrade-030 共 36 项通过，巡检无红旗。
   - 改动: .gitignore, test/setup.test.ts, test/upgrade-030.test.ts
-- 2026-09-11 [workbuddy] 接入 WorkBuddy 客户端并核验：setup --client workbuddy 写入标准 mcp.json（数据目录按 WORKBUDDY_CONFIG_DIR → ~/.workbuddy-ai → ~/.workbuddy 解析；写前备份、保留未知字段与既有 server），刻意不钉 --root——WorkBuddy 以会话工作区作为 MCP 子进程 cwd，服务端按 cwd 解析项目根，因此一条配置服务所有工作区；doctor --client workbuddy 读该配置并补 --root 做真实握手。本机已用 --local 绑定 E 盘构建入口，doctor 核验 48 工具 / 0.3.0 / 根正确；以工作区为 cwd 的模拟启动确认根解析正确，未初始化目录只返回错误且零写入。类型检查、构建与 setup/upgrade-030 测试（34 项）全通过；全量 283 项中 3 项失败均为沙箱环境限制（符号链接被禁、nul.ts 保留名被 fs shim 拦截、20 进程抢锁超时），三个失败文件均不引用本次改动模块。
-  - 改动: src/setup.ts, src/doctor.ts, src/setup-project.ts, src/cli.ts, test/setup.test.ts, test/upgrade-030.test.ts, README.md, install.ps1
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

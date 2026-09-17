@@ -1,5 +1,5 @@
 {
-  "seq": 45,
+  "seq": 46,
   "sessions": [
     {
       "id": "S-0001",
@@ -1043,6 +1043,46 @@
         "观察下一轮巡检应全绿",
         "网关 WIP 15 个 in_progress 建议收敛",
         "文件用途索引从核心模块建起"
+      ]
+    },
+    {
+      "id": "S-0046",
+      "date": "2026-09-17T14:11:48.052Z",
+      "author": "workbuddy",
+      "summary": "将本地 0.3.0 候选合并远程 v0.1.5 历史并推送到 GitHub main（4557cea → 13fec02，4 个提交）。本地 HEAD 原为远程祖先、工作区含 0.3.0 全部未提交工作：先分两个提交固化（feat: 0.3.0 任务分页/证据分级/WorkBuddy 客户端；chore: 账本与验收证据），再 merge origin/main。12 个冲突文件全部取本地，并逐一核验远程独有内容均为 0.1.5 旧实现（旧版本号、_TRUNCATED_ 截断逻辑、旧 setup.ts 无 WorkBuddy/无 version.ts 抽取），确认本地 0.3.0 已取代；合并额外引入远程的 .github/workflows/publish-npm.yml。全量 287 项测试 286 通过；唯一失败的「真实 PROJECT.md 与状态同步」经 regenerate_dashboard 修复后 realrepo 7/7 通过。类型检查与构建通过。已 push。",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "PROJECT.md",
+        ".github/workflows/publish-npm.yml",
+        "src/setup.ts",
+        "src/index.ts",
+        "src/tool-base.ts",
+        "src/project-tools.ts",
+        "src/agents-md.ts",
+        "test/setup.test.ts",
+        ".pm/changelog.md"
+      ],
+      "file_hashes": {
+        "package.json": "3327207712e7cb5adc8f61a5d674e32facd5db7e69ac079920ba2f50f8c41610",
+        "package-lock.json": "37a5ee479313dad5db1615a47f26b91234e3b1ee433289ef5b4e68c997bcef41",
+        "README.md": "9547c349a5853441b2769ffe20659a3eb1c0561ff781a49b0ce7e4e808474df4",
+        "install.ps1": "489d2afafbf1932e591d72e668c4d6b03e6ff65fbadcfa07558ae424f59affc5",
+        "PROJECT.md": "027659eff75f96e50d7e1a681b5305018fb00e04bd6073d3eba4b2a6c5cf9d11",
+        ".github/workflows/publish-npm.yml": "491da5ca3d84d2fcb2802724336fec92969068f0fb5603b62cbc8b0294109252",
+        "src/setup.ts": "32c14c9bd5ea4bb0eb4992f0aa27d5bb475ae14bf70a3100917c6417a147cf85",
+        "src/index.ts": "89bb8e13d33ae0a800897111af357b7e6aa8b79d3e5cfa694fdf215891000d3d",
+        "src/tool-base.ts": "9f73db00852d6f9956e79fc96762a3595ae0dd0e8a43824cd4a0bb4532377b0d",
+        "src/project-tools.ts": "e61d76dfc1d49b085c16347628a66b27409bf46a02840cee84a7a0c8e5a63af5",
+        "src/agents-md.ts": "ed05f2b194f60f6a4f56f5c1d011eb3b49a327418f786a807989d358d2e4ac31",
+        "test/setup.test.ts": "6987f7134b11a29a82f7ba50a57d1bf9e292d52072289937250f085f4c0727b9",
+        ".pm/changelog.md": "85eee9bb82cf8b549a4359a604e5a61c0cc82344aca49280c2bd9cc8c376bc3b"
+      },
+      "next_steps": [
+        "等待 CI（run 35231890524）结果；若失败优先看 coverage 门槛",
+        "如需正式发布 0.3.0：统一 README 示例版本号、打 v0.3.0 tag、再走 publish-npm 工作流"
       ]
     }
   ]
