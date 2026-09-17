@@ -50,12 +50,10 @@ export interface DiscoveryOptions {
 
 const DEFAULT_IGNORE_DIRS = SCAN_IGNORE_DIRS;
 
-const LANGUAGE_ORDER: Language[] = [
-  "javascript", "typescript", "python", "go", "rust", "java", "kotlin", "csharp",
-];
+const LANGUAGE_ORDER: Language[] = ["javascript", "typescript", "python", "go", "rust", "java", "kotlin", "csharp"];
 const KIND_ORDER: QualityKind[] = ["test", "build", "lint", "typecheck", "coverage", "security"];
 const DEFAULT_TIMEOUT_MS = 5 * 60_000;
-// 计数汇总（"# tests N"）在输出末尾，截断只留头部会把它一起丢掉 → 计数器解析为 null → 验收门禁把实测值判成 -1；0.3.0 的 288 项约 75KB 已超旧的 64KB，故放宽到 1MB。
+// 计数汇总（"# tests N"）在输出末尾，只保留头部会把它一起丢掉 → 计数器解析为 null → 验收把实测值判成 -1。
 const DEFAULT_OUTPUT_BYTES = 1024 * 1024;
 
 function normalize(value: string): string {
