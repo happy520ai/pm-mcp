@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-17T15:22:05.799Z",
+  "product": {
+    "name": "@luckychen1993/pm-mcp",
+    "version": "0.3.0",
+    "description": "AI 编码项目的单一事实来源 + 健康台账 MCP 服务（事实来源 / 路线图 / 防幻觉 / 七本账 / 断点续做 / token 经济）",
+    "keywords": [
+      "mcp",
+      "model-context-protocol",
+      "ai-coding",
+      "project-management",
+      "code-governance"
+    ],
+    "license": "MIT",
+    "type": "module",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/happy520ai/pm-mcp.git"
+    },
+    "homepage": "https://github.com/happy520ai/pm-mcp#readme",
+    "bugs": {
+      "url": "https://github.com/happy520ai/pm-mcp/issues"
+    },
+    "publishConfig": {
+      "access": "public"
+    },
+    "files": [
+      "dist/"
+    ],
+    "bin": {
+      "pm-mcp": "dist/cli.js"
+    },
+    "main": "dist/index.js",
+    "engines": {
+      "node": ">=22.18.0"
+    },
+    "pm_mcp": {
+      "acceptance_baseline": {
+        "id": "pm-mcp-local-release",
+        "version": "1.1.0"
+      }
+    },
+    "scripts": {
+      "build": "tsc -p tsconfig.json",
+      "prepare": "npm run build",
+      "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
+      "test": "node --test-concurrency=2 --test \"test/*.test.ts\"",
+      "coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-lines=90 --test-coverage-branches=85 --test-coverage-functions=90 --test-concurrency=2 --test \"test/*.test.ts\"",
+      "audit": "node scripts/health-check.mts",
+      "benchmark": "node scripts/benchmark.mts",
+      "benchmark:volume": "node scripts/benchmark-volume.mts",
+      "quality": "node scripts/quality-gate.mts",
+      "quality:plan": "node scripts/quality-gate.mts --plan",
+      "acceptance:evidence": "node scripts/collect-acceptance-evidence.mts --root .",
+      "acceptance:prepare": "node scripts/create-pm-acceptance-evaluation.mts --root .",
+      "acceptance": "node scripts/acceptance-cycle.mts --root .",
+      "acceptance:cycle": "node scripts/acceptance-cycle.mts --root .",
+      "gate": "npm run audit -- --root . && npm run quality && npm run acceptance:cycle",
+      "start": "node dist/index.js",
+      "dev": "node src/index.ts",
+      "inspect": "node dist/index.js"
+    },
+    "dependencies": {
+      "@ast-grep/lang-csharp": "0.0.6",
+      "@ast-grep/lang-go": "0.0.6",
+      "@ast-grep/lang-java": "0.0.7",
+      "@ast-grep/lang-kotlin": "0.0.7",
+      "@ast-grep/lang-python": "0.0.6",
+      "@ast-grep/lang-rust": "0.0.7",
+      "@ast-grep/napi": "0.45.3",
+      "@modelcontextprotocol/sdk": "^1.30.0",
+      "typescript": "^5.9.3",
+      "zod": "^3.25.76"
+    },
+    "devDependencies": {
+      "@types/node": "^26.4.0"
+    }
+  },
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v22.22.2",
+    "os_release": "10.0.19045",
+    "logical_cpus": 6,
+    "memory_bytes": 17116467200
+  },
+  "source": {
+    "algorithm": "sha256-tree-v1",
+    "sha256": "68aeae01c4b8e16fea174da7de105938049b3998a54f11d7ee16668c8e827e1f",
+    "files": 130,
+    "bytes": 1249775
+  },
+  "inventory": {
+    "ok": true,
+    "tools": 48,
+    "resources": 7,
+    "prompts": 5,
+    "names_unique": true
+  },
+  "documentation": {
+    "documented_tools": 48,
+    "inventory_matches": true
+  },
+  "governance": {
+    "ok": true,
+    "issues": 0,
+    "source_coverage_pct": 100,
+    "semantic_assurance_pct": 100,
+    "ast_files": 70,
+    "runtime_files": 0,
+    "heuristic_files": 0,
+    "fallback_files": 0,
+    "rejected_files": 0,
+    "evidence_errors": 0,
+    "resolution_pct": 100,
+    "unresolved": 0,
+    "cycles": 0,
+    "violations": 0,
+    "analyzer_families": [
+      "compiler-ast"
+    ],
+    "built_in_ast_languages": [
+      "typescript",
+      "javascript",
+      "python",
+      "go",
+      "rust",
+      "java",
+      "kotlin",
+      "csharp"
+    ]
+  },
+  "quality": {
+    "evidence_file": ".pm/quality-runs/quality-20260917-152200-760-0000.json",
+    "evidence_sha256": "7a977f819382859c078020421d0cc1ef1f1791050fa0268f4af6d0a9b3bc0405",
+    "run_at": "2026-09-17T15:22:00.760Z",
+    "ok": true,
+    "execute": true,
+    "source_stable": true,
+    "source_matches_current": true,
+    "results_total": 4,
+    "results_passed": 4,
+    "failed_or_blocked": 0,
+    "test_summary": {
+      "stdout_bytes": 80664,
+      "stderr_bytes": 0,
+      "output_sha256": "eac2bcc0c4d389f43c19d3a0f4b9a2c223933f09b22ef7495aeb37629d0c8128",
+      "tests": 288,
+      "passed": 288,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "coverage": null,
+      "counter_source": "node_test_summary",
+      "evidence_level": "tests_observed"
+    },
+    "coverage_summary": {
+      "stdout_bytes": 86277,
+      "stderr_bytes": 0,
+      "output_sha256": "62ca8c726f595f423a340a4c09cf76285bc593e609a2313290b8684d521c095f",
+      "tests": 288,
+      "passed": 288,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "coverage": {
+        "lines_pct": 96.27,
+        "branches_pct": 87.22,
+        "functions_pct": 95.11
+      },
+      "counter_source": "node_test_summary",
+      "evidence_level": "coverage_observed"
+    }
+  },
+  "security": {
+    "last_scan": "2026-09-17T15:18:51.475Z",
+    "open_total": 0,
+    "open_high_or_critical": 0,
+    "accepted_total": 10,
+    "accepted_without_note": 0
+  },
+  "maintainability": {
+    "maximum_lines": 499,
+    "over_500": []
+  },
+  "performance": {
+    "evidence_file": ".pm/benchmarks/volume-20g-3e8-20260902.json",
+    "evidence_sha256": "d8afd6005d72646bfd13fc84636d2f972842b8674670da53bca7758f7d561ec6",
+    "script_sha256": "d59153fc490fad9321bbe7c41b232530cf81b15e14ccdc7b3af34ff774dc8a2f",
+    "refactor_smoke_file": ".pm/benchmarks/volume-refactor-smoke-20260903.json",
+    "refactor_smoke_sha256": "60422050cc1ced954486f0f1342e79bb64ebc92a060931b0f1c95984caf8dbfb",
+    "refactor_smoke_verified": true,
+    "status": "complete",
+    "payload_gib": 20,
+    "files": 20480,
+    "loc": 298332160,
+    "oracle_consistent": true,
+    "disk_read_bytes_complete": true,
+    "peak_rss_mib": 500.11,
+    "total_duration_seconds": 2409.103,
+    "warm_walk_seconds": 3.034186,
+    "steady_audit_seconds": 0.053177,
+    "snapshot_seconds": 0.03479,
+    "cleanup_verified": true,
+    "evidence_scope": "warm-after-write synthetic benchmark; not a cold-disk or production workload"
+  },
+  "metrics": {
+    "source_files_hashed": 130,
+    "mcp_tools": 48,
+    "mcp_resources": 7,
+    "mcp_prompts": 5,
+    "mcp_inventory_ok": 1,
+    "documentation_inventory_match": 1,
+    "governance_ok": 1,
+    "source_coverage_pct": 100,
+    "semantic_assurance_pct": 100,
+    "ast_files": 70,
+    "heuristic_files": 0,
+    "fallback_files": 0,
+    "rejected_files": 0,
+    "semantic_evidence_errors": 0,
+    "internal_resolution_pct": 100,
+    "unresolved_references": 0,
+    "dependency_cycles": 0,
+    "governance_violations": 0,
+    "built_in_ast_languages": 8,
+    "quality_ok": 1,
+    "quality_source_stable": 1,
+    "quality_source_matches_current": 1,
+    "quality_failed_or_blocked": 0,
+    "tests_total": 288,
+    "tests_failed": 0,
+    "tests_cancelled": 0,
+    "tests_skipped": 0,
+    "tests_todo": 0,
+    "coverage_lines_pct": 96.27,
+    "coverage_branches_pct": 87.22,
+    "coverage_functions_pct": 95.11,
+    "security_open_total": 0,
+    "security_accepted_without_note": 0,
+    "implementation_files_over_500": 0,
+    "maximum_implementation_lines": 499,
+    "volume_payload_gib": 20,
+    "volume_oracle_consistent": 1,
+    "volume_disk_read_complete": 1,
+    "volume_peak_rss_mib": 500.11,
+    "volume_total_seconds": 2409.103,
+    "volume_warm_walk_seconds": 3.034186,
+    "volume_steady_audit_seconds": 0.053177,
+    "volume_snapshot_seconds": 0.03479,
+    "volume_cleanup_verified": 1,
+    "volume_refactor_smoke_verified": 1
+  }
+}
