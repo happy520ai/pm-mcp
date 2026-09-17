@@ -38,6 +38,15 @@ jobs:
           package-manager-cache: false
       - name: Use the verified OIDC-capable npm CLI
         run: npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+      - name: Report OIDC claims presented to npm
+        run: |
+          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=npm:registry.npmjs.org" \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).value))")
+          PAYLOAD=$(printf '%s' "$TOKEN" | cut -d. -f2)
+          case $((${#PAYLOAD} % 4)) in 2) PAYLOAD="$PAYLOAD==";; 3) PAYLOAD="$PAYLOAD=";; esac
+          printf '%s' "$PAYLOAD" | tr '_-' '/+' | base64 -d \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const c=JSON.parse(s);console.log(JSON.stringify({repository:c.repository,repository_owner:c.repository_owner,workflow_ref:c.workflow_ref,job_workflow_ref:c.job_workflow_ref,ref:c.ref,environment:c.environment,aud:c.aud,event_name:c.event_name},null,2))})"
       - name: Download and verify the released artifact
         run: |
           curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.3.0/$TARBALL"
