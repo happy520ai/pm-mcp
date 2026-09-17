@@ -1,5 +1,5 @@
 {
-  "seq": 33,
+  "seq": 51,
   "tasks": [
     {
       "id": "T-001",
@@ -673,47 +673,47 @@
       "id": "T-025",
       "title": "[巡检] 新增 1 处 skip 标记：test/semantic-evidence-store.ts:100 t.skip（条件式平台跳过，非硬禁用）——请复核是否合理，或为'平台条件跳过'建立白名单语义",
       "detail": "由定时健康巡检自动登记，请人工确认后处置",
-      "type": "fix",
-      "status": "backlog",
+      "type": "chore",
+      "status": "done",
       "priority": "P1",
       "milestone": null,
       "steps": [],
       "checkpoint": null,
       "files": [],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "事实核销：semantic-evidence-store.test.ts 的条件式 t.skip 已被后续会话移除（当前 0 处），真实跳过不复存在",
+      "verification": "grep 计数 t.skip = 0；反投机巡检对该文件无点名",
       "tags": [
         "巡检"
       ],
       "author": "cron",
       "created": "2026-09-02T16:06:11.962Z",
-      "updated": "2026-09-02T16:06:11.964Z",
+      "updated": "2026-09-13T17:30:21.412Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-13T17:30:21.412Z"
     },
     {
       "id": "T-026",
       "title": "[巡检] 反投机计数 +2：semantic-coverage.test.ts 自测 fixture 内嵌 3 处 skip 标记字符串（在测计数器本身），同时上轮 T-025 的真实 t.skip 已移除(-1)。建议：检测器自测文件改用字符串拼接构造标记（不落字面量），或给'检测器自测'建立显式豁免语义",
       "detail": "由定时健康巡检自动登记，请人工确认后处置",
-      "type": "fix",
-      "status": "backlog",
+      "type": "chore",
+      "status": "done",
       "priority": "P1",
       "milestone": null,
       "steps": [],
       "checkpoint": null,
       "files": [],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "事实核销：semantic-coverage 自测 fixture 的内嵌 skip 字面量已改造（当前 0 处），检测器自测不再触发计数器",
+      "verification": "grep 计数 skip/only = 0；后续多轮巡检该主题未再报",
       "tags": [
         "巡检"
       ],
       "author": "cron",
       "created": "2026-09-02T18:01:41.260Z",
-      "updated": "2026-09-02T18:01:41.262Z",
+      "updated": "2026-09-13T17:30:21.512Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-13T17:30:21.512Z"
     },
     {
       "id": "T-027",
@@ -986,9 +986,9 @@
     {
       "id": "T-033",
       "title": "强化多 Agent 强杀恢复、路径别名与持续压力",
-      "detail": "",
+      "detail": "验证发现发布源最高版本仍为 0.1.4，未含 `setup --project` 分支参数，导致统一纳管冷安装无法执行。",
       "type": "fix",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P0",
       "milestone": "M2",
       "steps": [
@@ -1010,33 +1010,689 @@
         },
         {
           "text": "发布 npm/GitHub v0.1.4 并完成冷安装与托管CI",
-          "done": false
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "GitHub部分已完成：main3273aee、Node22.18/24 CI通过、v0.1.5正式Release已公开且安装包可下载。npm部分仍因此前E401未完成，由T-043继续。",
+        "next_step": "npm登录恢复后继续T-043的npm发布和公开安装验证，再核对T-033其余步骤；GitHub不再需要发布。",
+        "at": "2026-09-07T08:00:47.919Z"
+      },
+      "files": [
+        "src/idempotency.ts",
+        "src/store.ts",
+        "src/watcher-coordinator.ts",
+        "src/index-store.ts",
+        "test/idempotency-crash.test.ts",
+        "test/lock-stampede.test.ts",
+        "test/watcher-leader.test.ts"
+      ],
+      "acceptance": "完成冷安装验证：执行 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project` 并完成 CI；当前阻塞于命令参数不兼容。",
+      "result_note": "历史阻塞保留：原0.1.4安装源不支持setup --project。现已发布修复版0.1.5到GitHub/npm，公开冷安装及Node22.18/24托管CI通过，完成最后发布步骤。此前前四步沿用既有台账证据，本次未重新宣称执行持续压力与全部历史门禁。临时OIDC连接已撤销。",
+      "verification": "历史首次失败：`npx -y @luckychen1993/pm-mcp@latest setup --client codex --project` -> `[pm-mcp setup] ERROR: unknown setup argument: --project`; npm versions当时仅至0.1.4。后续成功：0.1.5 GitHub Release及npm latest均已发布；CI34090853264/34097925292 Node22.18/24通过；发布workflow34127654249成功；公开registry全新安装后MCP与两个中文项目setup通过；SHA256一致1d4d791fa9161c1517a45bc2a1bfdf33c96f1e26b61de4923ddf9ce5b1ec91c6。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-03T08:06:16.821Z",
+      "updated": "2026-09-07T15:24:40.762Z",
+      "started_at": "2026-09-03T08:06:16.868Z",
+      "completed_at": "2026-09-07T13:42:21.228Z"
+    },
+    {
+      "id": "T-034",
+      "title": "[巡检] 注册表污染：quality-gate 测试未沙箱化 PM_MCP_HOME，34 个临时项目泄入真实 ~/.pm-mcp/registry.json（每轮巡检都被扫一遍，临时目录清理后会变成 skipped/失败噪音）。修复：测试内显式设 PM_MCP_HOME + 清理现有垃圾条目",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "chore",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "根因三连修复：①quality-gate.test.ts 补 PM_MCP_HOME 沙箱 ②touchRegistry 温目录跳过（PM_MCP_HOME 未设时拒绝注册临时目录项目，含 8.3 短名/长名双形态）+ 大小写不敏感去重 ③真实注册表 74→3 条（保留 pm-mcp/画布/网关）",
+      "verification": "注册表现仅 3 个真实项目；quality-gate 测试 2/2 过且不再泄漏；全套 287 测试绿",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-03T10:04:24.713Z",
+      "updated": "2026-09-13T17:30:21.603Z",
+      "started_at": null,
+      "completed_at": "2026-09-13T17:30:21.603Z"
+    },
+    {
+      "id": "T-035",
+      "title": "init_project 自动写入 AGENTS.md 工作规矩（项目开启即有规矩）",
+      "detail": "init 时自动创建/合并 AGENTS.md 标记段；已存在不覆盖；幂等；agents_md:false 可关",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/agents-md.ts",
+        "src/init.ts",
+        "src/project-tools.ts",
+        "test/agents-md.test.ts"
+      ],
+      "acceptance": "新项目 init 即有规矩；已有 AGENTS.md 增量合并",
+      "result_note": "src/agents-md.ts（v1 标记段幂等 upsert）+ initProject 领域层挂载 + init_project 工具加 agents_md 开关（默认开）+ 本仓库自应用",
+      "verification": "新增 4 测试全过；watcher fixture 计数适配；全套 231/231 绿",
+      "tags": [],
+      "author": "zcode",
+      "created": "2026-09-03T14:13:55.493Z",
+      "updated": "2026-09-03T14:13:55.493Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T14:13:55.493Z"
+    },
+    {
+      "id": "T-036",
+      "title": "[巡检] git 对账：9 个文件有变更未在最近会话入账（README/budget/index/paths/tool-base 等，疑为 codex 后台改动未记 log_session）——请补记账或由改动方补 log_session；另注意 exposure 已变 public（中危计入必须处置口径）",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "已处置：这 9 个文件的变更不是 codex 后台改动，而是 zcode 本会话实现「使用日志与运行日志」功能（T-037）的进行中改动；收工时已通过 log_session S-0021 如实入账（README/budget/index/paths/tool-base 等全部在 files 清单）。exposure=public 是 v0.1.4 面向 npm 公众发布的有意姿态，非意外漂移。教训已留：实现中途巡检会看到未入账的工作区改动，属正常时序，改动方收工记账即可闭环。",
+      "verification": "S-0021 files 清单与 git status 工作区改动一致；下一轮巡检 git 对账红旗应消除",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-03T16:02:07.141Z",
+      "updated": "2026-09-03T16:06:48.743Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T16:05:41.096Z"
+    },
+    {
+      "id": "T-037",
+      "title": "使用日志与运行日志：工具调用计量、运行事件与省 token 统计（get_usage_log / get_runtime_log）",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/usage-log.ts"
+      ],
+      "acceptance": "新工具有测试覆盖；typecheck/build/全量测试绿；真实 server 冒烟出日志",
+      "result_note": "新增 src/usage-log.ts：.pm/usage-log.jsonl 记录每次工具/资源调用（工具名/成败/耗时/输出字符与估算 tokens/折叠省下 tokens/幂等标记，不记参数内容），.pm/runtime-log.jsonl 记录 server.ready、watcher 状态、tool.error 等服务级事件；均 1MB 自动轮转保留两份、gitignore、绝不影响工具调用。挂载点：toolR/toolW/toolI 三包装器 + 资源读取 resourceText + budget.ts 折叠记账（drainFoldSavings）。新工具 get_usage_log（含省 token 汇总：估算输出 tokens vs 折叠省下 tokens 与占比）与 get_runtime_log（info/warn/error 过滤）。",
+      "verification": "npm run typecheck && npm run build && npm test 全绿（239/239，含新增 test/usage-log.test.ts 8 用例：估算/过滤/汇总/轮转/未初始化/包装器端到端/工具渲染）；真实 server 冒烟：本仓库 .pm/ 下已捕获 get_status（544 字/tok≈277）与 server.ready、watcher.active 实录",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-03T16:05:41.041Z",
+      "updated": "2026-09-03T16:06:48.803Z",
+      "started_at": null,
+      "completed_at": "2026-09-03T16:06:48.803Z"
+    },
+    {
+      "id": "T-038",
+      "title": "[巡检] git 对账新实例：5 个文件未入账（agents-md/init/index-store.test/AGENTS.md——是 AGENTS.md 功能的已记账改动，被 16:05 更新的会话顶掉对账基准）。根因是语义缺陷：对账只比最新一个会话的清单，应改为'未提交变更 ∪ 最近 N 会话并集'或对 git diff 范围；顺带 T-034 恶化：注册表已 42 条",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "已处置：agents-md.ts/init.ts/index-store.test.ts/AGENTS.md 等文件属于 2026-09-03 [zcode] 「init_project 自动写 AGENTS.md 规矩」会话（changelog 已有该会话记录与文件清单），非未入账改动；属于巡检对账窗口与记账时序的正常错位。另：T-039（setup --project 功能）的完成记录曾在本次修正前被误写入本任务，已移回 T-039。",
+      "verification": "changelog.md 2026-09-03 会话记录含上述文件；git status 与会话 files 清单可对账",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-03T18:01:27.398Z",
+      "updated": "2026-09-05T16:31:47.454Z",
+      "started_at": null,
+      "completed_at": "2026-09-05T16:30:53.835Z"
+    },
+    {
+      "id": "T-039",
+      "title": "setup --project 一条命令上手：Codex 项目钉定条目 + init + AGENTS.md 规矩自动化",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": null,
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/setup.ts",
+        "test/setup.test.ts"
+      ],
+      "acceptance": "新参数有测试；typecheck/build/全量测试绿；真实 CLI 端到端验证",
+      "result_note": "setup 新增 --project [dir] 模式（新项目/代码小白一条命令上手）：在 Codex config.toml 写入按项目钉定的条目（pm-mcp-<目录名>，npx + --root，写前备份、同名条目幂等跳过、fail-closed 拒绝重复 TOML 表头），并自动 init_project（.pm/ + PROJECT.md + AGENTS.md 工作规矩）。parseSetupArgs/runSetup/configureClient 相应扩展；非 ASCII 目录名用带引号 TOML 键。Codex 全局 AGENTS.md 规则同步升级为自助路径（一条命令或模型代改配置）。",
+      "verification": "npm run typecheck && npm run build && npm test 全绿（242/242，新增 3 用例：参数解析/钉定+init 幂等/非 ASCII+dry-run）；真实 CLI 端到端：临时目录跑 dist/cli.js setup --client codex --project，config.toml 钉定条目、.pm 初始化、AGENTS.md 规矩、幂等重跑全验证通过（CODEX_HOME 重定向沙箱，未触碰真实配置）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-05T16:30:53.751Z",
+      "updated": "2026-09-05T16:31:47.530Z",
+      "started_at": null,
+      "completed_at": "2026-09-05T16:31:47.530Z"
+    },
+    {
+      "id": "T-040",
+      "title": "[巡检] git 对账复发扩大：13 个文件未入账（budget/index/init/paths/project-tools 等；此前 T-038 的 5 文件实例已关闭但其根因'对账只比最新一个会话'未修，现扩大到 13 个）。根治方案不变：对账改为'未提交变更 ∪ 最近 N 会话并集'或按 git diff 范围比对",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/git-state.ts",
+        "src/audit.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "acceptance": "",
+      "result_note": "多会话Git内容对账根因已修复；旧路径记录明确为未验证，后续新内容仍检出。当前项目真实12项测试及隔离263项全量测试/覆盖率均通过。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260907-164811-893-0000.json\n报告 SHA-256: 42c161d19265eeb7db14e1d28bb724eb314361474c4979428fbc30fecaef5bc2\n源码 SHA-256: b8cd5f33937b5848259e8d3381c05a642ec125b5c6abbda72a493c87ca964dc9\n执行时间: 2026-09-07T16:48:11.893Z\n验证说明: 当前源码报告自动绑定；旧版运行进程需升级后才采用新行为。",
+      "tags": [
+        "巡检"
+      ],
+      "author": "codex",
+      "created": "2026-09-05T18:01:30.862Z",
+      "updated": "2026-09-07T16:59:54.723Z",
+      "started_at": null,
+      "completed_at": "2026-09-07T16:59:54.723Z"
+    },
+    {
+      "id": "T-041",
+      "title": "核验当前工具安全性、功能可用性与实际效果",
+      "detail": "",
+      "type": "chore",
+      "status": "done",
+      "priority": null,
+      "milestone": null,
+      "steps": [
+        {
+          "text": "恢复状态并完成安全扫描预检",
+          "done": true
+        },
+        {
+          "text": "检查安全边界、测试和真实工具入口",
+          "done": true
+        },
+        {
+          "text": "归纳问题、证据与效果边界并完成台账",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "typecheck退出0；全部test/*.test.ts分两批71+171=242通过/0失败/0跳过。隔离复现3问题：setup中文服务名碰撞；security超2MiB未扫描误关闭；search字面量--files被解释为rg选项。未改源码。",
+        "next_step": "整合独立审查，完成安全报告和可用性结论，回填台账。",
+        "at": "2026-09-07T05:15:01.382Z"
+      },
+      "files": [],
+      "acceptance": "给出源码和实测支持的结论，区分缺陷、可用能力与未验证边界；保留现有修改，不发布或修复产品",
+      "result_note": "完成基于当前工作树的部分安全审查与可用性核验。确认1项安全台账完整性缺陷（超大文件跳扫误标fixed）、2项功能bug（中文项目服务名冲突、--files字面量误作rg选项）、1项分发缺口（npm 0.1.4无setup --project）。242测试通过、typecheck通过、npm audit已知漏洞0；真实MCP管理/搜索调用可用。未修源码，未执行完整gate/托管CI/跨客户端全验收；不宣称零漏洞或实际额度节省。安全报告 scanId=2ecd8a31-60e6-4cb7-8257-e662bf5960bb，coverage=partial。",
+      "verification": "npm run typecheck退出0；全部test/*.test.ts两批71+171=242通过，0失败/跳过；3个临时目录样例复现；npm audit JSON 0；只读检查npm发布包。",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-07T02:58:06.434Z",
+      "updated": "2026-09-07T05:19:55.375Z",
+      "started_at": null,
+      "completed_at": "2026-09-07T05:19:55.375Z"
+    },
+    {
+      "id": "T-042",
+      "title": "修复审计确认的安全误关闭、项目命名冲突和字面量搜索缺陷",
+      "detail": "",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "保存修改前基线并补充失败回归用例",
+          "done": true
+        },
+        {
+          "text": "最小修复共享边界并验证兼容行为",
+          "done": true
+        },
+        {
+          "text": "执行相关测试/类型检查与本地打包验收，记录修复",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "备份原始11文件到Temp/pm-fix-T042-265c...。初始35测试有9项失败（保留before-tests.txt），修复后35通过；独立代理因线程上限不可用，父线程复核又复现并修复过期扫描关闭证据。65模块/MCP测试通过，版本同步0.1.5候选，build通过，正在运行coverage。",
+        "next_step": "检查全量coverage结果，新增发行包CLI回归并做隔离安装/运行烟测，完成台账和修复报告；不发布。",
+        "at": "2026-09-07T05:44:19.164Z"
+      },
+      "files": [
+        "src/security.ts",
+        "src/search.ts",
+        "src/setup.ts",
+        "src/index.ts",
+        "test/security.test.ts",
+        "test/search.test.ts",
+        "test/setup.test.ts",
+        "package.json",
+        "package-lock.json",
+        "install.ps1",
+        "README.md"
+      ],
+      "acceptance": "三处原始触发及同类边界均有回归测试；合法修复/删除/重复安装/普通搜索保留；类型检查与相关门禁通过；本地打包可验证，外部发布状态单列",
+      "result_note": "本地修复三处审计缺陷及相关边界；0.1.5候选已构建、打包、隔离安装并真实MCP验证。最终253测试/coverage通过，typecheck/build/架构与限定typecheck质量矩阵通过。11文件净增228行，版本交付同步为超过8文件的必要原因，无新依赖/服务/持久化结构。原始9失败与复核1失败证据保留。发布和真实客户端升级由T-033继续，不宣称全项目零漏洞。",
+      "verification": "npm run coverage:253 pass/0 fail/0 skip; lines95.84 branches87.63 functions95.00; npm run typecheck/build exits0; npm run quality -- --kind typecheck exit0; local0.1.5 package cold install and 48-tool MCP smoke exit0; reverse patch check exit0. Report: E:/UserData/Administrator/Temp/pm-fix-T042-265c516deef94752973133e760545195/repair-report.md",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-07T05:32:42.316Z",
+      "updated": "2026-09-07T05:58:36.906Z",
+      "started_at": null,
+      "completed_at": "2026-09-07T05:58:36.906Z"
+    },
+    {
+      "id": "T-043",
+      "title": "发布并验证 pm-mcp 0.1.5 修复版本",
+      "detail": "发布授权已明确。npm whoami连续返回E401，等待用户本机npm网页登录。源码已在独立克隆推送codex/release-0.1.5；PR#1；43b89f9的Node22.18/24托管CI全通过；最终包隔离安装真实MCP通过，已上传GitHub release草稿383870624并验证digest。npm仍0.1.4，未正式发布。",
+      "type": "chore",
+      "status": "done",
+      "priority": null,
+      "milestone": null,
+      "steps": [
+        {
+          "text": "核对授权候选、身份与远程版本，准备可追溯发布内容",
+          "done": true
+        },
+        {
+          "text": "发布0.1.5并验证registry包一致性",
+          "done": true
+        },
+        {
+          "text": "核验公开安装运行与发布记录，回填T-033",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "用户完成npm网页密码确认，包设置已可访问。现无trusted publisher连接，本地CLI仍无登录。已准备只手动发布固定SHA256的0.1.5 OIDC工作流，PR#2/9d0aa82；npm表单填入happy520ai/pm-mcp/publish-npm.yml并选direct publish但未提交。已询问临时授权该连接，发布验证后移除，等待明确答复。",
+        "next_step": "获得对临时GitHub→npm发布连接的明确同意后，提交表单、验证连接字段，完成工作流落地和手动发布、registry/冷安装验证，然后移除新增连接。未答复不得创建发布权限。",
+        "at": "2026-09-07T13:24:27.873Z"
+      },
+      "files": [],
+      "acceptance": "在明确授权下发布经过核验的0.1.5；验证npm版本/包摘要/公开安装产物，GitHub与托管CI如实分层记录；保护原脏工作树和凭据",
+      "result_note": "0.1.5已正式同步GitHub和npm，registry version/latest均0.1.5；使用明确授权的临时GitHub OIDC发布，workflow34127654249成功。公开全新目录/缓存匿名安装和真实MCP烟测通过，npm tarball SHA256与GitHub附件一致。临时发布连接已按约移除，网页成功回执已确认。既有E401/ENEEDAUTH及首轮CI失败保留，不再阻塞本次发布。",
+      "verification": "npm view version/dist-tags=0.1.5；workflow34127654249全部成功；公开冷安装后48工具登记及具体MCP流程通过；registry tarball SHA256=1d4d791fa9161c1517a45bc2a1bfdf33c96f1e26b61de4923ddf9ce5b1ec91c6；npm UI确认已成功删除临时受信任发布者连接。",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-07T06:13:05.489Z",
+      "updated": "2026-09-07T13:42:21.139Z",
+      "started_at": null,
+      "completed_at": "2026-09-07T13:42:21.139Z"
+    },
+    {
+      "id": "T-044",
+      "title": "将0.1.5修复合并到GitHub main并核验",
+      "detail": "",
+      "type": "chore",
+      "status": "done",
+      "priority": null,
+      "milestone": null,
+      "steps": [],
+      "checkpoint": {
+        "note": "PR#1已按43b89f9指定头提交merge，main=3273aeef42822b8d4f50a9f92421666fd99a0acb。合并提交与已通过CI的43b89f9 tree均51795f2168b5144db74c8944518baa0a070d7c25。原本地main HEAD仍b90b046，索引未变。",
+        "next_step": "等待主分支CI34097925292结果，通过后完成任务并记录会话。",
+        "at": "2026-09-07T07:56:51.273Z"
+      },
+      "files": [],
+      "acceptance": "PR #1按已验证提交合并；远程main包含修复且合并后CI核验；原本地HEAD和未提交修改保留",
+      "result_note": "已按用户直接更新GitHub的授权合并PR#1。main=3273aeef42822b8d4f50a9f92421666fd99a0acb，与已验收发布头43b89f9文件树一致；主分支CI34097925292 Node22.18/24均通过。原本地main HEAD b90b046及未提交修改保留。",
+      "verification": "gh pr view state=MERGED；GitHub main SHA读回3273aee；Git tree一致51795f2；主分支CI34097925292 success/两个jobs success；本地HEAD和索引未变。",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-07T07:55:44.294Z",
+      "updated": "2026-09-07T07:58:09.070Z",
+      "started_at": null,
+      "completed_at": "2026-09-07T07:58:09.070Z"
+    },
+    {
+      "id": "T-045",
+      "title": "[巡检] 忽略清单缺陷：新项目暴露 .runtime/（WebView2 缓存）与 release/（构建产物）未在内置忽略表——10 个巨文件红旗+2 个 Mu 许可证误报+增长热点全被产物污染。修复：DEFAULT_IGNORE_DIRS 增补 .runtime/release/userdata/EBWebView 等运行时与构建目录",
+      "detail": "0.2.0候选已统一默认排除.runtime/.zcode/EBWebView，并提供scan_ignore供已确认产物目录使用。release与userdata可能包含真实源码，未全局盲目排除。尚未在原触发项目确认目录语义、写入项目排除规则并复验，因此本巡检任务保留未完成状态；实现和测试见T-046/F-017。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/scan-policy.ts",
+        "src/scan.ts",
+        "src/index-store.ts",
+        "src/project-tools.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "acceptance": "",
+      "result_note": "根治：全局 SCAN_IGNORE_DIRS 增补 .pnpm-cache/.pnpm-store/.npm-cache/.yarn-cache/.data/.tmp/.temp/.codex-context/userdata/logs；网关/画布项目配 per-project scan_ignore（29 条）；unified 13→2 红旗、画布全绿验证生效",
+      "verification": "unified-ai-system 复扫巨文件红旗清零；AI 通用实时创作工作台连续全绿",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-07T14:06:39.610Z",
+      "updated": "2026-09-13T17:30:21.670Z",
+      "started_at": null,
+      "completed_at": "2026-09-13T17:30:21.670Z"
+    },
+    {
+      "id": "T-046",
+      "title": "极简项目管理升级：准确对账、合并操作与完成证据",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "保存基线，补足三个目标的回归用例与兼容性约束",
+          "done": true
+        },
+        {
+          "text": "实现变更内容对账与项目扫描排除规则",
+          "done": true
+        },
+        {
+          "text": "实现一次任务更新合并记录及质量证据完成校验",
+          "done": true
+        },
+        {
+          "text": "运行回归、类型/构建/覆盖率与实际MCP验证，整理升级包和证据",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "三项本地升级验收完成，安装包、差异补丁、回滚备份和验证证据已整理。正式基线不属于本任务已通过的声明。",
+        "next_step": "T-047审核并批准新的48工具基线后重新正式验收；T-045需在原触发项目配置并复验产物排除；发布/客户端切换尚未执行。",
+        "at": "2026-09-07T16:59:54.889Z"
+      },
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/agents-md.ts",
+        "src/audit.ts",
+        "src/index-db.ts",
+        "src/index-store.ts",
+        "src/index.ts",
+        "src/knowledge-tools.ts",
+        "src/language-adapters.ts",
+        "src/license.ts",
+        "src/project-fingerprint.ts",
+        "src/project-tools.ts",
+        "src/scan.ts",
+        "src/search.ts",
+        "src/security.ts",
+        "src/setup.ts",
+        "src/task-tools.ts",
+        "src/types.ts",
+        "test/exploit.test.ts",
+        "test/helpers.ts",
+        "test/idempotency-lease.test.ts",
+        "test/integration.test.ts",
+        "test/scenario.test.ts",
+        "test/tooling-coverage.test.ts",
+        "src/git-state.ts",
+        "src/scan-policy.ts",
+        "src/session-log.ts",
+        "src/task-evidence.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "acceptance": "多会话已记录且内容未变的文件不误报，新改动仍检出；可配置过滤产物并在规则变化后刷新索引；update_task可合并断点/日志；feature/fix完成必须绑定成功且当前源码匹配的质量报告；48工具保留，旧台账可读",
+      "result_note": "三项验收条件均已实现并验证：多会话内容对账与扫描边界、一次更新合并断点/会话、完成绑定当前源码真实报告。保留48工具；最终隔离263测试与263覆盖率均通过，构建/类型检查通过；当前项目12项通过；最终tarball空目录安装与真实MCP闭环通过。正式旧基线32/33通过，工具数46与48冲突转T-047跟进；本候选未发布且当前客户端未切换。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260907-164811-893-0000.json\n报告 SHA-256: 42c161d19265eeb7db14e1d28bb724eb314361474c4979428fbc30fecaef5bc2\n源码 SHA-256: b8cd5f33937b5848259e8d3381c05a642ec125b5c6abbda72a493c87ca964dc9\n执行时间: 2026-09-07T16:48:11.893Z\n验证说明: 完整候选质量报告 quality-20260907-165330-453-0000.json；覆盖率95.85/87.67/95.14%。117个产品/测试/脚本文件与原工作区字节一致；tarball SHA-256 fbc1ea28631091d69f887c4ce0d2ffb79115be1a2bb8ebe6092f7e3d88e319d9。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-07T14:47:49.223Z",
+      "updated": "2026-09-07T16:59:54.889Z",
+      "started_at": "2026-09-07T15:49:47.505Z",
+      "completed_at": "2026-09-07T16:59:54.889Z"
+    },
+    {
+      "id": "T-047",
+      "title": "0.3.0 正式验收基线升版与重新评价",
+      "detail": "按2026-09-08直接开工指令建立并批准1.1.0基线，记录由Codex依据项目负责人授权执行；同步0.3.0/48工具/既有Node最低版本，其余阈值与原1.0.0不变。脚本已支持package.json集中选择与CLI覆盖；等待完整质量和正式评价。远程发布仍不在本轮范围。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "审核1.1.0草案并批准新的产品/工具清单口径",
+          "done": true
+        },
+        {
+          "text": "同步验收命令选择的基线版本，重新执行批准之后的质量与评价",
+          "done": true
+        },
+        {
+          "text": "确认发布范围；未获发布授权前保持本地候选",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "1.1.0基线已按本次授权建立并批准，原1.0.0摘要未变；统一基线选择与对应版本的计划/失败记录已就绪。当前执行完整质量及正式评价。",
+        "next_step": "核对0.3.0隔离副本全量质量与1.1.0正式评价结果；通过后关闭本地验收任务，远程发布保持未执行。",
+        "at": "2026-09-08T06:00:20.356Z"
+      },
+      "files": [
+        "package.json",
+        "scripts/acceptance-target.mts",
+        "scripts/acceptance-cycle.mts",
+        "scripts/create-pm-acceptance-evaluation.mts",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.1.0.json",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.1.0-plan.md",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.1.0-first-failure.md"
+      ],
+      "acceptance": "新版本基线经明确批准且旧版摘要不变；脚本使用获批版本；真实新评价全项通过并保留此前失败。",
+      "result_note": "新1.1.0基线已按直接开工授权采用并在验证前批准；原1.0.0字节摘要未变。0.3.0隔离副本完整质量通过，正式第一方本地评价33/33要求与33/33评价测试通过，8/8风险受控、5/5阶段完成；旧失败保留，远程发布未执行。",
+      "verification": "正式报告 pm-mcp-local-20260908-060624-28dd6afc，verdict=accepted，errors=0/warnings=0；完整证据保存在 E:/通用型项目管理交付/pm-mcp-0.3.0/evidence/candidate/.pm/acceptance/。20 GiB数据仅为已注明日期的历史参考。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-07T16:58:33.429Z",
+      "updated": "2026-09-08T06:31:37.929Z",
+      "started_at": "2026-09-08T05:46:29.612Z",
+      "completed_at": "2026-09-08T06:31:37.929Z"
+    },
+    {
+      "id": "T-048",
+      "title": "pm-mcp 深度研究：下一阶段提升空间与投入优先级",
+      "detail": "只读评估现有0.2.0代码、验证与使用数据，对照官方MCP/同类产品/Windows运行机制；保留48工具和简单使用目标，不实施新功能、部署或发布。交付经核验的中文PDF，区分事实、推断、收益假设和未证实事项。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "恢复本地事实、锁定范围与证据缺口",
+          "done": true
+        },
+        {
+          "text": "对照官方协议、产品工作流和运行机制，交叉验证重点结论",
+          "done": true
+        },
+        {
+          "text": "筛选提升优先级、适用边界与量化验收条件",
+          "done": true
+        },
+        {
+          "text": "制作PDF并核验内容、引用与版式，完成研究台账",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "重点反例已在独立临时夹具确认：空测试命令exit0且tests=null时任务可done；500条同属性任务列表只展示148个ID，省略352且无游标。它们是证据强度/列表完整性边界，不等同安全漏洞或生产事故。官方协议、任务依赖、指标定义、Windows服务与登录任务资料已交叉核对。",
+        "next_step": "综合成六项有序改进及最小验收标准，制作PDF并逐页检查。资料检索已足够；剩余需要实际客户端/用户目标与收益实验，避免继续泛搜。桌面面板身份仍待回复。",
+        "at": "2026-09-08T03:23:38.329Z"
+      },
+      "files": [],
+      "acceptance": "重要判断有本地定位或一手来源；给出优先级、必要性、代价及可量化验收条件；不重复把已实现功能列为新建议；明确旧冻结基线、历史压测与当前客户端状态边界。",
+      "result_note": "深度研究已完成：复核0.2.0本地证据、175调用计量快照和16项官方来源；两项隔离实验确认500任务只显示148个ID且无分页、空成功命令在未知测试计数时可done。报告提出版本衔接、业务分页/结构化结果、证据分级、任务依赖、条件性桌面常驻及小型指标六项有序建议。PDF7页逐页视觉核验，18处链接；未修改产品代码、部署或发布。此前桌面面板常驻请求的具体程序仍待澄清。",
+      "verification": "PDF SHA-256 33d4d30e82935b0354165e6a6fe9a649d44c3e4d1ebc2f68278cc83b4fe58646；7页/18链接/无未解决版式缺陷；31个升级文件摘要与0.2.0交付基线一致。报告路径E:/通用型项目管理交付/research-2026-09-08-T048/output/pdf/pm-mcp-后续提升深度研究-2026-09-08.pdf。",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-08T03:05:06.752Z",
+      "updated": "2026-09-08T03:41:27.614Z",
+      "started_at": "2026-09-08T03:05:06.861Z",
+      "completed_at": "2026-09-08T03:41:27.614Z"
+    },
+    {
+      "id": "T-049",
+      "title": "0.3.0 升级：版本生效检查、任务分页与证据分级",
+      "detail": "执行研究中前三项。保留48工具和现有未提交修改，新增有界任务分页与证据强度说明，修正配置升级/运行版本核验，并对齐新批准基线的选择。复用既有模块与依赖；不扩大到任务依赖、桌面面板、SaaS、远程发布。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "备份基线并用回归用例冻结分页、证据与升级契约",
+          "done": true
+        },
+        {
+          "text": "实现任务分页、证据分级与状态展示",
+          "done": true
+        },
+        {
+          "text": "实现可验证的配置升级和基线版本选择",
+          "done": true
+        },
+        {
+          "text": "完成质量门禁、冷安装与实际MCP核验并闭环台账",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "0.3.0分页、证据分级、运行版本输出和安全配置替换/doctor已实现；39项相关测试通过，类型检查与构建通过。新门禁发现并修复NODE_TEST_CONTEXT继承导致嵌套测试跳过而exit0的问题。当前Codex pm-mcp配置已是本地包入口且无工具过滤；尚未宣称既有客户端重连。",
+        "next_step": "生成并冻结1.1.0新基线（原1.0不动，按本次直接开工授权保持其余阈值），完善针对性边界测试；隔离副本完整门禁、最终包冷安装与doctor配置实测；完成台账和本轮差异交付。",
+        "at": "2026-09-08T05:32:36.725Z"
+      },
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/cli.ts",
+        "src/dashboard.ts",
+        "src/doctor.ts",
+        "src/governance-tools.ts",
+        "src/index.ts",
+        "src/language-adapters.ts",
+        "src/project-tools.ts",
+        "src/quality-evidence.ts",
+        "src/quality-store.ts",
+        "src/setup-project.ts",
+        "src/setup.ts",
+        "src/task-evidence.ts",
+        "src/task-pagination.ts",
+        "src/task-tools.ts",
+        "src/tool-base.ts",
+        "src/types.ts",
+        "src/version.ts",
+        "test/exploit.test.ts",
+        "test/integrity.test.ts",
+        "test/quality-evidence.test.ts",
+        "test/upgrade-030.test.ts",
+        "scripts/acceptance-cycle.mts",
+        "scripts/acceptance-target.mts",
+        "scripts/create-pm-acceptance-evaluation.mts"
+      ],
+      "acceptance": "同属性任务能分页取全、数据变化使旧游标显式失效；未知/零测试不冒充已观察测试，策略结果可解释；配置升级可预览与回滚，不覆盖无关配置，实际MCP版本与root可核验；基线版本选择明确，旧批准基线不改；相关测试、完整质量门禁及安装包MCP验证通过。",
+      "result_note": "前三项升级已交付0.3.0：有界分页/结构化结果、完成证据分级、版本核验与受控升级。保持48工具、7资源和5提示。完整276测试及覆盖率通过，安装包冷启动通过；本机配置已绑定E盘固定安装目录，独立doctor核验0.3.0及正确root。配置其余字节受保护，旧会话保留；既有Codex会话须重连后再次核验，未推送或发布。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260908-062751-195-0000.json\n报告 SHA-256: 48f40fc6619b01dbb336499d93239bf4312ee6746bf57445a9fbcf06b4a5514a\n源码 SHA-256: e9df8b84c117907e9ff794e70098c9db4b01ffcb97bce08d090fd2e0ef52daad\n执行时间: 2026-09-08T06:27:51.195Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: 原工作区13/13针对性测试通过且源码前后匹配；同一产品代码的隔离全量test276/276、coverage276/276、build/typecheck通过；覆盖率95.71/87.26/94.82%。安装后60文件与候选包逐字节相同，包SHA-256 fd807a02aae51903df46f208f5b6da635d6dbf309362e6cbf2817b5fc54874de。独立doctor验证48工具与pagination-evidence-v1契约；不代表既有连接热更新。",
+      "tags": [],
+      "author": "codex",
+      "created": "2026-09-08T04:25:46.977Z",
+      "updated": "2026-09-08T06:31:38.401Z",
+      "started_at": "2026-09-08T04:25:47.150Z",
+      "completed_at": "2026-09-08T06:31:38.401Z"
+    },
+    {
+      "id": "T-050",
+      "title": "接入 WorkBuddy 客户端：统一安装器支持 + 本机配置核验",
+      "detail": "",
+      "type": "chore",
+      "status": "done",
+      "priority": null,
+      "milestone": null,
+      "steps": [
+        {
+          "text": "setup 增加 workbuddy 客户端（路径解析、检测、标准 mcp.json 写入、--local）",
+          "done": true
+        },
+        {
+          "text": "doctor 增加 --client workbuddy（读配置 + 补 --root 真实握手）",
+          "done": true
+        },
+        {
+          "text": "补测试、typecheck、构建 dist",
+          "done": true
+        },
+        {
+          "text": "本机写入 mcp.json 并用 doctor 核验 48 工具",
+          "done": true
+        },
+        {
+          "text": "更新 README 与 install.ps1",
+          "done": true
         }
       ],
       "checkpoint": null,
       "files": [
-        "src/idempotency.ts",
-        "src/store.ts",
-        "src/index-store.ts",
-        "src/watcher-coordinator.ts",
-        "src/index.ts",
-        "src/paths.ts",
-        "src/tool-base.ts",
-        "scripts/benchmark-agents.mts",
-        "test/idempotency-crash.test.ts",
-        "test/idempotency-lease.test.ts",
-        "test/lock-stampede.test.ts",
-        "test/watcher-leader.test.ts",
-        "test/agent-benchmark.test.ts"
+        "src/setup.ts",
+        "src/doctor.ts",
+        "src/setup-project.ts",
+        "src/cli.ts",
+        "test/setup.test.ts",
+        "test/upgrade-030.test.ts",
+        "README.md",
+        "install.ps1"
       ],
-      "acceptance": "三个业务提交间隙外部强杀均禁止自动重放；20进程陈旧锁争抢无重叠；真实/junction/大小写路径共享幂等域；10/20 Agent各30轮严格压力通过；本地门禁、托管CI、npm冷安装通过后发布v0.1.4",
+      "acceptance": "",
+      "result_note": "WorkBuddy 客户端支持已交付并完成本机接入：setup --client workbuddy 写标准 mcp.json（不钉根，按会话工作区解析项目根）、doctor --client workbuddy 读该配置补 --root 做真实握手；类型检查、构建、本机 48 工具核验均通过。",
+      "verification": "setup.test.ts + upgrade-030.test.ts 覆盖 setup --client workbuddy 写入与 doctor --client workbuddy 读取；node --test 套件通过",
+      "tags": [],
+      "author": "workbuddy",
+      "created": "2026-09-11T12:17:24.660Z",
+      "updated": "2026-09-11T12:17:51.436Z",
+      "started_at": null,
+      "completed_at": "2026-09-11T12:17:51.436Z"
+    },
+    {
+      "id": "T-051",
+      "title": "调查：log_session 业务写入成功但客户端收到 is_error / 幂等占位",
+      "detail": "根因已定位（2026-09-11，第二轮取证修正）。现象：经 MCP 调用 pm-mcp 写工具（log_session/add_task/update_task），业务可能已落账但客户端收到 is_error + 「⏳ 幂等占位…业务结果不确定」；严重时业务完全不执行（update_task 的 detail 未写入）。取证：.pm/runtime-log.jsonl 三条 tool.error —— log_session count=62、add_task count=70、update_task count=73，均为 [safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED]，threshold=50。决定性证据：update_task 那条 targets 只有 [.pm/.lock]、targetCount=1 而 count=73，说明 safe-delete 钩子按 scope=turn（每轮对话）累计计数，不是单次批量删除量。根因：WorkBuddy 的 safe-delete 钩子在单轮对话内累计删除数超过 50 后，开始拦截后续删除；pm-mcp 写工具在业务前后需要删除幂等记录与 .pm/.lock 锁文件，删除抛错导致工具失败。触发条件：同一轮对话内累计删除 > 50（本次由我清理临时文件推高，属自造条件）。影响：在 WorkBuddy 中调用 pm-mcp 写工具可能报错或静默不落账，调用方若据此重试可能重复记账。处理方向：①同一轮内避免先大量删除再调写工具；②把 .pm/ 运行态纳入 safe-delete 允许范围；③或让 pm-mcp 的清理按批上限执行。验证：干净轮次中重跑写工具，应返回正常文本且 runtime-log 无 tool.error（本条更新即为此验证）。",
+      "type": "debt",
+      "status": "backlog",
+      "priority": null,
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
       "result_note": "",
       "verification": "",
-      "tags": [],
-      "author": "codex",
-      "created": "2026-09-03T08:06:16.821Z",
-      "updated": "2026-09-03T08:06:16.868Z",
-      "started_at": "2026-09-03T08:06:16.868Z",
+      "tags": [
+        "idempotency",
+        "observability",
+        "environment"
+      ],
+      "author": "",
+      "created": "2026-09-11T12:33:13.879Z",
+      "updated": "2026-09-11T12:37:23.029Z",
+      "started_at": null,
       "completed_at": null
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "seq": 19,
+  "seq": 45,
   "sessions": [
     {
       "id": "S-0001",
@@ -469,6 +469,580 @@
       ],
       "next_steps": [
         "提交并重跑完整 gate 与 Node 22.18/24 CI"
+      ]
+    },
+    {
+      "id": "S-0020",
+      "date": "2026-09-03T14:13:55.497Z",
+      "author": "zcode",
+      "summary": "实现 init_project 自动写入 AGENTS.md 工作规矩（标记段幂等合并、不覆盖已有内容、可关），并应用到本仓库",
+      "files": [
+        "src/agents-md.ts",
+        "src/init.ts",
+        "src/project-tools.ts",
+        "test/agents-md.test.ts",
+        "test/index-store.test.ts",
+        "AGENTS.md"
+      ],
+      "next_steps": []
+    },
+    {
+      "id": "S-0021",
+      "date": "2026-09-03T16:05:41.185Z",
+      "author": "zcode",
+      "summary": "实现使用日志 + 运行日志 + 省 token 统计：新增 src/usage-log.ts（JSONL 追加、1MB 轮转、绝不抛错），在 toolR/toolW/toolI 三包装器与资源读取统一挂载，budget.ts 折叠省量记账（drainFoldSavings），新工具 get_usage_log / get_runtime_log（工具数 46→48）",
+      "files": [
+        "src/usage-log.ts",
+        "src/budget.ts",
+        "src/tool-base.ts",
+        "src/index.ts",
+        "src/paths.ts",
+        "src/project-tools.ts",
+        "test/usage-log.test.ts",
+        "test/integration.test.ts",
+        "test/realrepo.test.ts",
+        "README.md"
+      ],
+      "next_steps": [
+        "把 watcher leader 选举/接管/降级事件接入运行日志（index-store.ts / watcher-coordinator.ts 层）",
+        "考虑把使用日志的省 token 汇总摘要并入 PROJECT.md 仪表盘健康区"
+      ]
+    },
+    {
+      "id": "S-0022",
+      "date": "2026-09-05T16:30:53.893Z",
+      "author": "zcode",
+      "summary": "setup --project 上线：Codex 新项目一条命令自动钉定注册+初始化；realrepo 功能数断言改 >=；Codex 全局 AGENTS.md 升级自助纳管规则",
+      "files": [
+        "src/setup.ts",
+        "test/setup.test.ts",
+        "test/realrepo.test.ts",
+        "README.md"
+      ],
+      "next_steps": [
+        "npm publish 0.1.5 后，新项目才能真正用 npx @latest 跑通 --project（当前 npm 上是 0.1.4 无此参数）",
+        "watcher leader 事件接入运行日志（T-037 留下的候选）"
+      ]
+    },
+    {
+      "id": "S-0023",
+      "date": "2026-09-06T14:01:53.870Z",
+      "author": "codex",
+      "summary": "完成复现与阻塞闭环：确认 `@luckychen1993/pm-mcp` 当前仅有 0.1.1-0.1.4；旧版 0.1.4 不识别 `setup --project`。当前任务 T-033 已置于 blocked，`T-033` 下一步为发布 0.1.5 并回归冷安装。",
+      "files": [
+        "N/A"
+      ],
+      "next_steps": [
+        "发布 pm-mcp 0.1.5（包含 setup --project/--client 参数）",
+        "在 unified-ai-system 根目录执行 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project` 验证"
+      ]
+    },
+    {
+      "id": "S-0024",
+      "date": "2026-09-06T14:04:15.989Z",
+      "author": "codex",
+      "summary": "按你的“1和2”同时执行：1）执行了冷安装命令 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project`；2）把结果回填到 pm-mcp 任务台账。结果：当前版本分发只到 0.1.4，命令返回 `unknown setup argument: --project`，步骤4仍阻塞。",
+      "files": [
+        "E:/PM/unified-ai-system/N/A",
+        "pm 任务台账 T-033"
+      ],
+      "next_steps": [
+        "请在 pm-mcp 仓库发布 `setup --project` 支持的新版本并更新 `@luckychen1993/pm-mcp`",
+        "重跑 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project`，确认生成 `.pm/project.json`",
+        "完成托管CI 冷安装回归（`github actions` 的相关 step）并回写 `T-033`"
+      ]
+    },
+    {
+      "id": "S-0025",
+      "date": "2026-09-07T05:19:55.600Z",
+      "author": "codex",
+      "summary": "核验pm-mcp真实可用性：242测试/typecheck通过、npm audit 0，但复现安全跳扫误关闭、中文项目命名碰撞、字面量rg选项误解析，并确认npm发布包缺setup --project。完成部分安全报告，未改产品源码；未完成全仓安全逐行覆盖、完整gate、托管CI或跨客户端验证。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "按报告修复3处已复现缺陷并增加针对性回归测试。",
+        "T-033继续处理新版发布与冷安装/托管CI；本次不发布。",
+        "若要断言全部功能可靠，继续剩余安全源码审查与客户端验收；实际节省额度需对照实验。"
+      ]
+    },
+    {
+      "id": "S-0026",
+      "date": "2026-09-07T05:58:37.263Z",
+      "author": "codex",
+      "summary": "完成T-042本地修复：安全扫描证据约束/落账指纹复核、项目唯一服务键与root核对、rg字面量参数。准备0.1.5候选，253测试及coverage通过，冷安装包真实MCP与两中文项目setup通过；未发布或升级真实客户端。完整报告与原始失败证据保存于Temp/pm-fix-T042-265c516deef94752973133e760545195。",
+      "files": [
+        "src/security.ts",
+        "src/search.ts",
+        "src/setup.ts",
+        "src/index.ts",
+        "test/security.test.ts",
+        "test/search.test.ts",
+        "test/setup.test.ts",
+        "package.json",
+        "package-lock.json",
+        "install.ps1",
+        "README.md",
+        ".pm/tasks.json",
+        ".pm/debuglog.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md",
+        ".pm/quality-runs/quality-20260907-054702-793-0000.json"
+      ],
+      "next_steps": [
+        "T-033：0.1.5发布、托管CI与真实客户端升级需要后续明确授权。",
+        "本轮未做完整全仓安全扫描及完整acceptance/20GiB门禁，不将局部修复外推为绝对零漏洞。"
+      ]
+    },
+    {
+      "id": "S-0027",
+      "date": "2026-09-07T06:32:37.261Z",
+      "author": "codex",
+      "summary": "按明确授权执行0.1.5发布：独立克隆推送发布分支和PR#1，首轮Linux CI失败暴露备份重名并已修复，43b89f9在Node22.18/24托管CI全通过。最终包上传GitHub草稿并读回digest一致，隔离安装真实MCP通过。npm登录持续E401，未上架npm，也未把草稿当正式发布；授权已记录，等待用户网页登录。",
+      "files": [
+        "src/project-tools.ts",
+        "src/paths.ts",
+        "src/setup.ts",
+        "test/integration.test.ts",
+        "test/usage-log.test.ts",
+        "test/setup.test.ts",
+        ".pm/.gitignore",
+        ".pm/tasks.json",
+        ".pm/debuglog.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "恢复npm登录后直接发布最终已核验0.1.5 tarball并做registry/公开冷安装回验，再发布GitHub草稿。发布授权无需重复索取。"
+      ]
+    },
+    {
+      "id": "S-0028",
+      "date": "2026-09-07T07:58:09.239Z",
+      "author": "codex",
+      "summary": "按用户要求直接更新GitHub仓库：合并PR#1至main3273aee，合并文件树与已验证43b89f9完全一致；主分支托管CI34097925292的Node22.18/24均通过。本地工作区未切换/拉取/清理，已有修改与HEAD保留。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "GitHub main更新已完成。npm发布单独由T-043跟踪，仍等待登录恢复。"
+      ]
+    },
+    {
+      "id": "S-0029",
+      "date": "2026-09-07T08:00:48.041Z",
+      "author": "codex",
+      "summary": "核验发现v0.1.5此前仍为GitHub草稿，依据既有明确发布授权已完成正式公开发布。读回draft=false/prerelease=false，published_at=2026-09-07T08:00:17Z；附件SHA256与已验证最终包一致。GitHub发布不再依赖npm登录；npm上架仍单独待完成。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "只剩npm发布：恢复登录后继续，不重复创建GitHub Release。"
+      ]
+    },
+    {
+      "id": "S-0030",
+      "date": "2026-09-07T12:23:08.413Z",
+      "author": "codex",
+      "summary": "继续同步npm：再次核对最终包与GitHub附件一致；旧npm配置E401，默认网页登录回退legacy后已取消，改用独立受保护配置成功发起官方web CLI登录。网站账号登录尚未形成CLI登录，当前ENEEDAUTH，仍等待新页面确认；未发布npm，授权无需重复。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "用户完成当前CLI网页登录后直接继续npm发布和registry/公开安装验证。"
+      ]
+    },
+    {
+      "id": "S-0031",
+      "date": "2026-09-07T12:38:34.119Z",
+      "author": "codex",
+      "summary": "继续处理npm同步。核对默认npm用户配置和兼容新版CLI后，浏览器明确显示账号已登录但停在安全密钥双因素验证。已启动验证入口并保留交接页面；CLI仍等待网页回调，尚未发布。不读取密码/PIN/令牌，等待用户完成本人安全密钥确认。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "完成npm安全密钥验证后发布，不再重复请求发布授权或首页登录。"
+      ]
+    },
+    {
+      "id": "S-0032",
+      "date": "2026-09-07T12:59:15.451Z",
+      "author": "codex",
+      "summary": "直接核验用户指定npm后台：网站登录确实有效，包仍0.1.4；未把网站登录和CLI发布验证混为一谈。已停止过期CLI尝试，保留用户后台页面；后续仅需确认可用安全密钥并完成本人2FA，不再反复请求首页登录。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "确认npm账号绑定的通行密钥/安全密钥是否可用，再继续有效CLI登录和已授权发布。"
+      ]
+    },
+    {
+      "id": "S-0033",
+      "date": "2026-09-07T13:09:46.330Z",
+      "author": "codex",
+      "summary": "核验用户已打开的npm包页面，确认当前版本0.1.4；包设置入口由npm要求二次验证。已选择网站提供的密码确认方式，未修改安全设置；等待用户在网页完成密码确认，未读取密码或发布新版本。",
+      "files": [
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "网页完成密码确认后继续检查可用发布方式及CLI认证，完成已授权的0.1.5 npm同步。"
+      ]
+    },
+    {
+      "id": "S-0034",
+      "date": "2026-09-07T13:42:21.358Z",
+      "author": "codex",
+      "summary": "完成npm 0.1.5同步：经用户明确授权和本人安全密钥验证，临时绑定GitHub OIDC；PR#2已合并，固定制品验证预演和正式发布工作流均成功。npm version/latest=0.1.5，公开全新缓存安装真实MCP验证通过，tarball与GitHub SHA256一致。已移除临时连接并获网页回执；GitHub Release说明和本地README状态已更新，T-043/T-033闭环。",
+      "files": [
+        "README.md",
+        ".pm/project.json",
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "本次GitHub/npm发布完成；临时发布授权已撤销，当前没有待执行的发布步骤。"
+      ]
+    },
+    {
+      "id": "S-0035",
+      "date": "2026-09-07T14:23:31.115Z",
+      "author": "codex",
+      "summary": "评估后续调优空间，未改产品代码。确认Git对账只比较最后一次会话、feature/fix缺verification仍可done；建议优先减少重复管理调用、降低对账/扫描噪音、增强完成证据和阻塞分类，再用对照测试衡量性能/token估算。当前保留111调用平均87ms，折叠节省记录0；不能据此承诺账户额度节省。",
+      "files": [
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "next_steps": [
+        "若推进下一版，先复核并修复对账/扫描边界，再优化默认管理流程，保留完整能力和简单使用方式。"
+      ]
+    },
+    {
+      "id": "S-0036",
+      "date": "2026-09-07T16:59:54.892Z",
+      "author": "codex",
+      "summary": "T-046 极简项目管理升级：准确对账、合并操作与完成证据：三项验收条件均已实现并验证：多会话内容对账与扫描边界、一次更新合并断点/会话、完成绑定当前源码真实报告。保留48工具；最终隔离263测试与263覆盖率均通过，构建/类型检查通过；当前项目12项通过；最终tarball空目录安装与真实MCP闭环通过。正式旧基线32/33通过，工具数46与48冲突转T-047跟进；本候选未发布且当前客户端未切换。",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/agents-md.ts",
+        "src/audit.ts",
+        "src/index-db.ts",
+        "src/index-store.ts",
+        "src/index.ts",
+        "src/knowledge-tools.ts",
+        "src/language-adapters.ts",
+        "src/license.ts",
+        "src/project-fingerprint.ts",
+        "src/project-tools.ts",
+        "src/scan.ts",
+        "src/search.ts",
+        "src/security.ts",
+        "src/setup.ts",
+        "src/task-tools.ts",
+        "src/types.ts",
+        "test/exploit.test.ts",
+        "test/helpers.ts",
+        "test/idempotency-lease.test.ts",
+        "test/integration.test.ts",
+        "test/scenario.test.ts",
+        "test/tooling-coverage.test.ts",
+        "src/git-state.ts",
+        "src/scan-policy.ts",
+        "src/session-log.ts",
+        "src/task-evidence.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "file_hashes": {
+        "package.json": "33b7337dd3b46ea70c7391a2e1996d9a1dc282c8c4f2a244a3682d0783457063",
+        "package-lock.json": "5c3481aea01da787ccee6afe404e31e7028f68a240ffe4672df5a300b5b56d65",
+        "README.md": "b8cfa6bbf74aebbd6853e6a3668751a6f6b7496179e2b5f66b310c27c91df0f5",
+        "install.ps1": "30ab5b5c9b885a5f2f138776465bf699db2c88b7e03da4c6f8e8c4466f88597c",
+        "src/agents-md.ts": "ed05f2b194f60f6a4f56f5c1d011eb3b49a327418f786a807989d358d2e4ac31",
+        "src/audit.ts": "cba253c96fb43f64eaf7abab05f3bc254f34df1addcb5ecd8fbece4b911260a7",
+        "src/index-db.ts": "9e80f2a6df2d14d47323fff9ccf620376040c41738c0448e95011680e8ba67de",
+        "src/index-store.ts": "ac64bfb699c64f6aa44557d92d6c4daeeef4ad38eb994fbcfd4482cce856a801",
+        "src/index.ts": "4754e3e88db9201527f917ab3985550b0cbbf0dd2010dc802007c2d5773030af",
+        "src/knowledge-tools.ts": "1717c58178ec5d32143ff501bf7114b44127d7f18136c39495464093cc98aa08",
+        "src/language-adapters.ts": "778bf715ed25c13f378b63fc13193b36fe72b1bc428b32fecd5a1b7a9993107d",
+        "src/license.ts": "e4f2d0cbd3ee2e4a552b07c74d86c58fc8266b082304f9b90de22382ff108d73",
+        "src/project-fingerprint.ts": "0585f4382b7a08e1c13a513f62e911945a1a81f49c9f6bdf74218e8fa27dba9b",
+        "src/project-tools.ts": "5be756df604bdd76bf45912f96d58ded193f657f793ec856cd4639ca97168566",
+        "src/scan.ts": "fd6e014054456cf4f924b607a8c0a262b226b3fbd2fd48e10df74cd77db4a131",
+        "src/search.ts": "e55f317781fde8058f55258e8c8529f034cb64b398cb058a671c049ef4516e98",
+        "src/security.ts": "15c3bd94e86f09e2794a69a471cc07d208859896745a6fa4b7c35f88837e19d3",
+        "src/setup.ts": "2d723720187197316e7d6390631a4ac6e9376b57efbd0f428fafca2db7560b41",
+        "src/task-tools.ts": "306e76a57e4ac928c3de64afd6cce681cb8aeeccb01d3fd04373891902f52bf3",
+        "src/types.ts": "b13e89c673568701e2877edf47eabf5b2706d8dda0d12f5a1884d5c7babdd188",
+        "test/exploit.test.ts": "a540118e55406120ebd26131d57f2d05beeb09b4c899808929c7690a2f306adb",
+        "test/helpers.ts": "553f2166fd256b1df7b2ea568946b92eb10e1f1fe8e186ef01c0908bdb98fff6",
+        "test/idempotency-lease.test.ts": "44b5d5a29a0eaea6ac0bb63908b241f3cb7680feffd09a62970a4612d9a3f9a7",
+        "test/integration.test.ts": "75efd50a2b25826176b0f9424362b2deabbbbd13ade8363a991fc85c4c8bf105",
+        "test/scenario.test.ts": "d5ed52ac87799002556c30b42d102556f2db5d5693eaa03a42b29df0c1772e44",
+        "test/tooling-coverage.test.ts": "46c986f6d01c68c15b0a572998c5df0d14405b022ab030a39923acc7b4a5dffc",
+        "src/git-state.ts": "ca43db4a6d8ce9dea6538718093d76e2edc57af22823c0632c4283bf5cf4ff6c",
+        "src/scan-policy.ts": "3004c7f1dd61a95fca233d8d354a5ccfd6cbcf6f701beca91745e1191a19ad0a",
+        "src/session-log.ts": "cd4548961035faa5cae283b1cba3f4ce52489c0121f080eb070216ba5d9c9526",
+        "src/task-evidence.ts": "d08f9d4ed49b45a2b16bd44862e1a970c9fa1faf5d1aba810e16ba5ef6897f61",
+        "test/management-upgrade.test.ts": "a04835077893e6f0060f34b82f784fe8a0d5ed48945120e35bd79b9f056d97a3"
+      },
+      "next_steps": [
+        "T-047审核并批准新的48工具基线后重新正式验收；T-045需在原触发项目配置并复验产物排除；发布/客户端切换尚未执行。"
+      ]
+    },
+    {
+      "id": "S-0037",
+      "date": "2026-09-08T03:41:29.785Z",
+      "author": "codex",
+      "summary": "完成pm-mcp深度研究，交付7页PDF。未改产品代码；提出版本生效与验收衔接、任务分页/结构化结果、完成证据分级、任务依赖、条件性桌面常驻与小型指标。两项隔离实验确认边界；官方资料与本地证据交叉核验。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "优先审阅PDF并明确下一轮实施范围；T-047正式基线仍待批准。",
+        "此前桌面面板常驻请求仍需确认具体程序入口；系统启动配置尚未修改。"
+      ]
+    },
+    {
+      "id": "S-0038",
+      "date": "2026-09-08T06:31:37.935Z",
+      "author": "codex",
+      "summary": "T-047 0.3.0 正式验收基线升版与重新评价：新1.1.0基线已按直接开工授权采用并在验证前批准；原1.0.0字节摘要未变。0.3.0隔离副本完整质量通过，正式第一方本地评价33/33要求与33/33评价测试通过，8/8风险受控、5/5阶段完成；旧失败保留，远程发布未执行。",
+      "files": [
+        "package.json",
+        "scripts/acceptance-target.mts",
+        "scripts/acceptance-cycle.mts",
+        "scripts/create-pm-acceptance-evaluation.mts",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.1.0.json",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.1.0-plan.md",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.1.0-first-failure.md"
+      ],
+      "file_hashes": {
+        "package.json": "3327207712e7cb5adc8f61a5d674e32facd5db7e69ac079920ba2f50f8c41610",
+        "scripts/acceptance-target.mts": "624f02d76869e0c7940094bd35eb42fa13bec9a3e69b2e5b46fe7b59c2aaa340",
+        "scripts/acceptance-cycle.mts": "b1e5f5f1093694d024830964ba8032035dac5158927a880aba1cd495da678260",
+        "scripts/create-pm-acceptance-evaluation.mts": "2e61055359df15ce66f2cb809958a175be7bdae4914ee6967837e9bf1ceb49c8",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.1.0.json": "41becde4f8d83c93f179d6ba352d8808ce96abfbf25a53a81b6fabb853ae7cf6",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.1.0-plan.md": "3abc519ea5b282676e1f89ffb803b6182bda5da690f3aa5b232b076f38a4db64",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.1.0-first-failure.md": "d2a7eec4f29e0c4954224513dc85fb546e1fa7131afbde77f238e5693d3a262e"
+      },
+      "next_steps": []
+    },
+    {
+      "id": "S-0039",
+      "date": "2026-09-08T06:31:38.411Z",
+      "author": "codex",
+      "summary": "T-049 0.3.0 升级：版本生效检查、任务分页与证据分级：前三项升级已交付0.3.0：有界分页/结构化结果、完成证据分级、版本核验与受控升级。保持48工具、7资源和5提示。完整276测试及覆盖率通过，安装包冷启动通过；本机配置已绑定E盘固定安装目录，独立doctor核验0.3.0及正确root。配置其余字节受保护，旧会话保留；既有Codex会话须重连后再次核验，未推送或发布。",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "install.ps1",
+        "src/cli.ts",
+        "src/dashboard.ts",
+        "src/doctor.ts",
+        "src/governance-tools.ts",
+        "src/index.ts",
+        "src/language-adapters.ts",
+        "src/project-tools.ts",
+        "src/quality-evidence.ts",
+        "src/quality-store.ts",
+        "src/setup-project.ts",
+        "src/setup.ts",
+        "src/task-evidence.ts",
+        "src/task-pagination.ts",
+        "src/task-tools.ts",
+        "src/tool-base.ts",
+        "src/types.ts",
+        "src/version.ts",
+        "test/exploit.test.ts",
+        "test/integrity.test.ts",
+        "test/quality-evidence.test.ts",
+        "test/upgrade-030.test.ts",
+        "scripts/acceptance-cycle.mts",
+        "scripts/acceptance-target.mts",
+        "scripts/create-pm-acceptance-evaluation.mts"
+      ],
+      "file_hashes": {
+        "package.json": "3327207712e7cb5adc8f61a5d674e32facd5db7e69ac079920ba2f50f8c41610",
+        "package-lock.json": "37a5ee479313dad5db1615a47f26b91234e3b1ee433289ef5b4e68c997bcef41",
+        "README.md": "9e015ae628340bb82122972e47bcf73fac6bfdc896a1d8803320b511f380208f",
+        "install.ps1": "b48e16e5c47045cbb288ea84a7f5f4ad355ebeabeffa615d2d81dcc4ee7e6921",
+        "src/cli.ts": "a6929472f3a5d4d34e397fed7295c3a18dd191c31bf13ea592f2dc921a11b7b3",
+        "src/dashboard.ts": "c29b6514cb921acb52c57d91c2b7468bcbcf65239fe2a8c71f2e2f66181e613e",
+        "src/doctor.ts": "5a430f8d91a3a192d7e9131afc18c357d3470b36aefdedd74fcc7b501e58a19c",
+        "src/governance-tools.ts": "74960e6103cfae3818a6c85c049576f85e81319d17e2093b2cec51fd81ffcb31",
+        "src/index.ts": "89bb8e13d33ae0a800897111af357b7e6aa8b79d3e5cfa694fdf215891000d3d",
+        "src/language-adapters.ts": "1b7c35382296dd11f234089d52ea8f02f442156525356292606c67dc7527e6cb",
+        "src/project-tools.ts": "e61d76dfc1d49b085c16347628a66b27409bf46a02840cee84a7a0c8e5a63af5",
+        "src/quality-evidence.ts": "717169566f4b8331a34492e4eb44d984fa3416ed1bf5a3b162ca2c541edce860",
+        "src/quality-store.ts": "12b224bc8e13a0db81994b9f66aa8836e356f42ad2bae7c97fdc240e6065c977",
+        "src/setup-project.ts": "99c394982f197ed92b1294a0e3e49a2d3727a2310abce56ccc7900962ff28cb8",
+        "src/setup.ts": "bc99c1eb18171cb76c085615cb1149dc18e719d1dbfb6f20cab84cbd20a05aea",
+        "src/task-evidence.ts": "a46daf258adf4817ea2418fc270cdfd7d6174ae5808caecbd7476a49ee4ef9e7",
+        "src/task-pagination.ts": "2c37b900e19e4c6908915d3f551c7dc59585cc3dd207ef6adfa7ff529292de1f",
+        "src/task-tools.ts": "50fa82123ef72dd4604cbf4155850f285ec08da6c43eeb964082b7d67cc44366",
+        "src/tool-base.ts": "9f73db00852d6f9956e79fc96762a3595ae0dd0e8a43824cd4a0bb4532377b0d",
+        "src/types.ts": "8cdbe4f192efb95cbaeb4726c05f9e1637e6d82d505191dee917f6176825be9a",
+        "src/version.ts": "b2d565863797ced9ed301c3220c3956318d15c25082c40f86fcc96d0de9615e6",
+        "test/exploit.test.ts": "47f3914b90f6f4cc2b74ea03243e0a253daa1ddcec62be67a9501e541390ecf7",
+        "test/integrity.test.ts": "8065777627761cf40215b9eb43372057b955e113cc75c5d4137e341919408b76",
+        "test/quality-evidence.test.ts": "d66e1a651c4d0c011b79766283743f19aab3f931323808ed709512306b96808c",
+        "test/upgrade-030.test.ts": "24ff586540db9b31cede2ec9d87345d725cf7567a31e31aba9ef6d64c483094d",
+        "scripts/acceptance-cycle.mts": "b1e5f5f1093694d024830964ba8032035dac5158927a880aba1cd495da678260",
+        "scripts/acceptance-target.mts": "624f02d76869e0c7940094bd35eb42fa13bec9a3e69b2e5b46fe7b59c2aaa340",
+        "scripts/create-pm-acceptance-evaluation.mts": "2e61055359df15ce66f2cb809958a175be7bdae4914ee6967837e9bf1ceb49c8"
+      },
+      "next_steps": []
+    },
+    {
+      "id": "S-0040",
+      "date": "2026-09-09T07:52:00.504Z",
+      "author": "codex",
+      "summary": "核对网关项目 pm-mcp 调用开销与触发规则：保留601次业务调用，服务端平均325ms、中位81ms；get_status89次平均66ms，search_code205次平均788ms。全局及网关AGENTS要求开工/收工闭环，但缺少纯咨询和同任务连续追问的豁免；提出按实际工作节点触发。未修改产品代码、网关规则或配置，计量无轮次ID，不能据此推算每轮对话额外耗时。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": []
+    },
+    {
+      "id": "S-0041",
+      "date": "2026-09-11T12:17:57.346Z",
+      "author": "workbuddy",
+      "summary": "接入 WorkBuddy 客户端并核验：setup --client workbuddy 写入标准 mcp.json（数据目录按 WORKBUDDY_CONFIG_DIR → ~/.workbuddy-ai → ~/.workbuddy 解析；写前备份、保留未知字段与既有 server），刻意不钉 --root——WorkBuddy 以会话工作区作为 MCP 子进程 cwd，服务端按 cwd 解析项目根，因此一条配置服务所有工作区；doctor --client workbuddy 读该配置并补 --root 做真实握手。本机已用 --local 绑定 E 盘构建入口，doctor 核验 48 工具 / 0.3.0 / 根正确；以工作区为 cwd 的模拟启动确认根解析正确，未初始化目录只返回错误且零写入。类型检查、构建与 setup/upgrade-030 测试（34 项）全通过；全量 283 项中 3 项失败均为沙箱环境限制（符号链接被禁、nul.ts 保留名被 fs shim 拦截、20 进程抢锁超时），三个失败文件均不引用本次改动模块。",
+      "files": [
+        "src/setup.ts",
+        "src/doctor.ts",
+        "src/setup-project.ts",
+        "src/cli.ts",
+        "test/setup.test.ts",
+        "test/upgrade-030.test.ts",
+        "README.md",
+        "install.ps1"
+      ],
+      "file_hashes": {
+        "src/setup.ts": "153056bd6b4a809b3f5753916410699609e09fa06d6e2c6ea9ed4319a6213b14",
+        "src/doctor.ts": "3a8d13d18582691e111a12a9aafd8bd47fca5e58abe2ce664e9cf2412b04f436",
+        "src/setup-project.ts": "1f719cc1c5bcc60b8d3de8194b352f79e80d6f7b56872151264e6e28d448456d",
+        "src/cli.ts": "e1abe8f38d705a8521d3b5781355eb2a540b37f372907a1be41c27f195af854a",
+        "test/setup.test.ts": "2acd560c65c30aa868b72e11a88a97ad991e9975a71b1b1a8ef40d10123512cd",
+        "test/upgrade-030.test.ts": "1358a837a5b2a8ea31d7cee936d24dae9c24c24fa027e09fe3d2cb30cfc7b6a7",
+        "README.md": "d25d87b1d63139102506cbdda28ec37299d644851f0d5ea4c76f971d3e7997c1",
+        "install.ps1": "2073721243c01279a6a4043d3d29579cd32720ffaf67aff2ea6beaf711e20d4e"
+      },
+      "next_steps": [
+        "在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本",
+        "考虑把 workbuddy 纳入 CI 与发布走查清单"
+      ]
+    },
+    {
+      "id": "S-0042",
+      "date": "2026-09-11T12:24:12.155Z",
+      "author": "workbuddy",
+      "summary": "收尾 WorkBuddy 接入：跑通 pm-mcp 自带巡检并消除两处自造红旗（临时脚本 .tmp-*.mjs 触发 javascript 未声明语言、巡检输出文件触发未入账变更）；.gitignore 增加 .workbuddy-ai/（与既有 .zcode/ 同类工具工作区目录，否则每次 memory 写入都会产生未入账变更）；补充边界测试：WorkBuddy 检测的 5 种入口条件、doctor 对缺失文件/坏 JSON/args 非数组/缺 command 的 fail-closed 及「已带 --root 不重复追加」。setup+upgrade-030 共 36 项通过，巡检无红旗。",
+      "files": [
+        ".gitignore",
+        "test/setup.test.ts",
+        "test/upgrade-030.test.ts"
+      ],
+      "file_hashes": {
+        ".gitignore": "9a4fe00659ff415d140b0ab032f5f918c5df867251ff50b984bc478f81630a65",
+        "test/setup.test.ts": "592b959b7f3928d148a06aadd4c5810dee777c18335e7dc5e350971d0cb8117a",
+        "test/upgrade-030.test.ts": "cebdc3585bc975b8a85f4c9e32f28790f3ac29f2b3e634fd29f8b426cc1fc75d"
+      },
+      "next_steps": [
+        "在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本",
+        "发布 0.3.0 前确认 README 的 WorkBuddy 示例版本号与 registry 一致"
+      ]
+    },
+    {
+      "id": "S-0043",
+      "date": "2026-09-11T12:29:29.671Z",
+      "author": "workbuddy",
+      "summary": "修复 auto 模式收尾提示退化并复核：setup 在多客户端同时配置时改为逐条列出各自的重连/授权要求（此前只要 selected 含 workbuddy 就只提 WorkBuddy，配置了 codex 等 5 个客户端时提示误导）；补多客户端提示测试。重新构建 dist，setup+upgrade-030 共 37 项通过，install.ps1 解析 OK，CI 配置无需改动（不涉及客户端分支）。覆盖率抽样：doctor.ts line 98.2%、setup-project.ts line 100%、setup.ts line 82.5%（未覆盖行多为既有的 codex/claude/vscode 分支，非本次引入）。",
+      "files": [
+        "src/setup.ts",
+        "test/setup.test.ts"
+      ],
+      "file_hashes": {
+        "src/setup.ts": "32c14c9bd5ea4bb0eb4992f0aa27d5bb475ae14bf70a3100917c6417a147cf85",
+        "test/setup.test.ts": "a79a6802ee9c90ad4dc66c15e43fc2e43fe26ce7f3998dd37002ecd7127452dd"
+      },
+      "next_steps": [
+        "在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本",
+        "发布 0.3.0 前跑完整 npm run coverage 确认全局门槛（沙箱内 3 项环境测试必失败，无法给出可信的全量覆盖率）",
+        "README 第 71 行「本页安装示例固定使用 0.1.5」与主示例的 @latest 措辞不一致，发布前统一"
+      ]
+    },
+    {
+      "id": "S-0044",
+      "date": "2026-09-11T12:32:03.809Z",
+      "author": "workbuddy",
+      "summary": "覆盖率补口与复核：为 localProjectLaunch 补直接单元测试（此前唯一未覆盖的本次新增代码），setup.ts 覆盖率升至 line 83.04% / branch 68.55% / funcs 80.95%（funcs +4.76）；此时未覆盖行全部为既有的 --help、commandExists、appendCodexConfig、configureCliClient 等路径。doctor.ts line 98.2%、setup-project.ts line 100%。setup+upgrade-030 共 38 项通过。注：单文件覆盖率是只跑安装器测试的抽样值，不代表 CI 的全局门槛。",
+      "files": [
+        "test/setup.test.ts"
+      ],
+      "file_hashes": {
+        "test/setup.test.ts": "6987f7134b11a29a82f7ba50a57d1bf9e292d52072289937250f085f4c0727b9"
+      },
+      "next_steps": [
+        "在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本",
+        "发布 0.3.0 前跑完整 npm run coverage 确认全局门槛（沙箱内 3 项环境测试必失败，无法给出可信的全量覆盖率）",
+        "README 第 71 行「本页安装示例固定使用 0.1.5」与主示例的 @latest 措辞不一致，发布前统一"
+      ]
+    },
+    {
+      "id": "S-0045",
+      "date": "2026-09-13T17:31:55.735Z",
+      "author": "zcode",
+      "summary": "修复到清零会话：T-034/T-045 根治（SCAN_IGNORE_DIRS 增补 10 个运行时/缓存目录；touchRegistry 温目录跳过+大小写去重；quality-gate 测试补沙箱；真实注册表 74→3）；修复 update_task type 字段 schema-handler 失配 bug；网关项目（跨仓库，改动已记其自身账本）元数据补全+首拍快照+安全台账 577 条全闭环；积压任务 7 项全部事实核销",
+      "files": [
+        "src/scan-policy.ts",
+        "src/registry.ts",
+        "src/task-tools.ts",
+        "test/quality-gate.test.ts",
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/security.json"
+      ],
+      "file_hashes": {
+        "src/scan-policy.ts": "a8ca4b3136cb34662a2c10ad29d71e74d89fb50dc686f413040d0623cc23bcf1",
+        "src/registry.ts": "63cf200cd48d70f78abc8d4705b1626d9e3c4e23154af64898741b941b9a0d5d",
+        "src/task-tools.ts": "d909c278f6faf4aed395a8f22960e03e8c28bc5133e32fbbee335d49cfbec9d5",
+        "test/quality-gate.test.ts": "d4e3b0705dfc2db92fed212b4b517a8546d320e68107ed02cdc949b9cdb10e6d",
+        ".pm/tasks.json": "931561e2ec860f9e55286deca24e0ba1aaaa595f40c423ade8de3f5c94b651e3",
+        ".pm/sessions.json": "164a621d8c745c55f95f6d470ce45c43ed850621b4c92067312f4d92643bf9d6",
+        ".pm/security.json": "2f5f157e314a8b3e4bf83d64c5c79131bcac3c3b7f4bb114eececbeb4128687a"
+      },
+      "next_steps": [
+        "观察下一轮巡检应全绿",
+        "网关 WIP 15 个 in_progress 建议收敛",
+        "文件用途索引从核心模块建起"
       ]
     }
   ]

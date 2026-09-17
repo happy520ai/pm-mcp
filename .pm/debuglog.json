@@ -1,5 +1,5 @@
 {
-  "seq": 8,
+  "seq": 19,
   "entries": [
     {
       "id": "D-0001",
@@ -129,6 +129,169 @@
         "test/store.test.ts"
       ],
       "task_id": "T-032"
+    },
+    {
+      "id": "D-0009",
+      "date": "2026-09-06T14:01:49.462Z",
+      "author": "",
+      "symptom": "`npx -y @luckychen1993/pm-mcp@latest setup --project` 在本任务环境直接报 `unknown setup argument: --project`，且 `@0.1.5` 不存在，导致冷安装流程无法执行。",
+      "root_cause": "当前 npm registry 可见版本最高仅 0.1.4，发布入口/CLI 尚未加入 `--project` 参数；根因在 pm-mcp 包发布线而非仓库源码。",
+      "fix": "将该仓库阻塞为“待发布新版”；待 pm-mcp 发布 0.1.5 后，用 `setup --client codex --project` 回归本地冷安装与托管 CI。",
+      "verified_how": "执行 `npm view @luckychen1993/pm-mcp versions --json`、`npx -y @luckychen1993/pm-mcp@latest setup --project`、`npx -y @luckychen1993/pm-mcp@0.1.5 --version`（ETARGET）三类复现/验证命令。",
+      "files": [
+        "<npm registry>"
+      ],
+      "task_id": "T-033"
+    },
+    {
+      "id": "D-0010",
+      "date": "2026-09-07T05:56:59.924Z",
+      "author": "",
+      "symptom": "安全扫描跳过过大/二进制/不可读文件时误关闭旧风险；旧扫描结果可关闭后来出现或恢复的风险。",
+      "root_cause": "扫描只返回命中列表，未保留具体旧发现的有效检查证据；台账把缺少命中当作修复。准备与落账之间也没有核对内容是否改变。",
+      "fix": "仅跟踪已有open发现的文件/规则覆盖，关闭前复核内容SHA-256或确认根内普通路径删除；覆盖不足保留open并提示；移除规则不视为修复。未增加持久化结构。",
+      "verified_how": "修复前9项回归失败中含6项安全边界；候选复核另复现过期证据失败并修复；最终253测试/coverage通过；冷安装包真实audit_security保留超大文件风险并能正常关闭已修复内容。",
+      "files": [
+        "src/security.ts",
+        "test/security.test.ts"
+      ],
+      "task_id": "T-042"
+    },
+    {
+      "id": "D-0011",
+      "date": "2026-09-07T05:57:00.077Z",
+      "author": "",
+      "symptom": "多个中文项目或不同父目录的同名项目共用服务键；既有键指向错误root也返回安装成功。",
+      "root_cause": "服务名只由ASCII化basename决定，重复判断只检查表头而不核对--root。",
+      "fix": "规范完整路径的SHA-256摘要进入服务键；规范化目录联接和路径别名；检查已有条目root，错误或无法确认时拒绝假成功；兼容匹配root的旧条目。",
+      "verified_how": "修复前中文/同名碰撞和错root回归均失败；最终253测试与冷安装后的两中文项目真实setup通过，目录联接幂等通过。",
+      "files": [
+        "src/setup.ts",
+        "test/setup.test.ts"
+      ],
+      "task_id": "T-042"
+    },
+    {
+      "id": "D-0012",
+      "date": "2026-09-07T05:57:00.159Z",
+      "author": "",
+      "symptom": "字面量--files被rg解释为选项，明明存在的文本被报告无命中。",
+      "root_cause": "literal分支只传-F与query，未用-e绑定查询作为模式参数。",
+      "fix": "使用-F -e query，与regex分支一样显式绑定模式，保留字面量搜索。",
+      "verified_how": "修复前--files回归失败；--files/--pre=node/-e/--/-n和普通/正则控制通过；0.1.5安装包真实MCP search_code通过。",
+      "files": [
+        "src/search.ts",
+        "test/search.test.ts"
+      ],
+      "task_id": "T-042"
+    },
+    {
+      "id": "D-0013",
+      "date": "2026-09-07T06:31:11.814Z",
+      "author": "",
+      "symptom": "发布前核验发现 agents_md:false 实际仍写AGENTS.md、轮转日志未被Git忽略；首轮Linux Node22/24 CI均因同毫秒备份名EEXIST失败。",
+      "root_cause": "MCP snake_case参数未映射到领域agentsMd；忽略模式不匹配usage-log.1.jsonl命名；备份名仅时间戳和PID不足以区分同毫秒写入。",
+      "fix": "显式参数映射；忽略模式覆盖当前与轮转文件；备份名增加randomUUID。原工作区和独立发布分支均同步修复，保留首轮失败。",
+      "verified_how": "3个问题均先保留失败复现，再通过回归；43b89f9托管CI 34090853264 Node22.18/24全部通过；最终tarball隔离安装48工具真实MCP烟测通过。",
+      "files": [
+        "src/project-tools.ts",
+        "src/paths.ts",
+        "src/setup.ts",
+        "test/integration.test.ts",
+        "test/usage-log.test.ts",
+        "test/setup.test.ts",
+        ".pm/.gitignore"
+      ],
+      "task_id": "T-043"
+    },
+    {
+      "id": "D-0014",
+      "date": "2026-09-07T15:24:40.907Z",
+      "author": "",
+      "symptom": "全量验证发现已完成T-033的关联文件是不存在的跨项目占位路径E:/PM/unified-ai-system/n/a，真实漂移测试失败。",
+      "root_cause": "历史任务关联元数据混入了占位路径；扫描器正确报告缺失，不能通过放宽断言隐藏。",
+      "fix": "保留任务的历史完成和验证记录，仅将files修正为已在源码定位确认的幂等/锁/watch实现及对应验证文件。旧占位值保存在本调试记录。",
+      "verified_how": "git source search确认runIdempotentWriteSync/withFileRecoveryLock/coordinateWatcherLeader入口，文件实际存在；后续真实漂移测试复核。",
+      "files": [
+        ".pm/tasks.json"
+      ],
+      "task_id": "T-046"
+    },
+    {
+      "id": "D-0015",
+      "date": "2026-09-07T16:55:43.841Z",
+      "author": "",
+      "symptom": "多个会话修改不同文件后，Git对账把此前已经记账的文件再次报为未入账；同名路径后续变化又缺少内容证据。",
+      "root_cause": "旧实现只比较最近一个会话的路径集合，并按行解析Git状态，不能区分历史记录与当前内容，也容易误解析特殊文件名。",
+      "fix": "使用Git NUL格式保留文件名与重命名两端；新会话保存普通文件/删除状态/链接本体摘要，对账查找全部会话的匹配摘要；旧路径记录标为未验证。",
+      "verified_how": "真实临时Git仓库覆盖多会话、同大小同mtime后续改动、中文路径、删除、重命名和旧会话；最终原工作区12项相关测试通过，隔离副本263项全量覆盖率测试通过。",
+      "files": [
+        "src/git-state.ts",
+        "src/audit.ts",
+        "src/session-log.ts",
+        "src/knowledge-tools.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "task_id": "T-040"
+    },
+    {
+      "id": "D-0016",
+      "date": "2026-09-07T16:55:43.942Z",
+      "author": "",
+      "symptom": "真实Windows watcher在更新扫描规则后漏掉新增源码，索引却继续显示新鲜；活动监听回归测试首轮失败。",
+      "root_cause": "Windows文件监听实际返回change事件但filename为null，旧回调直接忽略，未将索引标为待核对。",
+      "fix": "缺少文件名时记录不完整事件并标脏，下一次精确走查恢复；扫描规则变化同步刷新监听过滤器与缓存策略签名。",
+      "verified_how": "保留boundaries.txt首轮1失败；原生fs.watch诊断捕获null事件；修复后12项边界和索引测试全部通过，未增加超时或屏蔽断言。",
+      "files": [
+        "src/index-store.ts",
+        "src/index-db.ts",
+        "src/scan-policy.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "task_id": "T-046"
+    },
+    {
+      "id": "D-0017",
+      "date": "2026-09-07T16:55:44.059Z",
+      "author": "",
+      "symptom": "隔离环境第一次完整测试缺dist；构建后，文件级并发叠加多进程测试时出现租约/锁时限失败。",
+      "root_cause": "验证副本以复制依赖代替npm ci，漏执行prepare；未过期租约用例把生产一小时租约缩短到500ms，在繁忙环境中实际过期；文件级默认并发叠加内部20进程压力。",
+      "fix": "补齐验证前构建；未过期场景恢复使用生产默认租约，过期分支仍由30ms用例覆盖；测试文件并发限制为2，内部20进程竞争及原有3s锁超时保持。",
+      "verified_how": "保留首轮质量263/259及诊断263/257结果；修复后完整263测试与263覆盖率运行通过。此为验证资源条件修正，不证明生产并发问题不存在。",
+      "files": [
+        "package.json",
+        "test/idempotency-lease.test.ts"
+      ],
+      "task_id": "T-046"
+    },
+    {
+      "id": "D-0018",
+      "date": "2026-09-08T06:31:37.723Z",
+      "author": "",
+      "symptom": "新增真实执行检查发现嵌套 node --test 因递归测试上下文而跳过文件但 exit0；Vitest 摘要也曾被宽泛 Node 计数正则误读。",
+      "root_cause": "质量子进程继承 NODE_TEST_CONTEXT=child-v8；Node 计数识别未严格锚定整行摘要。",
+      "fix": "仅移除子进程内部 NODE_TEST_CONTEXT 标志，使用完整摘要行识别测试运行器；以真实单测数和分级策略防止空执行充当测试证据。",
+      "verified_how": "首次 focused-second 失败保留；最终13项针对性测试、276项全量测试与覆盖率通过；冷安装 MCP 空执行完成被拒绝。",
+      "files": [
+        "src/language-adapters.ts",
+        "src/quality-evidence.ts",
+        "test/upgrade-030.test.ts"
+      ],
+      "task_id": "T-049"
+    },
+    {
+      "id": "D-0019",
+      "date": "2026-09-08T06:31:37.815Z",
+      "author": "",
+      "symptom": "第一轮全量测试276项中1项失败：新的 pm://tasks 分页提示丢失旧客户端依赖的已截断文字。",
+      "root_cause": "新增资源续读元数据时替换了既有可见截断提示，破坏兼容断言。",
+      "fix": "保留旧截断标识和提示，同时增加 list_tasks 续读参数；补充实际资源到工具的150任务续读验证。",
+      "verified_how": "full-first 原始失败输出完整保留；full-second 276/276、覆盖率276/276通过。",
+      "files": [
+        "src/index.ts",
+        "test/exploit.test.ts"
+      ],
+      "task_id": "T-049"
     }
   ]
 }

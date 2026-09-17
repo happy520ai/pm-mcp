@@ -1,5 +1,5 @@
 {
-  "seq": 14,
+  "seq": 21,
   "features": [
     {
       "id": "F-001",
@@ -251,6 +251,136 @@
       "status": "implemented",
       "created": "2026-09-03T08:06:16.910Z",
       "updated": "2026-09-03T08:06:16.910Z"
+    },
+    {
+      "id": "F-015",
+      "name": "使用日志与运行日志",
+      "description": "get_usage_log/get_runtime_log：工具调用计量（成败/耗时/输出与折叠省下的 token 估算，验证省不省 token）与服务级运行事件（server/watcher/工具报错）；JSONL 滚动保留约 2MB、不进 git、不记参数内容",
+      "module": "src",
+      "entry_files": [
+        "src/usage-log.ts"
+      ],
+      "test_files": [
+        "test/usage-log.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-03T16:05:41.139Z",
+      "updated": "2026-09-03T16:05:41.139Z"
+    },
+    {
+      "id": "F-016",
+      "name": "任务合并更新与当前源码验证",
+      "description": "update_task合并进度、checkpoint和可选会话；feature/fix完成时校验最新真实质量报告、任务文件与当前源码摘要，保留48工具和旧账本读取。",
+      "module": "src",
+      "entry_files": [
+        "src/task-tools.ts",
+        "src/task-evidence.ts",
+        "src/session-log.ts"
+      ],
+      "test_files": [
+        "test/management-upgrade.test.ts",
+        "test/integration.test.ts",
+        "test/scenario.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-07T16:55:43.503Z",
+      "updated": "2026-09-07T16:55:43.503Z"
+    },
+    {
+      "id": "F-017",
+      "name": "内容摘要对账与可配置扫描范围",
+      "description": "按多会话内容摘要核对Git变化，识别删除和重命名；统一扫描、搜索、语言发现、指纹及实时索引的缓存排除范围，无文件名监听通知标脏恢复。",
+      "module": "src",
+      "entry_files": [
+        "src/git-state.ts",
+        "src/audit.ts",
+        "src/scan-policy.ts",
+        "src/index-store.ts",
+        "src/index-db.ts"
+      ],
+      "test_files": [
+        "test/management-upgrade.test.ts",
+        "test/index-store.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-07T16:55:43.669Z",
+      "updated": "2026-09-07T16:55:43.669Z"
+    },
+    {
+      "id": "F-018",
+      "name": "MCP 运行版本核验与受控本地升级",
+      "description": "setup 支持固定本地包升级、仅替换目标启动参数并备份；doctor 新建连接核验版本、项目根和48工具，明确区分既有客户端重连。",
+      "module": "MCP 运行与配置",
+      "entry_files": [
+        "src/version.ts",
+        "src/doctor.ts",
+        "src/setup-project.ts",
+        "src/setup.ts",
+        "src/project-tools.ts"
+      ],
+      "test_files": [
+        "test/upgrade-030.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-08T06:31:37.376Z",
+      "updated": "2026-09-08T06:31:37.376Z"
+    },
+    {
+      "id": "F-019",
+      "name": "任务游标分页与结构化结果",
+      "description": "list_tasks 提供受预算约束的完整分页与 structuredContent；游标绑定项目、过滤条件和数据版本；pm://tasks 截断后提供续读入口。",
+      "module": "任务管理",
+      "entry_files": [
+        "src/task-pagination.ts",
+        "src/task-tools.ts",
+        "src/index.ts"
+      ],
+      "test_files": [
+        "test/upgrade-030.test.ts",
+        "test/integrity.test.ts",
+        "test/exploit.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-08T06:31:37.485Z",
+      "updated": "2026-09-08T06:33:06.576Z"
+    },
+    {
+      "id": "F-020",
+      "name": "完成证据分级与明确兼容策略",
+      "description": "区分未验证、仅执行、测试已观察和覆盖率已观察；默认拒绝未知测试计数完成任务，兼容策略须注明理由并保留失败/零测试/过期证据约束。",
+      "module": "质量验证",
+      "entry_files": [
+        "src/quality-evidence.ts",
+        "src/quality-store.ts",
+        "src/task-evidence.ts",
+        "src/language-adapters.ts"
+      ],
+      "test_files": [
+        "test/upgrade-030.test.ts",
+        "test/quality-evidence.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-08T06:31:37.569Z",
+      "updated": "2026-09-08T06:31:37.569Z"
+    },
+    {
+      "id": "F-021",
+      "name": "WorkBuddy 客户端接入与配置核验",
+      "description": "统一安装器新增 workbuddy 客户端：按 WORKBUDDY_CONFIG_DIR → ~/.workbuddy-ai → ~/.workbuddy 解析数据目录，写入标准 {mcpServers} 配置（写前备份、保留未知字段与既有 server）；刻意不钉 --root，由会话工作区决定项目根，一条配置服务所有工作区。doctor --client workbuddy 读取该配置并补 --root 做真实握手，仅认可识别的本地 pm-mcp 启动项，拒绝 disabled 与未知启动器。",
+      "module": "src",
+      "entry_files": [
+        "src/setup.ts",
+        "src/doctor.ts",
+        "src/setup-project.ts",
+        "src/cli.ts"
+      ],
+      "test_files": [
+        "test/setup.test.ts",
+        "test/upgrade-030.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-11T12:17:54.407Z",
+      "updated": "2026-09-11T12:17:54.407Z"
     }
   ]
 }

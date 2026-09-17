@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-08T06:27:51.195Z",
+  "ok": true,
+  "reported_ok": true,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "e9df8b84c117907e9ff794e70098c9db4b01ffcb97bce08d090fd2e0ef52daad",
+      "files": 127,
+      "bytes": 1209306
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "e9df8b84c117907e9ff794e70098c9db4b01ffcb97bce08d090fd2e0ef52daad",
+      "files": 127,
+      "bytes": 1209306
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "--test",
+        "test/upgrade-030.test.ts"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 4971,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 1335,
+        "stderr_bytes": 0,
+        "output_sha256": "1266f4c9ea4509c94903ae32903a52a00e9e376ad6043646ea2ae3f11abc7939",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    }
+  ]
+}

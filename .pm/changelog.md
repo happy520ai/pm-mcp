@@ -1,5 +1,201 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-09-13 — zcode
+
+修复到清零会话：T-034/T-045 根治（SCAN_IGNORE_DIRS 增补 10 个运行时/缓存目录；touchRegistry 温目录跳过+大小写去重；quality-gate 测试补沙箱；真实注册表 74→3）；修复 update_task type 字段 schema-handler 失配 bug；网关项目（跨仓库，改动已记其自身账本）元数据补全+首拍快照+安全台账 577 条全闭环；积压任务 7 项全部事实核销
+
+改动文件（7）: src/scan-policy.ts, src/registry.ts, src/task-tools.ts, test/quality-gate.test.ts, .pm/tasks.json, .pm/sessions.json, .pm/security.json
+
+下一步: 观察下一轮巡检应全绿；网关 WIP 15 个 in_progress 建议收敛；文件用途索引从核心模块建起
+
+## 2026-09-11 — workbuddy
+
+覆盖率补口与复核：为 localProjectLaunch 补直接单元测试（此前唯一未覆盖的本次新增代码），setup.ts 覆盖率升至 line 83.04% / branch 68.55% / funcs 80.95%（funcs +4.76）；此时未覆盖行全部为既有的 --help、commandExists、appendCodexConfig、configureCliClient 等路径。doctor.ts line 98.2%、setup-project.ts line 100%。setup+upgrade-030 共 38 项通过。注：单文件覆盖率是只跑安装器测试的抽样值，不代表 CI 的全局门槛。
+
+改动文件（1）: test/setup.test.ts
+
+下一步: 在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本；发布 0.3.0 前跑完整 npm run coverage 确认全局门槛（沙箱内 3 项环境测试必失败，无法给出可信的全量覆盖率）；README 第 71 行「本页安装示例固定使用 0.1.5」与主示例的 @latest 措辞不一致，发布前统一
+
+## 2026-09-11 — workbuddy
+
+修复 auto 模式收尾提示退化并复核：setup 在多客户端同时配置时改为逐条列出各自的重连/授权要求（此前只要 selected 含 workbuddy 就只提 WorkBuddy，配置了 codex 等 5 个客户端时提示误导）；补多客户端提示测试。重新构建 dist，setup+upgrade-030 共 37 项通过，install.ps1 解析 OK，CI 配置无需改动（不涉及客户端分支）。覆盖率抽样：doctor.ts line 98.2%、setup-project.ts line 100%、setup.ts line 82.5%（未覆盖行多为既有的 codex/claude/vscode 分支，非本次引入）。
+
+改动文件（2）: src/setup.ts, test/setup.test.ts
+
+下一步: 在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本；发布 0.3.0 前跑完整 npm run coverage 确认全局门槛（沙箱内 3 项环境测试必失败，无法给出可信的全量覆盖率）；README 第 71 行「本页安装示例固定使用 0.1.5」与主示例的 @latest 措辞不一致，发布前统一
+
+## 2026-09-11 — workbuddy
+
+收尾 WorkBuddy 接入：跑通 pm-mcp 自带巡检并消除两处自造红旗（临时脚本 .tmp-*.mjs 触发 javascript 未声明语言、巡检输出文件触发未入账变更）；.gitignore 增加 .workbuddy-ai/（与既有 .zcode/ 同类工具工作区目录，否则每次 memory 写入都会产生未入账变更）；补充边界测试：WorkBuddy 检测的 5 种入口条件、doctor 对缺失文件/坏 JSON/args 非数组/缺 command 的 fail-closed 及「已带 --root 不重复追加」。setup+upgrade-030 共 36 项通过，巡检无红旗。
+
+改动文件（3）: .gitignore, test/setup.test.ts, test/upgrade-030.test.ts
+
+下一步: 在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本；发布 0.3.0 前确认 README 的 WorkBuddy 示例版本号与 registry 一致
+
+## 2026-09-11 — workbuddy
+
+接入 WorkBuddy 客户端并核验：setup --client workbuddy 写入标准 mcp.json（数据目录按 WORKBUDDY_CONFIG_DIR → ~/.workbuddy-ai → ~/.workbuddy 解析；写前备份、保留未知字段与既有 server），刻意不钉 --root——WorkBuddy 以会话工作区作为 MCP 子进程 cwd，服务端按 cwd 解析项目根，因此一条配置服务所有工作区；doctor --client workbuddy 读该配置并补 --root 做真实握手。本机已用 --local 绑定 E 盘构建入口，doctor 核验 48 工具 / 0.3.0 / 根正确；以工作区为 cwd 的模拟启动确认根解析正确，未初始化目录只返回错误且零写入。类型检查、构建与 setup/upgrade-030 测试（34 项）全通过；全量 283 项中 3 项失败均为沙箱环境限制（符号链接被禁、nul.ts 保留名被 fs shim 拦截、20 进程抢锁超时），三个失败文件均不引用本次改动模块。
+
+改动文件（8）: src/setup.ts, src/doctor.ts, src/setup-project.ts, src/cli.ts, test/setup.test.ts, test/upgrade-030.test.ts, README.md, install.ps1
+
+下一步: 在 WorkBuddy「连接器管理 → 自定义连接器」中信任 pm-mcp，重开会话用 get_status 核验运行版本；考虑把 workbuddy 纳入 CI 与发布走查清单
+
+## 2026-09-09 — codex
+
+核对网关项目 pm-mcp 调用开销与触发规则：保留601次业务调用，服务端平均325ms、中位81ms；get_status89次平均66ms，search_code205次平均788ms。全局及网关AGENTS要求开工/收工闭环，但缺少纯咨询和同任务连续追问的豁免；提出按实际工作节点触发。未修改产品代码、网关规则或配置，计量无轮次ID，不能据此推算每轮对话额外耗时。
+
+## 2026-09-08 — codex
+
+T-049 0.3.0 升级：版本生效检查、任务分页与证据分级：前三项升级已交付0.3.0：有界分页/结构化结果、完成证据分级、版本核验与受控升级。保持48工具、7资源和5提示。完整276测试及覆盖率通过，安装包冷启动通过；本机配置已绑定E盘固定安装目录，独立doctor核验0.3.0及正确root。配置其余字节受保护，旧会话保留；既有Codex会话须重连后再次核验，未推送或发布。
+
+改动文件（28）: package.json, package-lock.json, README.md, install.ps1, src/cli.ts, src/dashboard.ts, src/doctor.ts, src/governance-tools.ts, src/index.ts, src/language-adapters.ts, src/project-tools.ts, src/quality-evidence.ts, src/quality-store.ts, src/setup-project.ts, src/setup.ts, src/task-evidence.ts, src/task-pagination.ts, src/task-tools.ts, src/tool-base.ts, src/types.ts, src/version.ts, test/exploit.test.ts, test/integrity.test.ts, test/quality-evidence.test.ts, test/upgrade-030.test.ts, scripts/acceptance-cycle.mts, scripts/acceptance-target.mts, scripts/create-pm-acceptance-evaluation.mts
+
+## 2026-09-08 — codex
+
+T-047 0.3.0 正式验收基线升版与重新评价：新1.1.0基线已按直接开工授权采用并在验证前批准；原1.0.0字节摘要未变。0.3.0隔离副本完整质量通过，正式第一方本地评价33/33要求与33/33评价测试通过，8/8风险受控、5/5阶段完成；旧失败保留，远程发布未执行。
+
+改动文件（7）: package.json, scripts/acceptance-target.mts, scripts/acceptance-cycle.mts, scripts/create-pm-acceptance-evaluation.mts, .pm/acceptance/baselines/pm-mcp-local-release/1.1.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.1.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.1.0-first-failure.md
+
+## 2026-09-08 — codex
+
+完成pm-mcp深度研究，交付7页PDF。未改产品代码；提出版本生效与验收衔接、任务分页/结构化结果、完成证据分级、任务依赖、条件性桌面常驻与小型指标。两项隔离实验确认边界；官方资料与本地证据交叉核验。
+
+下一步: 优先审阅PDF并明确下一轮实施范围；T-047正式基线仍待批准。；此前桌面面板常驻请求仍需确认具体程序入口；系统启动配置尚未修改。
+
+## 2026-09-07 — codex
+
+T-046 极简项目管理升级：准确对账、合并操作与完成证据：三项验收条件均已实现并验证：多会话内容对账与扫描边界、一次更新合并断点/会话、完成绑定当前源码真实报告。保留48工具；最终隔离263测试与263覆盖率均通过，构建/类型检查通过；当前项目12项通过；最终tarball空目录安装与真实MCP闭环通过。正式旧基线32/33通过，工具数46与48冲突转T-047跟进；本候选未发布且当前客户端未切换。
+
+改动文件（31）: package.json, package-lock.json, README.md, install.ps1, src/agents-md.ts, src/audit.ts, src/index-db.ts, src/index-store.ts, src/index.ts, src/knowledge-tools.ts, src/language-adapters.ts, src/license.ts, src/project-fingerprint.ts, src/project-tools.ts, src/scan.ts, src/search.ts, src/security.ts, src/setup.ts, src/task-tools.ts, src/types.ts, test/exploit.test.ts, test/helpers.ts, test/idempotency-lease.test.ts, test/integration.test.ts, test/scenario.test.ts, test/tooling-coverage.test.ts, src/git-state.ts, src/scan-policy.ts, src/session-log.ts, src/task-evidence.ts, test/management-upgrade.test.ts
+
+下一步: T-047审核并批准新的48工具基线后重新正式验收；T-045需在原触发项目配置并复验产物排除；发布/客户端切换尚未执行。
+
+## 2026-09-07 — codex
+
+评估后续调优空间，未改产品代码。确认Git对账只比较最后一次会话、feature/fix缺verification仍可done；建议优先减少重复管理调用、降低对账/扫描噪音、增强完成证据和阻塞分类，再用对照测试衡量性能/token估算。当前保留111调用平均87ms，折叠节省记录0；不能据此承诺账户额度节省。
+
+改动文件（3）: .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 若推进下一版，先复核并修复对账/扫描边界，再优化默认管理流程，保留完整能力和简单使用方式。
+
+## 2026-09-07 — codex
+
+完成npm 0.1.5同步：经用户明确授权和本人安全密钥验证，临时绑定GitHub OIDC；PR#2已合并，固定制品验证预演和正式发布工作流均成功。npm version/latest=0.1.5，公开全新缓存安装真实MCP验证通过，tarball与GitHub SHA256一致。已移除临时连接并获网页回执；GitHub Release说明和本地README状态已更新，T-043/T-033闭环。
+
+改动文件（6）: README.md, .pm/project.json, .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 本次GitHub/npm发布完成；临时发布授权已撤销，当前没有待执行的发布步骤。
+
+## 2026-09-07 — codex
+
+核验用户已打开的npm包页面，确认当前版本0.1.4；包设置入口由npm要求二次验证。已选择网站提供的密码确认方式，未修改安全设置；等待用户在网页完成密码确认，未读取密码或发布新版本。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 网页完成密码确认后继续检查可用发布方式及CLI认证，完成已授权的0.1.5 npm同步。
+
+## 2026-09-07 — codex
+
+直接核验用户指定npm后台：网站登录确实有效，包仍0.1.4；未把网站登录和CLI发布验证混为一谈。已停止过期CLI尝试，保留用户后台页面；后续仅需确认可用安全密钥并完成本人2FA，不再反复请求首页登录。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 确认npm账号绑定的通行密钥/安全密钥是否可用，再继续有效CLI登录和已授权发布。
+
+## 2026-09-07 — codex
+
+继续处理npm同步。核对默认npm用户配置和兼容新版CLI后，浏览器明确显示账号已登录但停在安全密钥双因素验证。已启动验证入口并保留交接页面；CLI仍等待网页回调，尚未发布。不读取密码/PIN/令牌，等待用户完成本人安全密钥确认。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 完成npm安全密钥验证后发布，不再重复请求发布授权或首页登录。
+
+## 2026-09-07 — codex
+
+继续同步npm：再次核对最终包与GitHub附件一致；旧npm配置E401，默认网页登录回退legacy后已取消，改用独立受保护配置成功发起官方web CLI登录。网站账号登录尚未形成CLI登录，当前ENEEDAUTH，仍等待新页面确认；未发布npm，授权无需重复。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 用户完成当前CLI网页登录后直接继续npm发布和registry/公开安装验证。
+
+## 2026-09-07 — codex
+
+核验发现v0.1.5此前仍为GitHub草稿，依据既有明确发布授权已完成正式公开发布。读回draft=false/prerelease=false，published_at=2026-09-07T08:00:17Z；附件SHA256与已验证最终包一致。GitHub发布不再依赖npm登录；npm上架仍单独待完成。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 只剩npm发布：恢复登录后继续，不重复创建GitHub Release。
+
+## 2026-09-07 — codex
+
+按用户要求直接更新GitHub仓库：合并PR#1至main3273aee，合并文件树与已验证43b89f9完全一致；主分支托管CI34097925292的Node22.18/24均通过。本地工作区未切换/拉取/清理，已有修改与HEAD保留。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: GitHub main更新已完成。npm发布单独由T-043跟踪，仍等待登录恢复。
+
+## 2026-09-07 — codex
+
+按明确授权执行0.1.5发布：独立克隆推送发布分支和PR#1，首轮Linux CI失败暴露备份重名并已修复，43b89f9在Node22.18/24托管CI全通过。最终包上传GitHub草稿并读回digest一致，隔离安装真实MCP通过。npm登录持续E401，未上架npm，也未把草稿当正式发布；授权已记录，等待用户网页登录。
+
+改动文件（12）: src/project-tools.ts, src/paths.ts, src/setup.ts, test/integration.test.ts, test/usage-log.test.ts, test/setup.test.ts, .pm/.gitignore, .pm/tasks.json, .pm/debuglog.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 恢复npm登录后直接发布最终已核验0.1.5 tarball并做registry/公开冷安装回验，再发布GitHub草稿。发布授权无需重复索取。
+
+## 2026-09-07 — codex
+
+完成T-042本地修复：安全扫描证据约束/落账指纹复核、项目唯一服务键与root核对、rg字面量参数。准备0.1.5候选，253测试及coverage通过，冷安装包真实MCP与两中文项目setup通过；未发布或升级真实客户端。完整报告与原始失败证据保存于Temp/pm-fix-T042-265c516deef94752973133e760545195。
+
+改动文件（17）: src/security.ts, src/search.ts, src/setup.ts, src/index.ts, test/security.test.ts, test/search.test.ts, test/setup.test.ts, package.json, package-lock.json, install.ps1, README.md, .pm/tasks.json, .pm/debuglog.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md, .pm/quality-runs/quality-20260907-054702-793-0000.json
+
+下一步: T-033：0.1.5发布、托管CI与真实客户端升级需要后续明确授权。；本轮未做完整全仓安全扫描及完整acceptance/20GiB门禁，不将局部修复外推为绝对零漏洞。
+
+## 2026-09-07 — codex
+
+核验pm-mcp真实可用性：242测试/typecheck通过、npm audit 0，但复现安全跳扫误关闭、中文项目命名碰撞、字面量rg选项误解析，并确认npm发布包缺setup --project。完成部分安全报告，未改产品源码；未完成全仓安全逐行覆盖、完整gate、托管CI或跨客户端验证。
+
+改动文件（4）: .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 按报告修复3处已复现缺陷并增加针对性回归测试。；T-033继续处理新版发布与冷安装/托管CI；本次不发布。；若要断言全部功能可靠，继续剩余安全源码审查与客户端验收；实际节省额度需对照实验。
+
+## 2026-09-06 — codex
+
+按你的“1和2”同时执行：1）执行了冷安装命令 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project`；2）把结果回填到 pm-mcp 任务台账。结果：当前版本分发只到 0.1.4，命令返回 `unknown setup argument: --project`，步骤4仍阻塞。
+
+改动文件（2）: E:/PM/unified-ai-system/N/A, pm 任务台账 T-033
+
+下一步: 请在 pm-mcp 仓库发布 `setup --project` 支持的新版本并更新 `@luckychen1993/pm-mcp`；重跑 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project`，确认生成 `.pm/project.json`；完成托管CI 冷安装回归（`github actions` 的相关 step）并回写 `T-033`
+
+## 2026-09-06 — codex
+
+完成复现与阻塞闭环：确认 `@luckychen1993/pm-mcp` 当前仅有 0.1.1-0.1.4；旧版 0.1.4 不识别 `setup --project`。当前任务 T-033 已置于 blocked，`T-033` 下一步为发布 0.1.5 并回归冷安装。
+
+改动文件（1）: N/A
+
+下一步: 发布 pm-mcp 0.1.5（包含 setup --project/--client 参数）；在 unified-ai-system 根目录执行 `npx -y @luckychen1993/pm-mcp@latest setup --client codex --project` 验证
+
+## 2026-09-05 — zcode
+
+setup --project 上线：Codex 新项目一条命令自动钉定注册+初始化；realrepo 功能数断言改 >=；Codex 全局 AGENTS.md 升级自助纳管规则
+
+改动文件（4）: src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, README.md
+
+下一步: npm publish 0.1.5 后，新项目才能真正用 npx @latest 跑通 --project（当前 npm 上是 0.1.4 无此参数）；watcher leader 事件接入运行日志（T-037 留下的候选）
+
+## 2026-09-03 — zcode
+
+实现使用日志 + 运行日志 + 省 token 统计：新增 src/usage-log.ts（JSONL 追加、1MB 轮转、绝不抛错），在 toolR/toolW/toolI 三包装器与资源读取统一挂载，budget.ts 折叠省量记账（drainFoldSavings），新工具 get_usage_log / get_runtime_log（工具数 46→48）
+
+改动文件（10）: src/usage-log.ts, src/budget.ts, src/tool-base.ts, src/index.ts, src/paths.ts, src/project-tools.ts, test/usage-log.test.ts, test/integration.test.ts, test/realrepo.test.ts, README.md
+
+下一步: 把 watcher leader 选举/接管/降级事件接入运行日志（index-store.ts / watcher-coordinator.ts 层）；考虑把使用日志的省 token 汇总摘要并入 PROJECT.md 仪表盘健康区
+
+## 2026-09-03 — zcode
+
+实现 init_project 自动写入 AGENTS.md 工作规矩（标记段幂等合并、不覆盖已有内容、可关），并应用到本仓库
+
+改动文件（6）: src/agents-md.ts, src/init.ts, src/project-tools.ts, test/agents-md.test.ts, test/index-store.test.ts, AGENTS.md
+
 ## 2026-09-03 — codex
 
 修复 v0.1.4 第二次托管 CI 首败：精确过滤 Node 22 node:sqlite ExperimentalWarning，任何其他 watcher stderr 仍严格失败。
