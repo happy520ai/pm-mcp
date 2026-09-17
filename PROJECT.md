@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-17T14:39:18.665Z
+> 生成时间: 2026-09-17T14:43:20.037Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -29,7 +29,7 @@ flowchart LR
 | 账本 | 状态 |
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
-| 债务（反挤出） | ⚠️ 1 条，最老 6 天 |
+| 债务（反挤出） | ✅ 无未清债务 |
 | churn（变更率） | ⚠️ 热点 README.md(22), package.json(16), src/index.ts(14) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 19 条记录 |
@@ -44,7 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 45 · backlog 6
+- 总览: done 46 · backlog 5
 
 ## 🧩 功能清单
 ### src

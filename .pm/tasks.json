@@ -1675,25 +1675,25 @@
       "title": "调查：log_session 业务写入成功但客户端收到 is_error / 幂等占位",
       "detail": "根因已定位（2026-09-11，第二轮取证修正）。现象：经 MCP 调用 pm-mcp 写工具（log_session/add_task/update_task），业务可能已落账但客户端收到 is_error + 「⏳ 幂等占位…业务结果不确定」；严重时业务完全不执行（update_task 的 detail 未写入）。取证：.pm/runtime-log.jsonl 三条 tool.error —— log_session count=62、add_task count=70、update_task count=73，均为 [safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED]，threshold=50。决定性证据：update_task 那条 targets 只有 [.pm/.lock]、targetCount=1 而 count=73，说明 safe-delete 钩子按 scope=turn（每轮对话）累计计数，不是单次批量删除量。根因：WorkBuddy 的 safe-delete 钩子在单轮对话内累计删除数超过 50 后，开始拦截后续删除；pm-mcp 写工具在业务前后需要删除幂等记录与 .pm/.lock 锁文件，删除抛错导致工具失败。触发条件：同一轮对话内累计删除 > 50（本次由我清理临时文件推高，属自造条件）。影响：在 WorkBuddy 中调用 pm-mcp 写工具可能报错或静默不落账，调用方若据此重试可能重复记账。处理方向：①同一轮内避免先大量删除再调写工具；②把 .pm/ 运行态纳入 safe-delete 允许范围；③或让 pm-mcp 的清理按批上限执行。验证：干净轮次中重跑写工具，应返回正常文本且 runtime-log 无 tool.error（本条更新即为此验证）。",
       "type": "debt",
-      "status": "backlog",
+      "status": "done",
       "priority": null,
       "milestone": null,
       "steps": [],
       "checkpoint": null,
       "files": [],
       "acceptance": "",
-      "result_note": "",
+      "result_note": "已解决，且非改代码解决：用户在 2026-09-11 20:36 把 WorkBuddy 的 sandbox.safeDeleteBulkThreshold 从默认 50 提升到 99999。时间线吻合——最后一次 SAFE_DELETE_BULK 拦截发生在 2026-09-11T12:35:30Z（北京时间 20:35），恰在配置变更前 1 分钟；此后 .pm/runtime-log.jsonl 再无任何拦截记录。2026-09-17 多次写工具调用（记账 S-0046 / S-0047）均返回 is_error:false 正常结果。根因分析保持有效并值得留存：该钩子按 scope=turn 累计删除数计阈值（决定性证据是 update_task 那条 targets 只有 .pm/.lock、targetCount=1 而 count=73），累计超限后连删除单个锁文件也会被拦，进而使 pm-mcp 写工具报错、业务可能不落账。",
       "verification": "",
       "tags": [
         "idempotency",
         "observability",
         "environment"
       ],
-      "author": "",
+      "author": "workbuddy",
       "created": "2026-09-11T12:33:13.879Z",
-      "updated": "2026-09-11T12:37:23.029Z",
+      "updated": "2026-09-17T14:43:19.972Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-17T14:43:19.972Z"
     }
   ]
 }

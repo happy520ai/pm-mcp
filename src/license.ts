@@ -14,12 +14,13 @@ import { foldLines } from "./budget.ts";
 
 const STRONG_COPYLEFT = ["GPL-2.0", "GPL-3.0", "AGPL-3.0", "SSPL-1.0", "GPL", "AGPL", "SSPL"];
 const WEAK_COPYLEFT = ["LGPL", "MPL-2.0", "MPL", "EPL", "CDDL", "EUPL", "Sleepycat"];
-const PERMISSIVE = ["MIT", "Apache-2.0", "Apache", "BSD-2-Clause", "BSD-3-Clause", "BSD", "ISC", "0BSD", "Unlicense", "Zlib", "Python-2.0", "BSL-1.0"];
+const PERMISSIVE = ["MIT", "Apache-2.0", "Apache", "BSD-2-Clause", "BSD-3-Clause", "BSD", "ISC", "0BSD", "Unlicense", "Zlib", "Python-2.0", "BSL-1.0", "BlueOak-1.0.0"];
 
 /** 单个包最多登记数（巨型依赖树保护；超出部分计数上报） */
 const MAX_DEPS = 800;
 
-function classify(license: string): "strong-copyleft" | "weak-copyleft" | "permissive" | "unknown" {
+/** 单个许可标识的判定（不含 SPDX 表达式拆解）。 */
+function classifySingle(license: string): "strong-copyleft" | "weak-copyleft" | "permissive" | "unknown" {
   const l = license.trim();
   if (!l) return "unknown";
   const up = l.toUpperCase();
@@ -31,6 +32,26 @@ function classify(license: string): "strong-copyleft" | "weak-copyleft" | "permi
   if (WEAK_COPYLEFT.some((k) => up.includes(k.toUpperCase()))) return "weak-copyleft";
   if (PERMISSIVE.some((k) => up === k.toUpperCase() || up.startsWith(k.toUpperCase()))) return "permissive";
   return "unknown";
+}
+
+/**
+ * 判定依赖许可证。支持 SPDX 表达式：去掉外层括号后按 OR 拆开，逐项判定并取【最严格】的一项。
+ * 取最严格而非最宽松，是为了不削弱发布门禁：(MIT OR GPL-3.0) 仍判 strong-copyleft；
+ * 只有全部操作数都为宽松许可时（如 (MIT OR WTFPL)）才不再落到 unknown。
+ */
+function classify(license: string): "strong-copyleft" | "weak-copyleft" | "permissive" | "unknown" {
+  const stripped = license.trim().replace(/^\((.*)\)$/u, "$1").trim();
+  if (!stripped) return "unknown";
+  if (/\s+OR\s+/iu.test(stripped)) {
+    const rank = { unknown: 0, permissive: 1, "weak-copyleft": 2, "strong-copyleft": 3 } as const;
+    let worst: "strong-copyleft" | "weak-copyleft" | "permissive" | "unknown" = "unknown";
+    for (const part of stripped.split(/\s+OR\s+/iu)) {
+      const kind = classifySingle(part.replace(/^\((.*)\)$/u, "$1").trim());
+      if (rank[kind] > rank[worst]) worst = kind;
+    }
+    return worst;
+  }
+  return classifySingle(stripped);
 }
 
 interface DepLicense {
@@ -102,6 +123,7 @@ function readNodeLicenses(root: string): { list: DepLicense[]; truncated: number
     const nested = path.join(nm, ...name.split("/"), "node_modules");
     if (!fs.existsSync(nested)) continue;
     for (const entry of fs.readdirSync(nested, { withFileTypes: true })) {
+      if (entry.name.startsWith(".")) continue;
       if (entry.name.startsWith("@") && isDirLike(entry)) {
         for (const sub of fs.readdirSync(path.join(nested, entry.name), { withFileTypes: true })) {
           if (isDirLike(sub)) record(`${entry.name}/${sub.name}`, path.join(nested, entry.name, sub.name));

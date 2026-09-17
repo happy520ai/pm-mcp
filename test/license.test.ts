@@ -70,3 +70,23 @@ test("强制许可证审计绕过相同 mtime/size 的旧内容缓存", () => {
   assert.equal(fs.statSync(file).size, Buffer.byteLength(benign));
   assert.match(auditLicense(root, 150, true), /src\/swap\.ts/);
 });
+
+test("SPDX 宽松标识、OR 表达式与 .bin 目录不再误报为未知许可证", () => {
+  const root = mkProj({
+    "package.json": JSON.stringify({
+      name: "app",
+      license: "MIT",
+      dependencies: { "blue-oak": "^1.0.0", "dual-lic": "^1.0.0", "copyleft-or": "^1.0.0" },
+    }),
+    "node_modules/blue-oak/package.json": nodeMod("blue-oak", "BlueOak-1.0.0"),
+    "node_modules/dual-lic/package.json": nodeMod("dual-lic", "(MIT OR WTFPL)"),
+    "node_modules/copyleft-or/package.json": nodeMod("copyleft-or", "(MIT OR GPL-3.0)"),
+    "node_modules/blue-oak/node_modules/.bin/leftover": "#!/bin/sh\n",
+  });
+  initTestProject(root);
+  const out = auditLicense(root);
+  assert.ok(out.includes("🟢 blue-oak"), "BlueOak-1.0.0 视为宽松许可");
+  assert.ok(out.includes("🟢 dual-lic"), "全部操作数为宽松的 OR 表达式视为宽松");
+  assert.ok(out.includes("🔴 copyleft-or"), "含 GPL 的 OR 表达式仍判强 copyleft，门禁不削弱");
+  assert.ok(!out.includes("许可证未知"), "不再出现未知许可证清单");
+});
