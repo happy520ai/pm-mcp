@@ -13,7 +13,7 @@ import {
 import { decisionsDir, pmPath, dashboardFile, SESSIONS_JSON } from "./paths.ts";
 import { mermaidRoadmap, quotaWarnings, renderRoadmap, checkpointSuffix } from "./roadmap.ts";
 import { churnStats, debtAging } from "./health.ts";
-import { featureVerifyMark } from "./audit.ts";
+import { detectDrift, featureVerifyMark } from "./audit.ts";
 import { loadGovernance, type GovernanceFile } from "./governance-model.ts";
 import { touchRegistry } from "./registry.ts";
 
@@ -104,10 +104,12 @@ export function buildDashboard(root: string): string {
   const highFindings = openFindings.filter((f) => f.severity === "high");
   const churn = churnStats(sessions);
   const implemented = features.filter((f) => f.status === "implemented");
-  const drifted = implemented.filter((f) => f.entry_files.some((p) => !fs.existsSync(path.join(root, p))));
+  // 与 audit_structure 的「漂移对账」共用同一实现，避免两处口径不一致：
+  // detectDrift 覆盖 implemented 功能的 entry_files 与 done 任务的 files。
+  const drift = detectDrift(root);
   L.push(`| 账本 | 状态 |`);
   L.push(`|---|---|`);
-  L.push(`| 漂移（防幻觉） | ${drifted.length === 0 ? "✅ 无" : `⚠️ ${drifted.length} 个功能入口文件缺失`} |`);
+  L.push(`| 漂移（防幻觉） | ${drift.length === 0 ? "✅ 无" : `⚠️ ${drift.length} 项（功能入口文件或 done 任务关联文件缺失）`} |`);
   L.push(`| 债务（反挤出） | ${aging.openDebt === 0 ? "✅ 无未清债务" : `⚠️ ${aging.openDebt} 条，最老 ${aging.oldestDays} 天`} |`);
   L.push(`| churn（变更率） | ${churn.hotspots.length === 0 ? "✅ 无热点" : `⚠️ 热点 ${churn.hotspots.slice(0, 3).map((h) => `${h.file}(${h.count})`).join(", ")}`} |`);
   L.push(`| 安全 | ${openFindings.length === 0 ? "✅ 无未处理发现" : `⚠️ ${openFindings.length} 个未处理（高危 ${highFindings.length}）`} |`);
