@@ -1,4 +1,4 @@
-name: Publish verified npm 0.1.5
+name: Publish verified npm package
 
 on:
   workflow_dispatch:
