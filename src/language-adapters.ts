@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { SCAN_IGNORE_DIRS, ignoreMatcher, projectScanIgnores } from "./scan-policy.ts";
 import { parseManifestDependencies, type DependencyParseError, type DependencyRef } from "./language-dependencies.ts";
 export type { DependencyParseError, DependencyRef } from "./language-dependencies.ts";
 
@@ -47,11 +48,7 @@ export interface DiscoveryOptions {
   ignoreDirs?: Iterable<string>;
 }
 
-const DEFAULT_IGNORE_DIRS = new Set([
-  ".git", ".pm", ".idea", ".vscode", ".venv", "venv", "env", "__pycache__",
-  "node_modules", "dist", "build", "out", "target", ".gradle", ".next", ".nuxt",
-  ".output", ".turbo", "coverage", ".cache",
-]);
+const DEFAULT_IGNORE_DIRS = SCAN_IGNORE_DIRS;
 
 const LANGUAGE_ORDER: Language[] = [
   "javascript", "typescript", "python", "go", "rust", "java", "kotlin", "csharp",
@@ -289,6 +286,7 @@ export function discoverProjectUnits(root: string, options: DiscoveryOptions = {
   const maxDepth = options.maxDepth ?? 64;
   if (!Number.isInteger(maxDepth) || maxDepth < 0) throw new Error("maxDepth must be a non-negative integer");
   const ignored = new Set([...DEFAULT_IGNORE_DIRS, ...(options.ignoreDirs ?? [])]);
+  const excluded = ignoreMatcher(projectScanIgnores(repositoryRoot));
   const grouped = new Map<string, ManifestRef[]>();
 
   const walk = (dir: string, depth: number): void => {
@@ -296,6 +294,7 @@ export function discoverProjectUnits(root: string, options: DiscoveryOptions = {
     const entries = fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
     for (const entry of entries) {
       const absolute = path.join(dir, entry.name);
+      if (excluded(normalize(path.relative(repositoryRoot, absolute)), entry.isDirectory())) continue;
       if (entry.isDirectory()) {
         if (!ignored.has(entry.name)) walk(absolute, depth + 1);
         continue;
@@ -448,7 +447,9 @@ async function runOne(item: QualityCommand): Promise<QualityCommandResult> {
     // shell:false is intentional: arguments never undergo shell parsing.
     let child: ReturnType<typeof spawn>;
     try {
-      child = spawn(item.command, item.args, { cwd: item.cwd, shell: false, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+      // Node 测试宿主的内部标记会让子 node --test 直接跳过文件并退出0，不能泄漏给质量命令。
+      const { NODE_TEST_CONTEXT: _nodeTestContext, ...env } = process.env;
+      child = spawn(item.command, item.args, { cwd: item.cwd, env, shell: false, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
       finish({ ...baseResult(item, err.code === "ENOENT" ? "missing" : "failed"), error: err.message });

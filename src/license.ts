@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { scanExclusionNote } from "./scan-policy.ts";
 import path from "node:path";
 import { loadFileNotes, loadProject } from "./store.ts";
 import { isTestFile, readDirectDeps } from "./scan.ts";
@@ -149,6 +150,7 @@ export function auditLicense(root: string, maxLines = 150, forceFresh = false, i
   const projectKind = classify(declared);
 
   const L: string[] = [];
+  L.push(...scanExclusionNote(root));
   L.push("## 许可证审计");
 
   /* ① 项目声明 */

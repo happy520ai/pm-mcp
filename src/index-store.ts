@@ -4,10 +4,11 @@ import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { isInitialized } from "./paths.ts";
 import { normSep } from "./budget.ts";
-import { getIndex, getMeta, setMeta } from "./index-db.ts";
+import { ignoreMatcher, projectScanIgnores } from "./scan-policy.ts";
+import { freshness, getIndex, getMeta, setMeta, type Freshness } from "./index-db.ts";
 import { clearWatcherDirty, coordinateWatcherLeader, markWatcherDirty, watcherIsClean } from "./watcher-coordinator.ts";
-export { aggregates, closeIndex, getIndex, getMeta, iterateFileRows, setMeta } from "./index-db.ts";
-export type { Aggregates } from "./index-db.ts";
+export { aggregates, closeIndex, freshness, getIndex, getMeta, indexSummary, iterateFileRows, setMeta } from "./index-db.ts";
+export type { Aggregates, Freshness } from "./index-db.ts";
 import {
   BINARY_EXTS,
   countLoc,
@@ -122,6 +123,7 @@ export interface WalkRefreshResult {
 }
 
 export function walkRefresh(root: string, opts: WalkOptions = {}): WalkRefreshResult {
+  const scanPolicy = JSON.stringify(projectScanIgnores(root));
   const db = getIndex(root);
   db.exec("CREATE TEMP TABLE IF NOT EXISTS walked(rel TEXT PRIMARY KEY, mtime REAL, size INTEGER)");
   db.exec("DELETE FROM walked");
@@ -214,6 +216,7 @@ export function walkRefresh(root: string, opts: WalkOptions = {}): WalkRefreshRe
   setMeta(db, "lastWalk", new Date().toISOString());
   setMeta(db, "skippedDeep", String(skippedDeep));
   setMeta(db, "rootPath", path.resolve(root));
+  setMeta(db, "scanPolicy", scanPolicy);
   // 走查刚完成的这一刻索引就是最新的：watcher 模式下立即续心跳，
   // 否则长走查期间（库忙）心跳可能一直写不进，走查一结束就被判"过期"再走一遍
   if (getMeta(db, "mode") === "watcher") {
@@ -231,54 +234,15 @@ export function walkRefresh(root: string, opts: WalkOptions = {}): WalkRefreshRe
 
 /* ------------------------------ watcher 新鲜度 ------------------------------ */
 
-export interface Freshness {
-  mode: "watcher" | "walk";
-  fresh: boolean;
-  /** 索引内文件数（0=从未走查） */
-  files: number;
-  lastWalk: string | null;
-  lastBeat: string | null;
-  pendingEvents: number;
-}
-
-const BEAT_STALE_MS = 90_000;
-
-export function freshness(root: string): Freshness {
-  const db = getIndex(root);
-  const files = (db.prepare(`SELECT COUNT(*) c FROM files`).get() as { c: number }).c;
-  const lastWalk = getMeta(db, "lastWalk");
-  const lastBeat = getMeta(db, "lastBeat");
-  const mode = (getMeta(db, "mode") ?? "walk") as "watcher" | "walk";
-  const pending = Number(getMeta(db, "pending") ?? 0);
-  const beatAge = lastBeat ? Date.now() - Date.parse(lastBeat) : Number.POSITIVE_INFINITY;
-  // rootPath 守卫：索引库随项目目录被拷贝/移动时，旧心跳与行集都属于原路径——不可信任
-  const owned = getMeta(db, "rootPath") === path.resolve(root);
-  const lastEvent = getMeta(db, "lastEvent");
-  const eventAge = lastEvent ? Date.now() - Date.parse(lastEvent) : Number.POSITIVE_INFINITY;
-  const watcherSession = getMeta(db, "watcherSession");
-  const sessionReconciled = watcherSession !== null && getMeta(db, "lastWalkSession") === watcherSession;
-  const watcherHealthy = !(getMeta(db, "watcherError") ?? "");
-  const watcherClean = watcherIsClean(root);
-  // 卡死计数自愈：防抖 150ms，若计数>0 但 30s 无任何事件推进，说明计数器失真（如持锁期抛错），不再信任
-  const pendingClean = pending === 0 || eventAge > 30_000;
-  const fresh =
-    files > 0 &&
-    lastWalk !== null &&
-    owned &&
-    mode === "watcher" &&
-    sessionReconciled &&
-    watcherHealthy &&
-    watcherClean &&
-    pendingClean &&
-    beatAge < BEAT_STALE_MS;
-  return { mode, fresh, files, lastWalk, lastBeat, pendingEvents: pending };
-}
-
 /**
  * 确保索引可用：watcher 活跃且心跳新鲜 → 直接用（稳态免走查）；
  * 否则精确全量走查（冷启动/巡检进程/server 未运行时）。
  */
 export function ensureFresh(root: string): { used: "watcher" | "walk"; freshness: Freshness } {
+  if (getMeta(getIndex(root), "scanPolicy") !== JSON.stringify(projectScanIgnores(root))) {
+    walkRefresh(root, { forceContent: true });
+    return { used: "walk", freshness: freshness(root) };
+  }
   let f = freshness(root);
   if (!f.fresh && f.mode === "watcher" && f.pendingEvents > 0) {
     // 变更风暴刚过：事件还在防抖队列里。本进程有 watcher 时就地排空（毫秒级），
@@ -331,13 +295,16 @@ export function startWatcher(root: string): WatcherHandle | null {
   let leader = false;
   let stopped = false;
   let locallyUnhealthy = false;
+  let policy = projectScanIgnores(abs);
+  let customIgnored = ignoreMatcher(policy);
   const active: ActiveWatcher = {
     timers,
     closed: () => stopped || !leader,
-    reconciled: () => { locallyUnhealthy = false; },
+    reconciled: () => { locallyUnhealthy = false; policy = projectScanIgnores(abs); customIgnored = ignoreMatcher(policy); },
   };
 
-  const ignored = (rel: string): boolean => DEFAULT_IGNORE_DIRS.has(rel.split("/")[0]) || rel.split("/")[0] === ".pm";
+  const ignored = (rel: string): boolean => DEFAULT_IGNORE_DIRS.has(rel.split("/")[0]) ||
+    rel.split("/").slice(0, -1).some((part) => DEFAULT_IGNORE_DIRS.has(part)) || customIgnored(rel, true);
 
   const recordWatcherError = (stage: string, error: unknown): void => {
     locallyUnhealthy = true;
@@ -366,6 +333,7 @@ export function startWatcher(root: string): WatcherHandle | null {
     if (stopped || !leader || !db) return;
     let succeeded = false;
     try {
+      if (ignored(rel)) { deleteFile(db, rel); deleteSubtree(db, rel); succeeded = true; return; }
       const full = path.join(abs, ...rel.split("/"));
       let st: fs.Stats;
       try {
@@ -424,10 +392,23 @@ export function startWatcher(root: string): WatcherHandle | null {
     db = getIndex(abs);
     try {
       watcher = fs.watch(abs, { recursive: true }, (_event, filename) => {
-        if (stopped || !leader || !filename) return;
+        if (stopped || !leader) return;
+        if (!filename) {
+          recordWatcherError("incomplete event", new Error("监视器未提供文件名，需要精确走查恢复索引。"));
+          return;
+        }
         let rel: string;
         try {
           rel = normSep(String(filename));
+          if (rel === ".pm/project.json") {
+            const currentPolicy = projectScanIgnores(abs);
+            if (JSON.stringify(currentPolicy) !== JSON.stringify(policy)) {
+              policy = currentPolicy;
+              customIgnored = ignoreMatcher(policy);
+              markWatcherDirty(abs);
+            }
+            return;
+          }
           if (ignored(rel)) return;
         } catch {
           return;
@@ -483,15 +464,6 @@ export function startWatcher(root: string): WatcherHandle | null {
   const coordinator = coordinateWatcherLeader(abs, activateLeader, recordWatcherError);
   if (!coordinator) return null;
   return { stop(): void { if (!stopped) { stopped = true; coordinator.stop(); } } };
-}
-
-/** 巡检/诊断用：索引概况一行 */
-export function indexSummary(root: string): string {
-  const f = freshness(root);
-  if (f.files === 0) return "索引：空（未走查）";
-  const age = f.lastWalk ? `，走查于 ${f.lastWalk.slice(0, 16).replace("T", " ")}` : "";
-  const beat = f.fresh ? "，watcher 保鲜中" : `（watcher ${f.mode === "watcher" ? "心跳过期" : "未运行"}，下次审计将全量走查）`;
-  return `索引：${f.files} 文件${age}${beat}`;
 }
 
 export { isInitialized };

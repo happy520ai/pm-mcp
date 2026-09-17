@@ -19,6 +19,7 @@ import { impactAnalysis } from "./semantic-graph.ts";
 import { assessQualityCoverage, createQualityPlan, discoverProjectUnits, runQualityPlan, type QualityCommand } from "./language-adapters.ts";
 import { buildPortfolioFromRegistry, buildPortfolioReport, loadPortfolioProject } from "./portfolio.ts";
 import { saveQualityRun } from "./quality-store.ts";
+import { evidenceLabel, qualityResultSummary } from "./quality-evidence.ts";
 import { SemanticEvidenceDocumentSchema } from "./semantic-evidence.ts";
 import { listSemanticEvidence, saveSemanticEvidence } from "./semantic-evidence-store.ts";
 import { fingerprintProject } from "./project-fingerprint.ts";
@@ -228,7 +229,8 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
     const file = saveQualityRun(root, result, { source_before: sourceBefore, source_after: sourceAfter });
     const lines = [`${result.ok ? "✅" : "🚩"} 质量矩阵 ${result.ok ? "通过" : "失败"}；结果 ${file}`];
     if (!sourceStable) lines.push(`- 🚩 源码在执行期间变化：before=${sourceBefore.sha256} after=${sourceAfter.sha256}`);
-    for (const item of result.results) lines.push(`- [${item.status}] ${item.command.kind} ${item.command.cwd} (${item.durationMs}ms${item.exitCode === null ? "" : `, exit ${item.exitCode}`})`);
+    for (const item of result.results) lines.push(`- [${item.status}] ${item.command.kind} ${item.command.cwd} (${item.durationMs}ms${item.exitCode === null ? "" : `, exit ${item.exitCode}`}) · ${evidenceLabel(qualityResultSummary(item).evidence_level)}`);
+    lines.push("命令执行结果与任务完成证据分开判断；未知计数不等于已观察测试通过。");
     return foldLines(lines, { maxLines: budgetLines(root), hint: "查看 .pm/quality-runs 结构化摘要（不落原始输出）" });
   });
 

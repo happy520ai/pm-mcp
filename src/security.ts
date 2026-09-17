@@ -7,6 +7,7 @@ import { readDirectDeps } from "./scan.ts";
 import { ensureFresh, getIndex, iterateFileRows, walkRefresh } from "./index-store.ts";
 import { readText } from "./search.ts";
 import { now, type Finding, type Severity } from "./types.ts";
+import { scanExclusionNote } from "./scan-policy.ts";
 
 /**
  * 安全体检：密钥泄露 / 危险模式 / 依赖风险 → 台账闭环。
@@ -102,8 +103,35 @@ interface Detection {
   message: string;
 }
 
-function scanDetections(root: string, forceContent = false, indexPrepared = false): Detection[] {
+/** 只有根内普通路径的 ENOENT 才证明删除；权限错误、目录和链接均不证明修复。 */
+function findingFileState(root: string, rel: string): "file" | "missing" | "unknown" {
+  const parts = rel.replace(/\\/g, "/").split("/");
+  if (path.isAbsolute(rel) || parts.some((part) => !part || part === "." || part === "..")) return "unknown";
+  let current = root;
+  let stat: fs.Stats | undefined;
+  for (const part of parts) {
+    current = path.join(current, part);
+    try {
+      stat = fs.lstatSync(current);
+      if (stat.isSymbolicLink()) return "unknown";
+    } catch (error) {
+      return (error as NodeJS.ErrnoException).code === "ENOENT" ? "missing" : "unknown";
+    }
+  }
+  return stat?.isFile() ? "file" : "unknown";
+}
+
+function scanDetections(root: string, forceContent = false, indexPrepared = false): PreparedSecurityAudit {
   const out: Detection[] = [];
+  // 只跟踪已有 open 发现，不为百万文件仓库额外物化整棵扫描覆盖表。
+  const pending = loadSecurity(root).findings.filter((finding) => finding.status === "open");
+  const byFile = new Map<string, Finding[]>();
+  for (const finding of pending) {
+    const entries = byFile.get(finding.file) ?? [];
+    entries.push(finding);
+    byFile.set(finding.file, entries);
+  }
+  const checkedFindings = new Map<string, string | null>();
   const rules: Rule[] = [...SECRET_PATTERNS, ...DANGEROUS_PATTERNS];
   // 用户自定义规则
   for (const r of loadExtraRules(root).rules) {
@@ -142,6 +170,7 @@ function scanDetections(root: string, forceContent = false, indexPrepared = fals
     if (rel.startsWith(".pm/")) continue;
     const content = readText(root, rel, forceContent);
     if (content === null) continue;
+    const contentDigest = byFile.has(rel) ? createHash("sha256").update(content).digest("hex") : undefined;
     const lines = content.split("\n");
     for (const rule of rules) {
       if (rule.glob && !rule.glob.test(rel)) continue;
@@ -158,9 +187,17 @@ function scanDetections(root: string, forceContent = false, indexPrepared = fals
           message: rule.message,
         });
       }
+      for (const finding of byFile.get(rel) ?? []) {
+        if (finding.rule === rule.id) checkedFindings.set(finding.fingerprint, contentDigest!);
+      }
     }
   }
-  return out;
+  for (const finding of pending) {
+    if (!checkedFindings.has(finding.fingerprint) && findingFileState(root, finding.file) === "missing") {
+      checkedFindings.set(finding.fingerprint, null);
+    }
+  }
+  return { detections: out, checkedFindings };
 }
 
 export interface SecurityReport {
@@ -175,6 +212,8 @@ export interface SecurityReport {
 
 export interface PreparedSecurityAudit {
   detections: Detection[];
+  /** 旧格式/旧扫描没有证明覆盖的发现必须保留，不得仅因缺少命中而关闭。 */
+  checkedFindings?: ReadonlyMap<string, string | null>;
 }
 
 /** 昂贵的全仓扫描阶段；调用方可在账本锁外完成，再把脱敏发现提交到账本。 */
@@ -185,14 +224,15 @@ export function prepareSecurityAudit(
   const forceIndex = options.forceIndex ?? true;
   const forceContent = options.forceContent ?? true;
   if (forceIndex) walkRefresh(root, { forceContent: true });
-  return { detections: scanDetections(root, forceContent, forceIndex || options.indexPrepared === true) };
+  return scanDetections(root, forceContent, forceIndex || options.indexPrepared === true);
 }
 
 /** 扫描并更新台账（幂等：重复扫描不产生重复条目） */
 export function auditSecurity(root: string, prepared?: PreparedSecurityAudit): SecurityReport {
   const project = loadProject(root);
   const stamp = now();
-  const detections = prepared?.detections ?? scanDetections(root);
+  const scan = prepared ?? scanDetections(root);
+  const detections = scan.detections;
   const security = loadSecurity(root);
   const existing = new Map(security.findings.map((f) => [f.fingerprint, f]));
   const acceptedRefound: Finding[] = [];
@@ -231,10 +271,25 @@ export function auditSecurity(root: string, prepared?: PreparedSecurityAudit): S
     }
   }
 
-  // 不再检出且仍 open 的 → 自动转 fixed（附注说明）
+  // 没有命中不等于已修复：必须证明该旧发现的文件/规则已检查，或文件确已删除。
   let autoFixed = 0;
+  let unverified = 0;
+  const currentDigests = new Map<string, string | null>();
   for (const f of security.findings) {
     if (f.status === "open" && !seen.has(f.fingerprint)) {
+      const expected = scan.checkedFindings?.get(f.fingerprint);
+      let confirmed = expected === null && findingFileState(root, f.file) === "missing";
+      if (typeof expected === "string") {
+        if (!currentDigests.has(f.file)) {
+          const content = findingFileState(root, f.file) === "file" ? readText(root, f.file, true) : null;
+          currentDigests.set(f.file, content === null ? null : createHash("sha256").update(content).digest("hex"));
+        }
+        confirmed = currentDigests.get(f.file) === expected;
+      }
+      if (!confirmed) {
+        unverified += 1;
+        continue;
+      }
       f.status = "fixed";
       f.note += "（自动：最近一次扫描未再检出）";
       autoFixed += 1;
@@ -256,6 +311,7 @@ export function auditSecurity(root: string, prepared?: PreparedSecurityAudit): S
 
   const L: string[] = [];
   L.push(`## 安全体检报告（exposure=${project.exposure}）`);
+  L.push(...scanExclusionNote(root));
   // exposure 兑现：不同暴露面使用不同处置口径
   if (project.exposure === "public") {
     const mustFix = open.filter((f) => f.severity === "high" || f.severity === "medium");
@@ -287,7 +343,8 @@ export function auditSecurity(root: string, prepared?: PreparedSecurityAudit): S
       L.push(`- ${f.id} ${f.file}:${f.line} ${f.rule}`);
     }
   }
-  if (autoFixed > 0) L.push(`自动关闭 ${autoFixed} 个（代码中已不再出现）。`);
+  if (autoFixed > 0) L.push(`自动关闭 ${autoFixed} 个（已成功重扫未命中或确认文件删除）。`);
+  if (unverified > 0) L.push(`⚠️ 扫描覆盖不足：${unverified} 个旧发现未获得完整检查证据，保持未解决状态（检查文件大小、可读性、扫描范围和规则）。`);
   if (newDeps.length > 0) L.push(`⚠️ 上次快照后新增依赖: ${newDeps.join(", ")}（AI 引入的依赖请审查来源与必要性）`);
   if (riskyDeps.length > 0) L.push(`⚠️ 幻觉易发版本号（* / latest）: ${riskyDeps.join(", ")}`);
   L.push("");

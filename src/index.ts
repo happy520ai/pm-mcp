@@ -15,6 +15,11 @@ import path from "node:path";
 import { listAcceptanceBaselines } from "./acceptance-tools.ts";
 import { AcceptanceReportSchema } from "./acceptance-report.ts";
 import { runCoalescedRead } from "./idempotency.ts";
+import { recordUsage } from "./tool-base.ts";
+import { logRuntime } from "./usage-log.ts";
+import { VERSION } from "./version.ts";
+import { taskPage } from "./task-pagination.ts";
+import { budgetLines } from "./tool-base.ts";
 
 /* --root 参数 > PM_ROOT 环境变量 > 启动时工作目录 */
 const argv = process.argv.slice(2);
@@ -25,9 +30,10 @@ for (let i = 0; i < argv.length; i++) {
 const root = resolveRoot(explicitRoot);
 
 const server = new McpServer(
-  { name: "pm-mcp", version: "0.1.4" },
+  { name: "pm-mcp", version: VERSION },
   {
     instructions: [
+      `pm-mcp ${VERSION}。get_status 返回实际运行版本与项目根；配置修改后须重连核验。list_tasks 有 has_more 时保持过滤条件并使用 next_cursor 续取，不能把一页当全量。feature/fix 默认要求 tests_observed，未知计数不冒充测试通过。`,
       "多 Agent 规则：相同业务的所有写工具调用必须携带相同 idempotency_key（建议 task-id:operation）；同键同参数只执行一次，同键不同参数会被拒绝。",
       "完全相同的并行读请求会由服务端合并并复用结果；不要让多个分支重复请求同一工具和参数。",
       "看到“幂等复用”时直接采用首次结果；看到“幂等占位/正在执行”时等待负责该业务的 Agent，不要换键重试。",
@@ -47,7 +53,15 @@ function safeText(fn: () => string): string {
 }
 
 async function resourceText(name: string, fn: () => string): Promise<string> {
-  return (await runCoalescedRead(root, `resource:${name}`, {}, () => safeText(fn))).text;
+  const started = Date.now();
+  try {
+    const text = (await runCoalescedRead(root, `resource:${name}`, {}, () => safeText(fn))).text;
+    recordUsage(root, `resource:${name}`, "read", started, { ok: true, text });
+    return text;
+  } catch (error) {
+    recordUsage(root, `resource:${name}`, "read", started, { ok: false, error: (error as Error).message });
+    throw error;
+  }
 }
 
 server.registerResource(
@@ -83,20 +97,23 @@ server.registerResource(
 server.registerResource(
   "tasks",
   "pm://tasks",
-  { description: "任务清单原始数据（tasks.json；超 100 条截断，完整数据用 list_tasks 过滤）" },
+  { description: "任务原始数据；大列表末尾返回 continuation，可通过 list_tasks 保持 include_done:true 连续取回后续任务" },
   async (uri) => ({
     contents: [
       {
         uri: uri.href,
         mimeType: "application/json",
         text: await resourceText("tasks", () => {
-          const tasks = loadTasks(root).tasks;
+          const data = loadTasks(root);
+          const tasks = data.tasks;
           // 资源也要守 token 预算：全量 dump 大账本会吃爆上下文（截断后仍是合法 JSON）
           if (tasks.length <= 100) return JSON.stringify(tasks, null, 2);
-          const shown = tasks.slice(0, 100) as Array<Record<string, unknown>>;
+          const page = taskPage(root, { include_done: true, page_size: 100 }, budgetLines(root) - 4, data);
+          const shown = tasks.slice(0, page.returned) as Array<Record<string, unknown>>;
           shown.push({
-            id: `_TRUNCATED_${tasks.length - 100}`,
-            title: `…另有 ${tasks.length - 100} 个任务已截断，用 list_tasks 按状态/里程碑过滤获取`,
+            id: `_TRUNCATED_${tasks.length - page.returned}`,
+            title: `…本次输出已截断，另有 ${tasks.length - page.returned} 个任务，用 continuation 连续读取`,
+            continuation: { tool: "list_tasks", arguments: { include_done: true, cursor: page.next_cursor } },
           });
           return JSON.stringify(shown, null, 2);
         }),
@@ -201,12 +218,12 @@ server.registerPrompt(
           type: "text",
           text: [
             "收工前依次完成（顺序执行，缺一不可）：",
-            "1. 完成的任务：update_task 置 done，必须写 result_note（做了什么），feature/fix 类补 verification（用什么测试/命令证明）。",
+            "1. feature/fix 先执行适用测试，生成最新质量报告；update_task 置 done，给 result_note 与实际 files，record_session=true 可一并归档。",
             "2. 未完成的任务：checkpoint 保存「进展 + 下一步具体动作」。",
             "3. 本次落地的功能：register_feature 登记（入口文件 + 测试文件）。",
             "4. 修过的 bug：log_debug 记录症状/根因/修法/验证。",
             "5. 走过的捷径：add_task(type=debt) 登记债务，别让它在沉默中腐烂。",
-            "6. log_session 记录会话摘要与改动文件清单（如实列出，波及面统计靠它）。",
+            "6. update_task 已返回自动会话编号时，不重复 log_session；否则用 log_session 记录真实改动清单。纯问答不需要另建任务或反复写会话。",
             "7. 若到达里程碑节点：update_milestone 流转状态；可 snapshot_codebase 拍快照 + audit_structure 对账。",
           ].join("\n"),
         },
@@ -290,6 +307,8 @@ if (isInitialized(root)) {
   ensurePmRuntimeIgnored(root);
   const watcher = startWatcher(root);
   console.error(`[pm-mcp] watcher coordinator: ${watcher ? "active（同项目单 leader）" : "unavailable（降级为按需全量走查）"}`);
+  logRuntime(root, watcher ? "info" : "warn", watcher ? "watcher.active" : "watcher.unavailable", watcher ? undefined : "降级为按需全量走查");
 }
+logRuntime(root, "info", "server.ready", `pid=${process.pid} node=${process.versions.node}`);
 // stdio 是协议通道，日志只能走 stderr
 console.error(`[pm-mcp] ready. project root: ${root}`);

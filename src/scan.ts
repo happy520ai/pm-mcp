@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { globToRegExp, normSep } from "./budget.ts";
 import { aggregates, getIndex, walkRefresh } from "./index-store.ts";
+import { SCAN_IGNORE_DIRS, ignoreMatcher, projectScanIgnores } from "./scan-policy.ts";
 
 /**
  * 代码树扫描：低层走查（生成器，内存恒定）+ scanProject 聚合入口。
@@ -9,28 +10,7 @@ import { aggregates, getIndex, walkRefresh } from "./index-store.ts";
  * 超大项目保护：>10 万文件不物化 files 数组（聚合与点名走 SQL）。
  */
 
-export const DEFAULT_IGNORE_DIRS = new Set([
-  "node_modules",
-  ".git",
-  "dist",
-  "build",
-  "out",
-  ".next",
-  ".nuxt",
-  ".output",
-  ".turbo",
-  "coverage",
-  "__pycache__",
-  ".venv",
-  "venv",
-  "env",
-  ".pm",
-  ".idea",
-  ".vscode",
-  "target",
-  ".cache",
-  ".gradle",
-]);
+export const DEFAULT_IGNORE_DIRS = SCAN_IGNORE_DIRS;
 
 /** 真实目录树不太可能超过 64 层；超限的计数上报，绝不静默丢失 */
 export const DEPTH_LIMIT = 64;
@@ -175,7 +155,7 @@ export function* walkStatEntries(
   opts: WalkOptions = {},
   onSkippedDeep?: () => void,
 ): Generator<StatEntry> {
-  const extraRe = (opts.extraIgnores ?? []).map(globToRegExp);
+  const excluded = ignoreMatcher([...projectScanIgnores(root), ...(opts.extraIgnores ?? [])]);
   const includeRe = opts.include?.map(globToRegExp);
   const maxBytes = opts.maxFileBytes ?? 2 * 1024 * 1024;
   void maxBytes;
@@ -196,10 +176,10 @@ export function* walkStatEntries(
       const rel = normSep(path.relative(root, abs));
       if (entry.isDirectory()) {
         if (DEFAULT_IGNORE_DIRS.has(entry.name)) continue;
-        if (extraRe.some((re) => re.test(rel))) continue;
+        if (excluded(rel, true)) continue;
         yield* walk(abs, depth + 1);
       } else if (entry.isFile()) {
-        if (extraRe.some((re) => re.test(rel))) continue;
+        if (excluded(rel)) continue;
         if (includeRe && !includeRe.some((re) => re.test(rel))) continue;
         let st: fs.Stats;
         try {

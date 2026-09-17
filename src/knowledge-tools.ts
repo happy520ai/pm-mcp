@@ -20,6 +20,8 @@ import {
 } from "./store.ts";
 import { budgetLines, toolR, toolW } from "./tool-base.ts";
 import { now } from "./types.ts";
+import { appendSession } from "./session-log.ts";
+import { captureFileHashes } from "./git-state.ts";
 
 export function registerFeatureTools(server: McpServer, root: string): void {
   toolW<{ name: string; description?: string; entry_files?: string[]; module?: string; test_files?: string[]; status?: "planned" | "implemented" | "deprecated" }>(
@@ -141,7 +143,7 @@ function ensureDecisionDir(root: string): void {
 }
 
 export function registerSessionTools(server: McpServer, root: string): void {
-  toolW<{ summary: string; files?: string[]; next_steps?: string[]; author?: string }>(
+  toolW<{ summary: string; files?: string[]; next_steps?: string[]; author?: string }, Record<string, string>>(
     server, root,
     "log_session",
     "收工仪式：记录本次会话（做了什么、改了哪些文件、下一步）。files 是变更足迹（churn 账与波及面告警的数据源），务必如实列出。",
@@ -151,21 +153,10 @@ export function registerSessionTools(server: McpServer, root: string): void {
       next_steps: z.array(z.string()).optional().describe("留给下次的下一步"),
       author: z.string().optional().describe("署名：zcode / codex / human:名字"),
     },
-    (args) => {
+    (args, hashes) => {
       requireInitialized(root);
       const project = loadProject(root);
-      const data = loadSessions(root);
-      const id = nextId("S", data.seq, 4);
-      data.seq += 1;
-      data.sessions.push({
-        id,
-        date: now(),
-        author: args.author ?? "",
-        summary: args.summary,
-        files: (args.files ?? []).map(normSep),
-        next_steps: args.next_steps ?? [],
-      });
-      saveSessions(root, data);
+      const id = appendSession(root, args, hashes);
       refreshDerived(root);
       const L = [`✅ 会话 ${id} 已记录，changelog.md 已更新。`];
       if ((args.files ?? []).length > project.budgets.sessionBlastRadius) {
@@ -173,6 +164,7 @@ export function registerSessionTools(server: McpServer, root: string): void {
       }
       return L.join("\n");
     },
+    (args) => { requireInitialized(root); return captureFileHashes(root, args.files ?? []); },
   );
 
   toolW<{ symptom: string; root_cause: string; fix: string; verified_how?: string; files?: string[]; task_id?: string }>(

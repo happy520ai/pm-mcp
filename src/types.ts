@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { normSep } from "./budget.ts";
+import { ScanIgnoreSchema } from "./scan-policy.ts";
+import { CompletionEvidenceSchema } from "./quality-evidence.ts";
 
 export const now = (): string => new Date().toISOString();
 
@@ -32,6 +34,8 @@ export const ProjectSchema = z.object({
   phase: z.string().default(""),
   /** 登记的模块名（用于复杂度账的"未登记目录"检测） */
   modules: z.array(z.string()).default([]),
+  scan_ignore: ScanIgnoreSchema.optional(),
+  completion_evidence: CompletionEvidenceSchema.optional(),
   /** 暴露面：local=本机工具 / network=内网服务 / public=公网服务，影响安全告警力度 */
   exposure: ExposureSchema.default("local"),
   /** 项目许可证（SPDX 或名称），用于依赖兼容性对账 */
@@ -156,6 +160,7 @@ export const SessionSchema = z.object({
   author: z.string().default(""),
   summary: z.string().trim().min(1),
   files: filesField(),
+  file_hashes: z.record(z.string().regex(/^[a-f0-9]{64}$/)).optional(),
   next_steps: z.array(z.string()).default([]),
 });
 export type Session = z.infer<typeof SessionSchema>;

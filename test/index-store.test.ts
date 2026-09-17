@@ -36,7 +36,7 @@ test("watcher 事件增量：新增/修改/删除/新目录子树都反映到聚
     "src/a.ts": "export const a = 1;\n",
     "src/b.ts": "export const b = 1;\nexport const b2 = 2;\n",
   });
-  initProject(root, { name: "w" });
+  initProject(root, { name: "w", agentsMd: false });
   walkRefresh(root);
   const before = aggregates(getIndex(root));
   assert.equal(before.totalFiles, 2);
@@ -91,7 +91,7 @@ test("watcher 事件增量：新增/修改/删除/新目录子树都反映到聚
 
 test("变更风暴后就地排空：ensureFresh 不回退全量走查", async () => {
   const root = fixture("storm", { "src/a.ts": "export const a = 1;\n" });
-  initProject(root, { name: "storm" });
+  initProject(root, { name: "storm", agentsMd: false });
   const w = startWatcher(root);
   walkRefresh(root);
   await waitFor(() => freshness(root).fresh);
@@ -121,7 +121,7 @@ test("watcher 重启先对账停机窗口，不能用新心跳误信旧索引", 
     "src/deleted.ts": "export const deleted = 1;\n",
     "src/changed.ts": "export const changed = 1;\n",
   });
-  initProject(root, { name: "restart" });
+  initProject(root, { name: "restart", agentsMd: false });
 
   const first = startWatcher(root);
   assert.ok(first, "Windows 递归 watch 应可用");
@@ -153,7 +153,7 @@ test("watcher 重启先对账停机窗口，不能用新心跳误信旧索引", 
 
 test("强制内容走查不被相同 mtime/size 欺骗", () => {
   const root = fixture("force-content", { "src/a.ts": "a\nb\n" });
-  initProject(root, { name: "force-content" });
+  initProject(root, { name: "force-content", agentsMd: false });
   walkRefresh(root);
   const originalTime = fs.statSync(path.join(root, "src/a.ts")).mtime;
   assert.equal(aggregates(getIndex(root)).totalLoc, 3);
@@ -177,7 +177,7 @@ test("强制内容走查不被相同 mtime/size 欺骗", () => {
 
 test("rootPath 守卫：索引库随目录拷贝后不被信任（自动回退走查）", async () => {
   const root = fixture("guard", { "src/a.ts": "export const a = 1;\n" });
-  initProject(root, { name: "g" });
+  initProject(root, { name: "g", agentsMd: false });
   const w = startWatcher(root);
   walkRefresh(root);
   await waitFor(() => freshness(root).fresh);

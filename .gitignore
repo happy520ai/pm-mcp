@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .zcode/
+.workbuddy-ai/
 *.log
 *.tmp
 .coverage/

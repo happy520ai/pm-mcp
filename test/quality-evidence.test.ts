@@ -100,6 +100,8 @@ test("quality evidence binds stable source, parses TAP/Istanbul metrics, and sto
     skipped: 1,
     todo: 1,
     coverage: { lines_pct: 91.2, branches_pct: 82.3, functions_pct: 73.4 },
+    counter_source: "node_test_summary",
+    evidence_level: "execution_only",
   });
   assert.equal(evidence.results[0].output_truncated, true);
   assert.deepEqual(fingerprintProject(root), before, "persisted quality evidence itself must not mutate the product fingerprint");
@@ -168,5 +170,5 @@ test("saving quality evidence refreshes the generated dashboard, including failu
   });
   const dashboard = fs.readFileSync(path.join(root, "PROJECT.md"), "utf8");
   assert.match(dashboard, /\| 质量矩阵 \| 🚩/);
-  assert.match(dashboard, /（0\/1）/);
+  assert.match(dashboard, /命令 0\/1；证据 execution_only/);
 });

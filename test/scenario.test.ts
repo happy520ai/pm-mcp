@@ -10,6 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { runFixtureTestEvidence } from "./helpers.ts";
 
 const distEntry = path.resolve("dist/index.js");
 const AWS_KEY = "AKIA" + "IOSFODNN7EXAMPLE"; // AWS 官方文档示例值
@@ -197,8 +198,12 @@ test("场景：三段会话走完订单系统生命周期（dist 产物 + 三种
   // 收尾：done 必须带 result_note；带齐后通过
   const badDone = await call(c, "update_task", { id: "T-001", status: "done" });
   assert.ok(!badDone.ok && badDone.text.includes("result_note"));
-  const okDone = await call(c, "update_task", { id: "T-001", status: "done", result_note: "接口完成", verification: "npm test 通过" });
-  assert.ok(okDone.ok);
+  // 故障已被检出；恢复任务入口与真实订单测试后再声明完成。
+  fs.writeFileSync(path.join(root, "src/app.ts"), "export function createOrder(userId: number) { return {id: 1, userId}; }\n");
+  fs.writeFileSync(path.join(root, "test/orders.test.ts"), "import test from 'node:test'; import assert from 'node:assert/strict'; import {createOrder} from '../src/app.ts'; test('order',()=>assert.deepEqual(createOrder(7),{id:1,userId:7}));\n");
+  const evidence = await runFixtureTestEvidence(root, "test/orders.test.ts");
+  const okDone = await call(c, "update_task", { id: "T-001", status: "done", result_note: "接口完成", verification_run: evidence, files: ["src/app.ts"] });
+  assert.ok(okDone.ok, okDone.text);
   const rm = await call(c, "get_roadmap", { depth: 1 });
   assert.ok(rm.text.includes("M1") && rm.text.includes("1/7"), `路线图进度 1/7：${rm.text.split("\n").slice(0, 4).join(" / ")}`);
 

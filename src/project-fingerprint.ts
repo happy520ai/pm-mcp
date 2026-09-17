@@ -1,11 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { SCAN_IGNORE_DIRS, ignoreMatcher, projectScanIgnores } from "./scan-policy.ts";
 
-const DEFAULT_IGNORED_DIRECTORIES = new Set([
-  ".git", ".pm", ".cache", ".gradle", ".idea", ".next", ".nuxt", ".output", ".turbo", ".venv", ".vscode", ".zcode",
-  "__pycache__", "build", "coverage", "dist", "env", "node_modules", "out", "target", "venv",
-]);
+const DEFAULT_IGNORED_DIRECTORIES = SCAN_IGNORE_DIRS;
 
 export interface ProjectFingerprint {
   algorithm: "sha256-tree-v1";
@@ -14,7 +12,7 @@ export interface ProjectFingerprint {
   bytes: number;
 }
 
-function hashRegularFile(file: string): { sha256: string; bytes: number } {
+export function hashRegularFile(file: string): { sha256: string; bytes: number } {
   const handle = fs.openSync(file, "r");
   const digest = createHash("sha256");
   const buffer = Buffer.allocUnsafe(1024 * 1024);
@@ -49,6 +47,9 @@ export function fingerprintProject(root: string): ProjectFingerprint {
   if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw new Error(`项目根必须是普通目录: ${absolute}`);
   const rootReal = fs.realpathSync.native(absolute);
   const tree = createHash("sha256");
+  const ignores = projectScanIgnores(root);
+  const excluded = ignoreMatcher(ignores);
+  if (ignores.length) tree.update(`scan-ignore\0${JSON.stringify(ignores)}\0`);
   let files = 0;
   let bytes = 0;
 
@@ -58,6 +59,7 @@ export function fingerprintProject(root: string): ProjectFingerprint {
       if (entry.isDirectory() && DEFAULT_IGNORED_DIRECTORIES.has(entry.name)) continue;
       const absoluteEntry = path.join(directory, entry.name);
       const relative = path.posix.join(relativeDirectory.replace(/\\/g, "/"), entry.name);
+      if (excluded(relative, entry.isDirectory())) continue;
       if (relative === "PROJECT.md") continue; // generated dashboard; authoritative inputs live in .pm and source files
       const stat = fs.lstatSync(absoluteEntry);
       if (stat.isSymbolicLink()) throw new Error(`项目指纹拒绝符号链接: ${relative}`);

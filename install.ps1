@@ -1,12 +1,12 @@
 [CmdletBinding()]
 param(
-  [ValidateSet("zcode", "cursor", "codex", "claude", "vscode", "print")]
+  [ValidateSet("zcode", "cursor", "codex", "claude", "vscode", "workbuddy", "print")]
   [string]$Client = "zcode",
   [string]$ConfigPath
 )
 
 $ErrorActionPreference = "Stop"
-$packageSpec = "@luckychen1993/pm-mcp@0.1.4"
+$packageSpec = "@luckychen1993/pm-mcp@0.3.0"
 $serverName = "pm-mcp"
 
 function Assert-NodeVersion {
@@ -93,6 +93,22 @@ switch ($Client) {
   "cursor" {
     if (-not $ConfigPath) { $ConfigPath = Join-Path $HOME ".cursor/mcp.json" }
     Set-JsonServer $ConfigPath "standard"
+  }
+  "workbuddy" {
+    # Config dir priority: WORKBUDDY_CONFIG_DIR -> ~/.workbuddy-ai (current) -> ~/.workbuddy (legacy)
+    if (-not $ConfigPath) {
+      $currentDir = Join-Path $HOME ".workbuddy-ai"
+      $legacyDir = Join-Path $HOME ".workbuddy"
+      $workbuddyRoot = if ($env:WORKBUDDY_CONFIG_DIR) { $env:WORKBUDDY_CONFIG_DIR }
+        elseif (Test-Path -LiteralPath $currentDir) { $currentDir }
+        elseif (Test-Path -LiteralPath $legacyDir) { $legacyDir }
+        else { $currentDir }
+      $ConfigPath = Join-Path $workbuddyRoot "mcp.json"
+    }
+    # Intentionally omits --root: WorkBuddy spawns the MCP child with the session
+    # workspace as cwd, and the server resolves the project root from cwd.
+    Set-JsonServer $ConfigPath "standard"
+    Write-Host "Note: confirm trust for $serverName in WorkBuddy's connector management before use."
   }
   "codex" {
     Assert-Command "codex"

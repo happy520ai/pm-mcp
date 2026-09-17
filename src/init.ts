@@ -11,6 +11,7 @@ import {
 import { ensurePmDirs, isInitialized, pmPath } from "./paths.ts";
 import { now, type Project } from "./types.ts";
 import { governancePath, saveGovernance } from "./governance-model.ts";
+import { upsertAgentsMd } from "./agents-md.ts";
 
 export interface InitInput {
   name: string;
@@ -20,6 +21,8 @@ export interface InitInput {
   license?: string;
   exposure?: "local" | "network" | "public";
   modules?: string[];
+  /** init 时自动写入/合并 AGENTS.md 工作规矩（默认 true；已存在则增量追加不覆盖） */
+  agentsMd?: boolean;
 }
 
 /** 初始化 .pm/ 状态目录（幂等防护：已初始化则报错） */
@@ -54,5 +57,7 @@ export function initProject(root: string, input: InitInput): Project {
   if (!fs.existsSync(secFile)) {
     fs.writeFileSync(secFile, JSON.stringify({ findings: [], last_scan: null }, null, 2) + "\n", "utf8");
   }
+  // 项目开启即有规矩：AGENTS.md 自动写入（已有则增量合并，绝不覆盖既有内容）
+  upsertAgentsMd(root, input.agentsMd !== false);
   return project;
 }

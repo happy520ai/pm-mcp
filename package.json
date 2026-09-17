@@ -1,6 +1,6 @@
 {
   "name": "@luckychen1993/pm-mcp",
-  "version": "0.1.4",
+  "version": "0.3.0",
   "description": "AI 编码项目的单一事实来源 + 健康台账 MCP 服务（事实来源 / 路线图 / 防幻觉 / 七本账 / 断点续做 / token 经济）",
   "keywords": [
     "mcp",
@@ -32,12 +32,15 @@
   "engines": {
     "node": ">=22.18.0"
   },
+  "pm_mcp": {
+    "acceptance_baseline": { "id": "pm-mcp-local-release", "version": "1.1.0" }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepare": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
-    "test": "node --test \"test/*.test.ts\"",
-    "coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-lines=90 --test-coverage-branches=85 --test-coverage-functions=90 --test \"test/*.test.ts\"",
+    "test": "node --test-concurrency=2 --test \"test/*.test.ts\"",
+    "coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-lines=90 --test-coverage-branches=85 --test-coverage-functions=90 --test-concurrency=2 --test \"test/*.test.ts\"",
     "audit": "node scripts/health-check.mts",
     "benchmark": "node scripts/benchmark.mts",
     "benchmark:volume": "node scripts/benchmark-volume.mts",
@@ -45,7 +48,7 @@
     "quality:plan": "node scripts/quality-gate.mts --plan",
     "acceptance:evidence": "node scripts/collect-acceptance-evidence.mts --root .",
     "acceptance:prepare": "node scripts/create-pm-acceptance-evaluation.mts --root .",
-    "acceptance": "node scripts/acceptance-gate.mts --root . --baseline-id pm-mcp-local-release --baseline-version 1.0.0 --evaluation .pm/acceptance/evaluations/pm-mcp-local-release-1.0.0.json",
+    "acceptance": "node scripts/acceptance-cycle.mts --root .",
     "acceptance:cycle": "node scripts/acceptance-cycle.mts --root .",
     "gate": "npm run audit -- --root . && npm run quality && npm run acceptance:cycle",
     "start": "node dist/index.js",

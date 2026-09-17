@@ -163,3 +163,69 @@ test("强制安全审计不被相同 mtime/size 的内容替换与进程缓存�
   assert.ok(forced.openCount >= 1);
   assert.ok(listFindings(root, "open").some((finding) => finding.rule === "secret.aws-access-key"));
 });
+
+for (const variant of ["oversize", "binary", "unreadable", "directory"] as const) {
+  test(`未完成内容扫描不得关闭旧风险：${variant}`, (t) => {
+    const source = "eval(userInput);\n";
+    const root = mkProj({ "src/risk.ts": source });
+    initTestProject(root);
+    assert.equal(auditSecurity(root, prepareSecurityAudit(root)).openCount, 1);
+    const file = path.join(root, "src/risk.ts");
+    if (variant === "oversize") writeRel(root, "src/risk.ts", source + " ".repeat(2 * 1024 * 1024));
+    if (variant === "binary") writeRel(root, "src/risk.ts", source + "\0");
+    if (variant === "directory") {
+      rmRel(root, "src/risk.ts");
+      fs.mkdirSync(file);
+    }
+    if (variant === "unreadable") {
+      const read = fs.readFileSync;
+      t.mock.method(fs, "readFileSync", (target: fs.PathOrFileDescriptor, ...args: unknown[]) => {
+        if (target === file) throw Object.assign(new Error("fixture access denied"), { code: "EACCES" });
+        return Reflect.apply(read, fs, [target, ...args]);
+      });
+    }
+    const report = auditSecurity(root, prepareSecurityAudit(root));
+    assert.equal(report.autoFixed, 0);
+    assert.equal(report.openCount, 1);
+    assert.match(report.text.join("\n"), /覆盖不足/);
+  });
+}
+
+test("成功重扫修复内容仍自动关闭，旧扫描不得关闭后来登记的风险", () => {
+  const root = mkProj({ "src/risk.ts": "export const safe = 1;\n" });
+  initTestProject(root);
+  const stale = prepareSecurityAudit(root);
+  writeRel(root, "src/risk.ts", "eval(userInput);\n");
+  assert.equal(auditSecurity(root, prepareSecurityAudit(root)).openCount, 1);
+  assert.equal(auditSecurity(root, stale).openCount, 1, "旧扫描没有覆盖后来登记的风险");
+  writeRel(root, "src/risk.ts", "export const safe = 1;\n");
+  const repaired = auditSecurity(root, prepareSecurityAudit(root));
+  assert.equal(repaired.autoFixed, 1);
+  assert.equal(repaired.openCount, 0);
+});
+
+test("移除自定义规则不等同于修复该规则发现的风险", () => {
+  const root = mkProj({ "src/risk.ts": "legacyRisk();\n" });
+  initTestProject(root);
+  writeRel(root, ".pm/security-rules.json", JSON.stringify({ rules: [{ id: "custom.legacy", severity: "medium", pattern: "legacyRisk" }] }));
+  assert.equal(auditSecurity(root, prepareSecurityAudit(root)).openCount, 1);
+  writeRel(root, ".pm/security-rules.json", JSON.stringify({ rules: [] }));
+  const report = auditSecurity(root, prepareSecurityAudit(root));
+  assert.equal(report.autoFixed, 0);
+  assert.equal(report.openCount, 1);
+});
+
+test("准备扫描后文件重新出现风险或从删除状态恢复，不得应用过期的关闭证据", () => {
+  const risk = "eval(userInput);\n";
+  const root = mkProj({ "src/risk.ts": risk });
+  initTestProject(root);
+  auditSecurity(root, prepareSecurityAudit(root));
+  writeRel(root, "src/risk.ts", "export const safe = 1;\n");
+  const repaired = prepareSecurityAudit(root);
+  writeRel(root, "src/risk.ts", risk);
+  assert.equal(auditSecurity(root, repaired).openCount, 1, "准备后内容发生变化");
+  rmRel(root, "src/risk.ts");
+  const deleted = prepareSecurityAudit(root);
+  writeRel(root, "src/risk.ts", risk);
+  assert.equal(auditSecurity(root, deleted).openCount, 1, "准备后文件重新出现");
+});

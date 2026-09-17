@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { pmPath } from "./paths.ts";
+import { watcherIsClean } from "./watcher-coordinator.ts";
 
 /** Low-level SQLite lifecycle, metadata, row iteration, and aggregate queries. */
 const SCHEMA = `
@@ -121,3 +122,57 @@ export function aggregates(db: DatabaseSync): Aggregates {
     indexCoverageBase: contentOk.c,
   };
 }
+
+/** 只读索引状态与摘要，与元数据及聚合查询放在同一模块。 */
+export interface Freshness {
+  mode: "watcher" | "walk";
+  fresh: boolean;
+  /** 索引内文件数（0=从未走查） */
+  files: number;
+  lastWalk: string | null;
+  lastBeat: string | null;
+  pendingEvents: number;
+}
+
+const BEAT_STALE_MS = 90_000;
+
+export function freshness(root: string): Freshness {
+  const db = getIndex(root);
+  const files = (db.prepare(`SELECT COUNT(*) c FROM files`).get() as { c: number }).c;
+  const lastWalk = getMeta(db, "lastWalk");
+  const lastBeat = getMeta(db, "lastBeat");
+  const mode = (getMeta(db, "mode") ?? "walk") as "watcher" | "walk";
+  const pending = Number(getMeta(db, "pending") ?? 0);
+  const beatAge = lastBeat ? Date.now() - Date.parse(lastBeat) : Number.POSITIVE_INFINITY;
+  // rootPath 守卫：索引库随项目目录被拷贝/移动时，旧心跳与行集都属于原路径——不可信任
+  const owned = getMeta(db, "rootPath") === path.resolve(root);
+  const lastEvent = getMeta(db, "lastEvent");
+  const eventAge = lastEvent ? Date.now() - Date.parse(lastEvent) : Number.POSITIVE_INFINITY;
+  const watcherSession = getMeta(db, "watcherSession");
+  const sessionReconciled = watcherSession !== null && getMeta(db, "lastWalkSession") === watcherSession;
+  const watcherHealthy = !(getMeta(db, "watcherError") ?? "");
+  const watcherClean = watcherIsClean(root);
+  // 卡死计数自愈：防抖 150ms，若计数>0 但 30s 无任何事件推进，说明计数器失真（如持锁期抛错），不再信任
+  const pendingClean = pending === 0 || eventAge > 30_000;
+  const fresh =
+    files > 0 &&
+    lastWalk !== null &&
+    owned &&
+    mode === "watcher" &&
+    sessionReconciled &&
+    watcherHealthy &&
+    watcherClean &&
+    pendingClean &&
+    beatAge < BEAT_STALE_MS;
+  return { mode, fresh, files, lastWalk, lastBeat, pendingEvents: pending };
+}
+
+/** 巡检/诊断用：索引概况一行 */
+export function indexSummary(root: string): string {
+  const f = freshness(root);
+  if (f.files === 0) return "索引：空（未走查）";
+  const age = f.lastWalk ? `，走查于 ${f.lastWalk.slice(0, 16).replace("T", " ")}` : "";
+  const beat = f.fresh ? "，watcher 保鲜中" : `（watcher ${f.mode === "watcher" ? "心跳过期" : "未运行"}，下次审计将全量走查）`;
+  return `索引：${f.files} 文件${age}${beat}`;
+}
+

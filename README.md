@@ -8,6 +8,42 @@
 
 > 核心理念：**把恶化从「无声发生」变成「显式记账」，把上下文从「模型记忆」搬到「仓库文件」。**
 
+当前源码为 **0.3.0 本地候选版本，尚未由本轮工作发布**。下方公共安装示例仍使用已发布的 0.1.5。候选版可用 `setup --local` 绑定已构建的本地入口；未发布前不要配置依赖注册表中 0.3.0 的 npx 启动项。
+
+## 0.3.0：升级生效、任务取全与证据分级
+
+- `get_status` 同时显示当前进程的运行版本、项目根和结构化 runtime，避免把项目 phase 中的旧文字当作实际版本。
+- `list_tasks` 默认每页 25 条，可用 `page_size`（1–100，受输出预算限制）和 `next_cursor` 连续读取；保持原过滤条件，数据变化会使游标失效。文字及结构化结果都给出本页范围、总数和后续游标。长标题/下一步可能缩略，但编号与分页条目完整。`pm://tasks` 的大列表也提供 continuation。
+- 质量摘要标明 `execution_only`、`tests_observed`、`coverage_observed` 等观测等级及计数来源。支持 Node、Jest、Vitest、pytest 的常见英文摘要；无法识别时明确保留未知计数，不猜测为零。等级不等于测试充分性、通过结果或防篡改认证。
+- feature/fix 默认必须具有可识别的非零测试及完整状态计数。需要兼容无计数运行器时，由项目负责人明确设置 `update_project({completion_evidence:{minimum:"execution_only",reason:"说明至少八个字的具体理由"}})`；完成记录仍标出弱证据等级。已知零测试、失败、跳过、截断或过期证据始终拒绝。
+- 质量子进程不会继承 Node 宿主的内部 `NODE_TEST_CONTEXT`，避免嵌套 `node --test` 跳过文件却退出 0。
+
+本地候选的 Codex 项目升级在构建后按以下步骤执行。先预览，再替换该项目的 command/args，保留其他设置与工具预算：
+
+```powershell
+npm run build
+node dist/cli.js setup --client codex --project --local --force --dry-run
+node dist/cli.js setup --client codex --project --local --force
+node dist/cli.js doctor --root .
+```
+
+`doctor` 会核对配置并建立短期本地 MCP 读连接，检查实际版本、项目根、48 工具与新参数契约；不会把探测新进程冒充已经重连的客户端。探测不复制自定义凭据环境；结果会产生既有运行计量。显式 `--entry <本地入口>` 可用于安装包检查。配置更新后仍需在实际客户端重新连接，再调用 get_status 确认版本。复杂或歧义配置会拒绝自动替换，已有配置与升级前备份保留。
+
+验收脚本从 `package.json` 的 `pm_mcp.acceptance_baseline` 统一读取基线 ID/版本，命令行可显式覆盖。批准记录不自动升版、不选择猜测的“最新”文件；本仓选择 1.1.0，原 1.0.0 保留。新版评价使用对应版本的计划与失败记录。
+
+## 已有管理流程
+
+用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。48 个工具全部保留，由 AI 组合调用，无需用户记工具名。
+
+- `update_task` 可同时更新进度、保存 `checkpoint:{note,next_step}` 并记录会话；完成时给 `record_session:true`，返回会话编号后不再另调 `log_session`。省略该参数仍兼容旧的手动记会话流程。同一幂等键重放不会重复落账；跨多个文件的异常仍遵守原有“不确定状态需核对”规则，不宣称事务原子性。
+- `feature/fix` 转 `done` 必须关联实际文件，并先通过 `run_quality_matrix` 执行相应测试。系统自动选择最新报告，核对执行成功、测试前后与当前源码摘要、测试单元目录和项目证据策略。`verification_run` 可明确指向最新报告，文字 `verification` 只作补充说明。报告存于 `.pm/quality-runs/`，任务保存报告与源码 SHA-256。目录范围匹配不等于代码覆盖率证明；第一方报告也不构成防篡改认证。
+- Git 对账按所有会话的文件内容摘要核对，保留删除、重命名和中文路径。旧版只有路径的记录标为“未验证”；同一路径内容再次变化仍会告警。这里只核对当前工作区内容，不代替暂存区审查或提交验收。
+- 扫描、索引、搜索、语言发现和源码指纹共用排除规则，默认排除 `.runtime`、`.zcode`、`EBWebView` 等缓存。含义不明确的 `release`、`userdata` 不默认隐藏；确认是产物后由 AI 用 `update_project({scan_ignore:["release/**"]})` 配置，传 `[]` 恢复。报告列明自定义排除范围，规则变动会刷新索引并使旧质量证据失效。
+
+旧账本保持可读，历史已完成任务不会自动重开；新增字段为可选字段。所有读写同一项目的 MCP 进程应统一升级并重启，旧版本写入可能丢弃新元数据。已有 `AGENTS.md` 保留原文；新初始化项目和内置 `end-session` 提示使用合并流程。
+
+仓库测试默认同时运行两个测试文件，避免文件级并发与内部进程压力叠加；20 进程竞争等测试的内部并发、锁超时和覆盖率门槛保持原设定。这是测试资源控制，不是产品并发能力或生产负载的证明。
+
 ## 为什么需要它
 
 AI 编码项目的典型失控（本工具逐一给出机制）：
@@ -32,19 +68,31 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 
 ## 一个命令自动添加到 AI 编程助手
 
+本页安装示例固定使用 **0.1.5**，包含安全扫描、项目命名和字面量搜索修复。0.1.4 不支持 `setup --project`；验证这些能力时请确认实际运行版本为 0.1.5 或更新版本。
+
 要求：Node.js ≥ 22.18。Windows、macOS 和 Linux 使用同一条命令：
 
 ```bash
 npx -y @luckychen1993/pm-mcp@latest setup
 ```
 
-安装器自动检测本机的 Codex、Claude Code、ZCode、Cursor 和 VS Code，并配置所有检测到的客户端。JSON 配置会先备份；已经存在的 Codex/Claude 配置默认保留，用 `setup --force` 才替换。先预览、不写配置：
+安装器自动检测本机的 Codex、Claude Code、ZCode、Cursor、VS Code 和 WorkBuddy，并配置所有检测到的客户端。JSON 配置会先备份；已经存在的 Codex/Claude 配置默认保留，用 `setup --force` 才替换。先预览、不写配置：
 
 ```bash
 npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 ```
 
-非标准安装路径无法自动发现时，可在同一命令末尾指定 `--client codex|claude|zcode|cursor|vscode`；`--client print` 输出通用 MCP JSON。首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
+非标准安装路径无法自动发现时，可在同一命令末尾指定 `--client codex|claude|zcode|cursor|vscode|workbuddy`；`--client print` 输出通用 MCP JSON。首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
+
+### 新项目一条命令上手（Codex 必用）
+
+Codex 桌面版启动 MCP 服务时不带工作区路径，逐项目钉根才能用。在项目目录里跑一条命令，自动完成「注册钉定条目 + 初始化 .pm + 写 AGENTS.md 工作规矩」：
+
+```bash
+npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
+```
+
+跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
 
 ### 客户端官方命令（自动检测失败时备用）
 
@@ -53,7 +101,7 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 Codex 的本地客户端共享同一份 MCP 配置。复制执行：
 
 ```bash
-codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.4
+codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.5
 ```
 
 重启客户端后可用 `codex mcp list` 检查。该命令遵循 [OpenAI 官方 MCP CLI 格式](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。
@@ -61,7 +109,7 @@ codex mcp add pm-mcp -- npx -y @luckychen1993/pm-mcp@0.1.4
 #### Claude Code
 
 ```bash
-claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.4
+claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.5
 ```
 
 #### ZCode、Cursor、VS Code（Windows 备用脚本）
@@ -69,10 +117,30 @@ claude mcp add pm-mcp --scope user -- npx -y @luckychen1993/pm-mcp@0.1.4
 将 `<client>` 替换为 `zcode`、`cursor` 或 `vscode`，整行复制到 PowerShell：
 
 ```powershell
-$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.4/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
+$u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.5/install.ps1'; $f=Join-Path $env:TEMP 'install-pm-mcp.ps1'; Invoke-WebRequest $u -OutFile $f; & $f -Client <client>
 ```
 
 脚本只写对应客户端的 MCP 配置；已有 JSON 配置会先生成带时间戳的备份。建议执行前先打开 [`install.ps1`](install.ps1) 审阅。ZCode 默认写入 `$ZCODE_HOME/cli/config.json` 或 `~/.zcode/cli/config.json`，Cursor 默认写入 `~/.cursor/mcp.json`；也可用 `-ConfigPath` 指定路径。
+
+#### WorkBuddy 桌面版
+
+```bash
+npx -y @luckychen1993/pm-mcp@latest setup --client workbuddy
+```
+
+写入 `<WorkBuddy 数据目录>/mcp.json`，结构与下方通用 JSON 一致。数据目录按 `WORKBUDDY_CONFIG_DIR` → `~/.workbuddy-ai`（当前版本）→ `~/.workbuddy`（旧版）顺序解析，写入前会生成带时间戳的备份，未知顶层字段与既有 server 全部保留。
+
+与其他客户端的关键差别：**WorkBuddy 的条目刻意不写 `--root`**。它的 MCP 子进程由会话工作区拉起，cwd 即当前项目，服务端按 cwd 解析项目根——因此一条配置同时服务所有工作区，不需要逐项目钉根；未初始化的目录只返回「未初始化」，不会写入任何文件。
+
+未发布候选可绑定已构建的本地入口，并用 `doctor` 做真实握手核验：
+
+```bash
+node dist/cli.js setup --client workbuddy --local --dry-run   # 先预览
+node dist/cli.js setup --client workbuddy --local             # 再写入
+node dist/cli.js doctor --root . --client workbuddy           # 核验 48 工具与项目根
+```
+
+`doctor` 会读取该 `mcp.json` 的 pm-mcp 条目，只认可识别的本地 pm-mcp 启动项（npx 发布版或 node + 本包 `dist/index.js`），被 `disabled` 的条目与未知启动器一律拒绝，且不读取或转发自定义凭据环境。配置完成后需在 WorkBuddy 的「连接器管理 → 自定义连接器」中确认信任 pm-mcp，再重开会话调用 `get_status` 核验。
 
 #### 其他支持 stdio MCP 的客户端
 
@@ -81,7 +149,7 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.4/install.ps1'; $f=
   "mcpServers": {
     "pm-mcp": {
       "command": "npx",
-      "args": ["-y", "@luckychen1993/pm-mcp@0.1.4"],
+      "args": ["-y", "@luckychen1993/pm-mcp@0.1.5"],
       "env": {}
     }
   }
@@ -114,16 +182,16 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.4/install.ps1'; $f=
 4. 陈述本次计划：做哪个任务、动哪些文件、验收标准
 
 ## 做事过程
-- 长任务：add_task 时给 steps；上下文快满或中断前 checkpoint 存断点
+- 长任务：add_task 时给 steps；update_task 附 checkpoint 一次更新进度与会话
 - 走捷径：立刻 add_task(type=debt) 登记债务，不许无声欠债
 - 修 bug：完成后 log_debug 记录症状/根因/修法/验证
 - 陈述"某功能在某文件"之前，先 search_code 求证
 
 ## 收工（缺一不可）
-1. 完成的任务 update_task 置 done + result_note；feature/fix 补 verification
+1. feature/fix 先 run_quality_matrix 执行测试；update_task 置 done + result_note + files，record_session:true 一并归档
 2. 未完成任务 checkpoint（进展 + 下一步）
 3. 落地的功能 register_feature（入口文件 + 测试文件）
-4. log_session 如实记录改动文件清单
+4. update_task 已返回自动会话编号时不重复 log_session；否则如实记录改动文件清单。纯问答无需新建任务或重复记账
 
 ## 每个里程碑节点
 snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit_license 许可证审计；audit_governance 模块/语言边界审计；plan_quality_matrix 生成真实质量矩阵
@@ -131,21 +199,22 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 也可以直接用内置 prompts：`start-session` / `end-session` / `onboard` / `architecture-review` / `acceptance-review`；其中 `onboard` 会引导客户端读取状态并生成新人/AI 入职简报。
 
-## 工具清单（46 个）
+## 工具清单（48 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
 | 状态 | `init_project` / `get_status` / `update_project` / `regenerate_dashboard` | 初始化、一站式「我在哪」（`since` 汇总任务/会话变化）、改元信息与预算、重生成仪表盘 |
 | 路线图 | `add_milestone` / `update_milestone` / `get_roadmap` | 里程碑生命周期；depth=1 单行摘要 / depth=2 展开活跃任务 |
-| 任务 | `add_task` / `list_tasks` / `update_task` / `checkpoint` | 类型 feature/refactor/fix/chore/debt；转 done 强制 result_note；断点存档 |
+| 任务 | `add_task` / `list_tasks` / `update_task` / `checkpoint` | 进度/断点/会话合并更新；feature/fix 完成强制关联文件与最新真实测试报告 |
 | 功能 | `register_feature` / `list_features` | 功能地图（入口文件 = 漂移对账锚点；测试文件 = 测试背书） |
 | 决策 | `record_decision` / `list_decisions` | ADR 架构决策记录（不可变编号） |
-| 会话 | `log_session` | 收工仪式：摘要 + 变更足迹 + 下一步（churn 数据源） |
+| 会话 | `log_session` | 摘要 + 变更足迹/内容摘要 + 下一步（churn 与 Git 内容对账来源） |
 | 调试 | `log_debug` | 调试知识账：症状/根因/修法/验证 |
 | 求证 | `search_code` / `search_knowledge` / `annotate_file` | 代码检索（file:line）、七类知识源检索（含模块/接口/仓库治理）、文件用途索引 |
 | 审计 | `snapshot_codebase` / `audit_structure` | 结构快照；完整性/增长/漂移/债务/churn/复杂度/索引/足迹/测试/Git 十节对账 |
 | 安全 | `audit_security` / `list_findings` / `resolve_finding` | 密钥+危险模式+新增/通配依赖提示；扫描命中原文不落盘，处置 note 拒绝内置密钥形态 |
 | 法律 | `audit_license` | 依赖许可证清单、copyleft 冲突、GPL 头检测、LICENSE 检查、来源登记 |
+| 可观测 | `get_usage_log` / `get_runtime_log` | 使用日志（工具调用统计、错误率、耗时、输出与折叠省下的 token 估算——验证省不省 token）与运行日志（server/watcher/工具报错）；只记计量不记参数内容 |
 | 注册表 | `list_projects` | 本机所有被管理项目 |
 | 治理模型 | `init_governance` / `get_governance` / `upsert_module` / `upsert_interface` / `upsert_repository` / `set_governance_policies` | 结构化模块根、owner、语言、公开接口、允许/禁止依赖、跨仓版本约束与强制策略 |
 | 语义治理 | `discover_languages` / `audit_governance` / `impact_analysis` / `list_semantic_evidence` / `save_semantic_evidence` | 编译器/Tree-sitter AST 关系、hash-bound 原生分析器/运行时证据、循环/越界/unresolved/覆盖率与变更反向闭包 |
@@ -312,7 +381,7 @@ npm run gate          # 完整本地门禁
 | 单元 | budget/store/roadmap/health/security/license/audit/search/dashboard | 各账本与机制的正确性（含伪造密钥/危险模式 fixture、已识别命中原文不落盘断言） |
 | 治理 | governance-model/language-adapters/semantic-graph/semantic-evidence/polyglot-ast/portfolio/governance-audit | 模块 schema、八语言 AST、symbol-bound call、原生/runtime证据、私有接口、循环、影响闭包、semver 与跨仓 fail-closed |
 | 标准化验收 | acceptance-evaluator/acceptance-tools/acceptance-gate/quality-evidence | 九特性/五阶段、冻结指标与断言、双向追踪、风险接受、源码/证据/报告 SHA-256、伪造 PASS 失败 |
-| 集成 | integration/governance-mcp/quality-gate | 真实拉起 stdio server 全链路：46 工具、7 资源、5 提示词；真实执行安全 argv 质量命令 |
+| 集成 | integration/governance-mcp/quality-gate | 真实拉起 stdio server 全链路：48 工具、7 资源、5 提示词；真实执行安全 argv 质量命令 |
 | 场景 | scenario.test.ts | **对 dist 产物**跑三段会话生命周期：中文+空格路径、CRLF、断点跨进程恢复、故障注入（删测试/加 skip/删入口文件/新增依赖/伪造密钥/GPL 头）、三种根解析方式（cwd / PM_ROOT / --root）各用一遍 |
 | 完整性 + 真实仓库 | integrity.test.ts / realrepo.test.ts | 状态不变式（全账本 schema、派生逐字节一致、原子性、损坏恢复、500 任务规模折叠、并发双进程零丢失）；并以本仓库真实 `.pm` 为被测对象（漂移为零、PROJECT.md 同步、done 纪律、全仓拷贝审计不误报） |
 | 钻空（红队） | exploit.test.ts | 每个反制机制配一个「先钻、再断言钻不进」的测试（见上表） |

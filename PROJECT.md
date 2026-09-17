@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-03T09:22:19.359Z
+> 生成时间: 2026-09-15T04:01:29.655Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,24 +18,24 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [███████░░░] 70% M2 v2 增强（14/20）
-- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 15% < 配额 20%
+▶ [████████░░] 77% M2 v2 增强（17/22）
+- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 14% < 配额 20%
 
 ## 🎯 当前焦点
-- 🔄 T-033 强化多 Agent 强杀恢复、路径别名与持续压力（步骤 4/5）
-- 当前阶段: v0.1.4 multi-agent crash hardening
+- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
+- 当前阶段: v0.3.0 本地验收通过：固定安装目录已配置，既有客户端待重连核验；未发布
 
 ## 🩺 健康摘要
 | 账本 | 状态 |
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
-| 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(14), package.json(11), src/index.ts(9) |
+| 债务（反挤出） | ⚠️ 1 条，最老 3 天 |
+| churn（变更率） | ⚠️ 热点 README.md(21), package.json(15), src/index.ts(13) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 8 条记录 |
-| 测试背书 | 14/14 个功能带测试 |
+| 调试知识 | 19 条记录 |
+| 测试背书 | 21/21 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-09-03 09:22（4/4） |
+| 质量矩阵 | ✅ 2026-09-08 06:27（命令 1/1；证据 tests_observed） |
 | 标准化验收 | ✅ 2026-09-03 09:22（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
@@ -44,8 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 25 · backlog 7 · in_progress 1
-- [in_progress] T-033 强化多 Agent 强杀恢复、路径别名与持续压力 (fix, M2)
+- 总览: done 45 · backlog 6
 
 ## 🧩 功能清单
 ### src
@@ -62,8 +61,18 @@ flowchart LR
 - ✅ F-012 统一 MCP 客户端安装器 — 一个 npx setup 命令自动检测 Codex、Claude Code、ZCode、Cursor、VS Code；支持备份、dry-run、force 与通
 - ✅ F-013 多 Agent 读写幂等协调 — 跨进程合并完全相同的并行读；写工具提供显式业务幂等键与自动瞬时去重；键冲突 fail-closed，长写锁按进程存活性安全接管。
 - ✅ F-014 多 Agent 故障恢复与单 watcher 协调 — 业务提交间隙强杀采用 at-most-once + uncertain fail-closed；SQLite 生命周期锁消除 stale-lock ABA/PI
+- ✅ F-015 使用日志与运行日志 — get_usage_log/get_runtime_log：工具调用计量（成败/耗时/输出与折叠省下的 token 估算，验证省不省 token）与服务级运行事
+- ✅ F-016 任务合并更新与当前源码验证 — update_task合并进度、checkpoint和可选会话；feature/fix完成时校验最新真实质量报告、任务文件与当前源码摘要，保留48工具和旧账本读
+- ✅ F-017 内容摘要对账与可配置扫描范围 — 按多会话内容摘要核对Git变化，识别删除和重命名；统一扫描、搜索、语言发现、指纹及实时索引的缓存排除范围，无文件名监听通知标脏恢复。
+- ✅ F-021 WorkBuddy 客户端接入与配置核验 — 统一安装器新增 workbuddy 客户端：按 WORKBUDDY_CONFIG_DIR → ~/.workbuddy-ai → ~/.workbuddy 解析
 ### scripts
 - ✅ F-008 字节/超大LOC容量基准 — 按精确字节与LOC生成可扫描代码树，验证结构、watcher、安全、许可证覆盖并安全清理
+### MCP 运行与配置
+- ✅ F-018 MCP 运行版本核验与受控本地升级 — setup 支持固定本地包升级、仅替换目标启动参数并备份；doctor 新建连接核验版本、项目根和48工具，明确区分既有客户端重连。
+### 任务管理
+- ✅ F-019 任务游标分页与结构化结果 — list_tasks 提供受预算约束的完整分页与 structuredContent；游标绑定项目、过滤条件和数据版本；pm://tasks 截断后提供续读入口
+### 质量验证
+- ✅ F-020 完成证据分级与明确兼容策略 — 区分未验证、仅执行、测试已观察和覆盖率已观察；默认拒绝未知测试计数完成任务，兼容策略须注明理由并保留失败/零测试/过期证据约束。
 
 ## 🏛️ 架构决策（最近）
 - [ADR-004-语义治理采用AST保证分层与运行时证据扩展](.pm/decisions/ADR-004-语义治理采用AST保证分层与运行时证据扩展.md)
@@ -72,16 +81,16 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
-- 2026-09-03 [codex] 修复 v0.1.4 第二次托管 CI 首败：精确过滤 Node 22 node:sqlite ExperimentalWarning，任何其他 watcher stderr 仍严格失败。
-  - 改动: test/watcher-leader.test.ts
-- 2026-09-03 [codex] 修复 v0.1.4 托管 CI 首败：Linux 空 SQLite 选举事务增加实际 header 写以物化唯一写锁；watcher 测试仅统计成功创建的唯一 owner。
-  - 改动: src/watcher-coordinator.ts, test/watcher-leader.test.ts
-- 2026-09-03 [codex] 修复 v0.1.4 发布门禁首败：将 stale-lock 测试中的 secret-shaped 固定 token 改为运行时 UUID；保留 SEC-016 首次发现并由复扫自动关闭。
-  - 改动: test/lock-stampede.test.ts
-- 2026-09-03 [codex] 完成多 Agent 读写与重复调用治理并发布 v0.1.3：全部读工具跨进程合并在途同参请求，全部写工具支持显式业务幂等和自动瞬时去重，同键参数冲突拒绝；修复长锁误抢与读缓存新鲜度，npm 双 Agent 冷启动实证同业务只落一次。
-  - 改动: src/idempotency.ts, src/tool-base.ts, src/store.ts, src/index.ts, src/acceptance-tools.ts, src/audit-tools.ts, src/governance-tools.ts, src/knowledge-tools.ts 等 22 个
-- 2026-09-03 [codex] 发布 pm-mcp v0.1.2 统一安装入口：一个 npx setup 命令自动检测五类 AI 编程客户端，支持备份、dry-run、force、显式客户端和通用 JSON；CLI/MCP 双路径分流，npm 冷启动与 GitHub 双版本 CI 均通过。
-  - 改动: src/cli.ts, src/setup.ts, test/setup.test.ts, test/realrepo.test.ts, package.json, package-lock.json, README.md, install.ps1 等 10 个
+- 2026-09-13 [zcode] 修复到清零会话：T-034/T-045 根治（SCAN_IGNORE_DIRS 增补 10 个运行时/缓存目录；touchRegistry 温目录跳过+大小写去重；quality-gate 测试补沙箱；真实注册表 74→3）；修复 update_task type 字段 schema-handler 失配 bug；网关项目（跨仓库，改动已记其自身账本）元数据补全+首拍快照+安全台账 577 条全闭环；积压任务 7 项全部事实核销
+  - 改动: src/scan-policy.ts, src/registry.ts, src/task-tools.ts, test/quality-gate.test.ts, .pm/tasks.json, .pm/sessions.json, .pm/security.json
+- 2026-09-11 [workbuddy] 覆盖率补口与复核：为 localProjectLaunch 补直接单元测试（此前唯一未覆盖的本次新增代码），setup.ts 覆盖率升至 line 83.04% / branch 68.55% / funcs 80.95%（funcs +4.76）；此时未覆盖行全部为既有的 --help、commandExists、appendCodexConfig、configureCliClient 等路径。doctor.ts line 98.2%、setup-project.ts line 100%。setup+upgrade-030 共 38 项通过。注：单文件覆盖率是只跑安装器测试的抽样值，不代表 CI 的全局门槛。
+  - 改动: test/setup.test.ts
+- 2026-09-11 [workbuddy] 修复 auto 模式收尾提示退化并复核：setup 在多客户端同时配置时改为逐条列出各自的重连/授权要求（此前只要 selected 含 workbuddy 就只提 WorkBuddy，配置了 codex 等 5 个客户端时提示误导）；补多客户端提示测试。重新构建 dist，setup+upgrade-030 共 37 项通过，install.ps1 解析 OK，CI 配置无需改动（不涉及客户端分支）。覆盖率抽样：doctor.ts line 98.2%、setup-project.ts line 100%、setup.ts line 82.5%（未覆盖行多为既有的 codex/claude/vscode 分支，非本次引入）。
+  - 改动: src/setup.ts, test/setup.test.ts
+- 2026-09-11 [workbuddy] 收尾 WorkBuddy 接入：跑通 pm-mcp 自带巡检并消除两处自造红旗（临时脚本 .tmp-*.mjs 触发 javascript 未声明语言、巡检输出文件触发未入账变更）；.gitignore 增加 .workbuddy-ai/（与既有 .zcode/ 同类工具工作区目录，否则每次 memory 写入都会产生未入账变更）；补充边界测试：WorkBuddy 检测的 5 种入口条件、doctor 对缺失文件/坏 JSON/args 非数组/缺 command 的 fail-closed 及「已带 --root 不重复追加」。setup+upgrade-030 共 36 项通过，巡检无红旗。
+  - 改动: .gitignore, test/setup.test.ts, test/upgrade-030.test.ts
+- 2026-09-11 [workbuddy] 接入 WorkBuddy 客户端并核验：setup --client workbuddy 写入标准 mcp.json（数据目录按 WORKBUDDY_CONFIG_DIR → ~/.workbuddy-ai → ~/.workbuddy 解析；写前备份、保留未知字段与既有 server），刻意不钉 --root——WorkBuddy 以会话工作区作为 MCP 子进程 cwd，服务端按 cwd 解析项目根，因此一条配置服务所有工作区；doctor --client workbuddy 读该配置并补 --root 做真实握手。本机已用 --local 绑定 E 盘构建入口，doctor 核验 48 工具 / 0.3.0 / 根正确；以工作区为 cwd 的模拟启动确认根解析正确，未初始化目录只返回错误且零写入。类型检查、构建与 setup/upgrade-030 测试（34 项）全通过；全量 283 项中 3 项失败均为沙箱环境限制（符号链接被禁、nul.ts 保留名被 fs shim 拦截、20 进程抢锁超时），三个失败文件均不引用本次改动模块。
+  - 改动: src/setup.ts, src/doctor.ts, src/setup-project.ts, src/cli.ts, test/setup.test.ts, test/upgrade-030.test.ts, README.md, install.ps1
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

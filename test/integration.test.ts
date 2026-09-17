@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { runFixtureTestEvidence } from "./helpers.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const serverEntry = path.join(repoRoot, "src", "index.ts");
@@ -34,6 +35,16 @@ async function connect(root: string): Promise<Client> {
   return client;
 }
 
+test("init_project 的 agents_md:false 经 MCP 调用真实关闭规则文件生成", async (t) => {
+  const root = mkTmpProject();
+  const client = await connect(root);
+  t.after(() => client.close());
+  const result = await client.callTool({ name: "init_project", arguments: { name: "不生成规则文件", agents_md: false } });
+  assert.ok(!(result as { isError?: boolean }).isError);
+  assert.equal(fs.existsSync(path.join(root, ".pm/project.json")), true);
+  assert.equal(fs.existsSync(path.join(root, "AGENTS.md")), false, "显式关闭必须到达 initProject");
+});
+
 function text(result: { content: Array<{ type: string; text?: string }> }): string {
   return (result.content ?? []).map((c) => c.text ?? "").join("\n");
 }
@@ -45,7 +56,7 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
 
   // 工具清单：基础工具 + AST/运行时语义证据 + 标准化验收工具
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 46, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
+  assert.equal(tools.tools.length, 48, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
   assert.ok(tools.tools.some((x) => x.name === "evaluate_acceptance"));
   assert.ok(tools.tools.some((x) => x.name === "save_semantic_evidence"));
   const writeTools = tools.tools.filter((item) => item.annotations?.readOnlyHint === false);
@@ -75,14 +86,17 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
   const badDone = await client.callTool({ name: "update_task", arguments: { id: "T-001", status: "done" } });
   assert.equal((badDone as { isError?: boolean }).isError, true);
   assert.ok(text(badDone as never).includes("result_note"), "报错要说明缺 result_note");
-  const uncertainRetry = await client.callTool({ name: "update_task", arguments: { id: "T-001", status: "done" } });
-  assert.equal((uncertainRetry as { isError?: boolean }).isError, true, "不确定写结果不能冒充 MCP 成功");
-  assert.match(text(uncertainRetry as never), /结果不确定|禁止自动重放/);
+  const rejectedRetry = await client.callTool({ name: "update_task", arguments: { id: "T-001", status: "done" } });
+  assert.equal((rejectedRetry as { isError?: boolean }).isError, true, "预检查拒绝不能冒充成功");
+  assert.match(text(rejectedRetry as never), /result_note/, "未开始业务写入的校验失败不锁死重试");
 
-  // 带笔记通过，且 feature 类无 verification 有提示
+  // 完成必须带有效质量证据；普通文字说明不再替代验证
+  fs.mkdirSync(path.join(root, "test"));
+  fs.writeFileSync(path.join(root, "test/app.test.mjs"), "import test from 'node:test'; import assert from 'node:assert/strict'; import {app} from '../src/app.ts'; test('app',()=>assert.equal(app,1));\n");
+  const evidence = await runFixtureTestEvidence(root, "test/app.test.mjs");
   const okDone = await client.callTool({
     name: "update_task",
-    arguments: { id: "T-001", status: "done", result_note: "登录页完成", verification: "npm test 通过" },
+    arguments: { id: "T-001", status: "done", result_note: "登录页完成", verification_run: evidence, files: ["src/app.ts"] },
   });
   assert.ok(!((okDone as { isError?: boolean }).isError));
 

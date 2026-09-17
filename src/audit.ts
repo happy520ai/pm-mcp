@@ -17,6 +17,8 @@ import { aggregates, ensureFresh, freshness, getIndex, getMeta, walkRefresh } fr
 import { quotaWarnings, milestoneStats } from "./roadmap.ts";
 import { blastRadiusWarning, churnStats, debtAging, footprint } from "./health.ts";
 import { now, type Snapshot } from "./types.ts";
+import { changedGitFiles, captureFileHashes } from "./git-state.ts";
+import { scanExclusionNote } from "./scan-policy.ts";
 
 /* --------------------------------- 快照 ---------------------------------- */
 
@@ -144,15 +146,16 @@ export function pmIntegrity(root: string): string[] {
 
 export interface GitAudit {
   available: boolean;
-  /** 有变更但未在最近一次会话入账的文件 */
+  /** 当前内容未匹配任一会话摘要的变更文件 */
   unaccounted: string[];
+  unverified: string[];
   ignoresPm: boolean;
   error: string | null;
 }
 
 /** git 对账：自报变更足迹 vs 真实工作区状态 */
 export function gitAudit(root: string): GitAudit {
-  const out: GitAudit = { available: false, unaccounted: [], ignoresPm: false, error: null };
+  const out: GitAudit = { available: false, unaccounted: [], unverified: [], ignoresPm: false, error: null };
   if (!fs.existsSync(path.join(root, ".git"))) return out;
   out.available = true;
   // .gitignore 是否把 .pm 排除出版本控制
@@ -168,21 +171,19 @@ export function gitAudit(root: string): GitAudit {
     }
   }
   // -uall：未跟踪目录展开为具体文件（默认只给 "?? src/" 目录缩写，抓不到文件）
-  const status = spawnSync("git", ["status", "--porcelain", "-uall"], { cwd: root, encoding: "utf8", timeout: 10_000 });
-  if (status.error || status.status !== 0) {
-    out.error = status.error?.message ?? `git status 退出码 ${status.status ?? "未知"}: ${(status.stderr ?? "").trim().slice(0, 200)}`;
-    return out;
+  try {
+    const changed = changedGitFiles(root);
+    const hashes = captureFileHashes(root, changed);
+    const sessions = loadSessions(root).sessions;
+    for (const rel of changed) {
+      const receipts = sessions.filter((session) => session.files.includes(rel) && typeof session.file_hashes?.[rel] === "string");
+      if (receipts.some((session) => session.file_hashes![rel] === hashes[rel])) continue;
+      if (receipts.length === 0 && sessions.some((session) => session.files.includes(rel))) out.unverified.push(rel);
+      else out.unaccounted.push(rel);
+    }
+  } catch (error) {
+    out.error = (error as Error).message;
   }
-  const changed = new Set<string>();
-  for (const line of status.stdout.split("\n")) {
-    const rel = normSep(line.slice(3).trim().split(" -> ").pop() ?? "");
-    if (!rel) continue;
-    if (rel.startsWith(".pm/") || rel === "PROJECT.md" || rel === ".gitignore") continue;
-    changed.add(rel);
-  }
-  const sessions = loadSessions(root).sessions;
-  const lastFiles = new Set(sessions[sessions.length - 1]?.files ?? []);
-  out.unaccounted = [...changed].filter((f) => !lastFiles.has(f));
   return out;
 }
 
@@ -367,6 +368,7 @@ export function auditStructure(root: string, maxLines = 150, forceFresh = false,
   const git = gitAudit(root);
   L.push("");
   L.push("## ⑨ git 对账（自报足迹 vs 真实工作区）");
+  L.push(...scanExclusionNote(root));
   if (git.available) {
     if (git.error) {
       L.push(`- 🚩 git status 对账失败（fail-closed）: ${git.error}`);
@@ -375,10 +377,11 @@ export function auditStructure(root: string, maxLines = 150, forceFresh = false,
       L.push("- 🚩 .gitignore 把 .pm/ 排除出版本控制——团队与多 AI 共享失效，状态只活在你本机。请移除该规则并提交 .pm/。");
     }
     if (git.unaccounted.length > 0) {
-      L.push(`- 🚩 ${git.unaccounted.length} 个文件有 git 变更但未在最近一次会话入账（log_session 漏报会被这里抓到）: ${git.unaccounted.slice(0, 5).join(", ")}`);
+      L.push(`- 🚩 ${git.unaccounted.length} 个文件的当前 git 变更未被会话内容证据覆盖: ${git.unaccounted.slice(0, 5).join(", ")}`);
     }
-    if (!git.error && !git.ignoresPm && git.unaccounted.length === 0) {
-      L.push("✅ 工作区变更与最近会话足迹一致。");
+    if (git.unverified.length) L.push(`- ⚠️ ${git.unverified.length} 个文件已有旧版路径记录，但缺少当前内容摘要，尚未验证: ${git.unverified.slice(0, 5).join(", ")}`);
+    if (!git.error && !git.ignoresPm && git.unaccounted.length === 0 && git.unverified.length === 0) {
+      L.push("✅ 工作区变更与已记录的会话内容证据一致。");
     }
   } else {
     L.push("- ⚠️ 当前项目根不是 Git 工作区，无法核验 log_session 足迹或 .pm/ 是否会被版本控制；Git 对账未启用。");

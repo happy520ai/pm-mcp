@@ -38,7 +38,7 @@ import {
   snapshotsDir,
 } from "../src/paths.ts";
 import { listRegistry, loadRegistry, saveRegistry, touchRegistry } from "../src/registry.ts";
-import { initTestProject, mkProj, writeRel } from "./helpers.ts";
+import { initTestProject, mkProj, writeRel, qualityEvidenceFixture } from "./helpers.ts";
 
 interface ToolResult {
   content?: Array<{ text?: string }>;
@@ -130,7 +130,7 @@ test("domain MCP handlers exercise success, rejection, filtering and warning bra
   await ok("update_task", { id: "T-001", status: "in_progress", title: "feature-main", detail: "detail", priority: null, milestone: "M1", tags: ["updated"], files: ["src/app.ts"], acceptance: "accepted", result_note: "", verification: "", steps: [{ text: "step", done: false }], step_done: 1, author: "codex" });
   assert.match(await bad("update_task", { id: "T-001", status: "done" }), /result_note/);
   assert.match(await bad("update_task", { id: "T-001", status: "done", result_note: "好" }), /过于空洞/);
-  assert.match(await ok("update_task", { id: "T-001", status: "done", result_note: "完成真实分支" }), /提示/);
+  assert.match(await ok("update_task", { id: "T-001", status: "done", result_note: "完成真实分支", verification_run: qualityEvidenceFixture(root), record_session: true }), /会话.*自动记录/);
   await ok("update_task", { id: "T-001", status: "backlog", verification: "node --test" });
   assert.match(await bad("checkpoint", { task_id: "T-404", note: "x", next_step: "y" }), /找不到任务/);
   await ok("checkpoint", { task_id: "T-002", note: "half", next_step: "continue" });

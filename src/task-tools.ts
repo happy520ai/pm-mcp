@@ -1,11 +1,15 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { refreshDerived } from "./dashboard.ts";
-import { foldLines, normSep } from "./budget.ts";
+import { normSep } from "./budget.ts";
 import { requireInitialized } from "./paths.ts";
 import { loadRoadmap, loadTasks, nextId, saveTasks } from "./store.ts";
 import { now, type TaskStatus, type TaskType } from "./types.ts";
 import { budgetLines, toolR, toolW } from "./tool-base.ts";
+import { captureFileHashes } from "./git-state.ts";
+import { appendSession } from "./session-log.ts";
+import { verifiedTaskEvidence } from "./task-evidence.ts";
+import { taskPage, taskPageText, TaskPageSchema, type TaskListQuery } from "./task-pagination.ts";
 
 const stepSchema = z.object({ text: z.string(), done: z.boolean().optional() });
 
@@ -66,39 +70,24 @@ export function registerTaskTools(server: McpServer, root: string): void {
     },
   );
 
-  toolR<{ status?: TaskStatus; type?: TaskType; milestone?: string; tag?: string; include_done?: boolean }>(
+  toolR<TaskListQuery>(
     server, root,
     "list_tasks",
-    "列出任务（默认不含 done/cancelled）。可按状态/类型/里程碑/标签过滤。",
+    "分页列出任务（默认不含 done/cancelled，每页25）。按原过滤条件传 next_cursor 可取下一页；数据变化会使游标失效。文字摘要与结构化分页结果同时返回，不漏掉折叠的中间任务。",
     {
       status: z.enum(["backlog", "todo", "in_progress", "blocked", "done", "cancelled"]).optional(),
       type: z.enum(["feature", "refactor", "fix", "chore", "debt"]).optional(),
       milestone: z.string().optional(),
       tag: z.string().optional(),
       include_done: z.boolean().optional().describe("默认 false"),
+      page_size: z.number().int().min(1).max(100).optional().describe("默认25，受项目输出预算限制"),
+      cursor: z.string().min(1).max(1024).optional().describe("上页返回的 next_cursor；保留相同过滤条件"),
     },
     (args) => {
       requireInitialized(root);
-      const { tasks } = loadTasks(root);
-      let list = tasks;
-      if (args.status) list = list.filter((t) => t.status === args.status);
-      else if (!args.include_done) list = list.filter((t) => t.status !== "done" && t.status !== "cancelled");
-      if (args.type) list = list.filter((t) => t.type === args.type);
-      if (args.milestone) list = list.filter((t) => t.milestone === args.milestone);
-      if (args.tag) list = list.filter((t) => t.tags.includes(args.tag!));
-      const L = list.map((t) => {
-        const mark = t.status === "in_progress" ? "🔄" : t.status === "blocked" ? "🚫" : t.status === "done" ? "✅" : "☐";
-        const extra: string[] = [];
-        if (t.priority) extra.push(t.priority);
-        if (t.type !== "feature") extra.push(t.type);
-        if (t.checkpoint) extra.push(`下一步: ${t.checkpoint.next_step}`);
-        return `${mark} ${t.id} ${t.title}${extra.length ? `（${extra.join(", ")}）` : ""}`;
-      });
-      return foldLines([`共 ${list.length} 个任务（全部 ${tasks.length} 个）:`, ...L], {
-        maxLines: budgetLines(root),
-        hint: "用 status/type/milestone 过滤",
-      });
+      return JSON.stringify(taskPage(root, args, budgetLines(root) - 4));
     },
+    { outputSchema: TaskPageSchema.shape, decode: (value) => { const page = TaskPageSchema.parse(JSON.parse(value)); return { text: taskPageText(page), data: page }; } },
   );
 
   toolW<{
@@ -108,18 +97,22 @@ export function registerTaskTools(server: McpServer, root: string): void {
     detail?: string;
     priority?: "P0" | "P1" | "P2" | "P3" | null;
     milestone?: string | null;
+    type?: "feature" | "refactor" | "fix" | "chore" | "debt";
     tags?: string[];
     files?: string[];
     acceptance?: string;
     result_note?: string;
     verification?: string;
+    verification_run?: string;
+    checkpoint?: { note: string; next_step: string };
+    record_session?: boolean;
     steps?: { text: string; done?: boolean }[];
     step_done?: number;
     author?: string;
-  }>(
+  }, { evidence?: string; taskSnapshot: string; hashes: Record<string, string> }>(
     server, root,
     "update_task",
-    "更新任务。转 done 必须填 result_note；feature/fix 建议填 verification（用什么命令/测试证明）。step_done 勾选第 N 步（从 1 起）。steps 整体替换步骤清单。",
+    "一次更新任务、checkpoint 与会话。checkpoint 默认记会话；完成时用 record_session:true 一并记录，不再另调 log_session；files 给实际关联文件。feature/fix 转 done 必须有最新成功且源码匹配的测试报告，verification_run 可指明报告。文字 verification 不能代替执行证据。",
     {
       id: z.string(),
       status: z.enum(["backlog", "todo", "in_progress", "blocked", "done", "cancelled"]).optional(),
@@ -132,19 +125,24 @@ export function registerTaskTools(server: McpServer, root: string): void {
       acceptance: z.string().optional(),
       result_note: z.string().optional().describe("完成笔记（转 done 必填）"),
       verification: z.string().optional().describe("怎么验证的：命令/测试名"),
+      verification_run: z.string().min(1).optional().describe(".pm/quality-runs 内最新的质量报告；省略时自动选最新"),
+      checkpoint: z.object({ note: z.string().trim().min(1), next_step: z.string().trim().min(1) }).optional(),
+      record_session: z.boolean().optional().describe("checkpoint 默认 true；完成任务时设 true 合并会话。省略保留旧式单独记录方式"),
       steps: z.array(stepSchema).optional().describe("整体替换步骤清单"),
       step_done: z.number().int().min(1).optional().describe("勾选完成第 N 步"),
       author: z.string().optional(),
     },
-    (args) => {
+    (args, prepared) => {
       requireInitialized(root);
       const data = loadTasks(root);
       const t = data.tasks.find((x) => x.id === args.id);
       if (!t) throw new Error(`找不到任务 ${args.id}。`);
+      if (JSON.stringify(t) !== prepared.taskSnapshot) throw new Error("任务在证据校验期间发生变化，请重新读取状态。");
       const tnow = now();
 
       if (args.title !== undefined) t.title = args.title;
       if (args.detail !== undefined) t.detail = args.detail;
+      if (args.type !== undefined) t.type = args.type; // schema 接受 type 但 handler 此前未应用（schema-handler 失配 bug）
       if (args.priority !== undefined) t.priority = args.priority ?? null;
       if (args.milestone !== undefined) {
         if (args.milestone) {
@@ -160,6 +158,7 @@ export function registerTaskTools(server: McpServer, root: string): void {
       if (args.acceptance !== undefined) t.acceptance = args.acceptance;
       if (args.result_note !== undefined) t.result_note = args.result_note;
       if (args.verification !== undefined) t.verification = args.verification;
+      if (prepared.evidence) t.verification = prepared.evidence + (args.verification ? `\n验证说明: ${args.verification}` : "");
       if (args.author !== undefined) t.author = args.author;
       if (args.steps !== undefined) t.steps = args.steps.map((s) => ({ text: s.text, done: s.done ?? false }));
       if (args.step_done !== undefined) {
@@ -169,6 +168,13 @@ export function registerTaskTools(server: McpServer, root: string): void {
       }
 
       const notes: string[] = [];
+      if (args.checkpoint) {
+        t.checkpoint = { ...args.checkpoint, at: tnow };
+        if (args.status === undefined && (t.status === "backlog" || t.status === "todo")) {
+          t.status = "in_progress";
+          t.started_at ??= tnow;
+        }
+      }
       if (args.status !== undefined && args.status !== t.status) {
         if (args.status === "done") {
           const note = args.result_note !== undefined ? args.result_note : t.result_note;
@@ -179,11 +185,6 @@ export function registerTaskTools(server: McpServer, root: string): void {
             throw new Error(`result_note 过于空洞（「${note.trim()}」）：完成笔记至少要说明做了什么（4 字以上），别拿一个字糊弄账本。`);
           }
           t.completed_at = tnow;
-          if (!t.verification.trim() && (args.verification === undefined || !args.verification.trim())) {
-            if (t.type === "feature" || t.type === "fix") {
-              notes.push("💡 提示: 该任务是 " + t.type + " 类型但没填 verification——用什么命令/测试证明它真的好了？建议补上（update_task id=" + t.id + " verification=...）。");
-            }
-          }
         }
         if (t.status === "done" && args.status !== "done") t.completed_at = null;
         if (args.status === "in_progress" && !t.started_at) t.started_at = tnow;
@@ -191,9 +192,28 @@ export function registerTaskTools(server: McpServer, root: string): void {
       }
       t.updated = tnow;
       saveTasks(root, data);
+      if (args.record_session ?? (args.checkpoint !== undefined)) {
+        const session = appendSession(root, {
+          summary: `${t.id} ${t.title}：${args.status === "done" ? t.result_note : args.checkpoint?.note ?? `状态 ${t.status}`}`,
+          files: args.files ?? [], next_steps: args.checkpoint ? [args.checkpoint.next_step] : [], author: args.author,
+        }, prepared.hashes);
+        notes.push(`会话 ${session} 已自动记录，无需重复 log_session。`);
+      }
       refreshDerived(root);
       const stepsInfo = t.steps.length > 0 ? `，步骤 ${t.steps.filter((s) => s.done).length}/${t.steps.length}` : "";
       return [`✅ ${t.id} 已更新（${t.status}${stepsInfo}）。`, ...notes].join("\n");
+    },
+    (args) => {
+      requireInitialized(root);
+      const task = loadTasks(root).tasks.find((item) => item.id === args.id);
+      if (!task) throw new Error(`找不到任务 ${args.id}。`);
+      if (args.status === "done" && (args.result_note ?? task.result_note).trim().length < 4) {
+        throw new Error("转 done 必须填写 result_note（至少4字，不能过于空洞）。");
+      }
+      const evidence = args.status === "done" && (task.type === "feature" || task.type === "fix")
+        ? verifiedTaskEvidence(root, args.verification_run, args.files ?? task.files) : undefined;
+      const record = args.record_session ?? (args.checkpoint !== undefined);
+      return { evidence, taskSnapshot: JSON.stringify(task), hashes: record ? captureFileHashes(root, args.files ?? []) : {} };
     },
   );
 

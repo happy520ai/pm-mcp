@@ -32,7 +32,7 @@ export function buildDashboard(root: string): string {
   } catch {
     // 旧项目迁移前在仪表盘显式显示缺失，不让派生刷新整体失败。
   }
-  let latestQuality: { run_at: string; ok: boolean; results: Array<{ status: string }> } | null = null;
+  let latestQuality: { run_at: string; ok: boolean; evidence_level?: string; results: Array<{ status: string }> } | null = null;
   try {
     const dir = pmPath(root, "quality-runs");
     const latest = fs.readdirSync(dir).filter((name) => name.endsWith(".json")).sort().at(-1);
@@ -114,7 +114,7 @@ export function buildDashboard(root: string): string {
   L.push(`| 调试知识 | ${debugEntries.length} 条记录 |`);
   L.push(`| 测试背书 | ${implemented.length === 0 ? "—" : `${implemented.filter((f) => f.test_files.length > 0).length}/${implemented.length} 个功能带测试`} |`);
   L.push(`| 语义治理 | ${governance ? `${governance.modules.length} 模块 / ${governance.interfaces.length} 接口 / ${governance.repositories.length} 仓库` : "⚠️ 未初始化"} |`);
-  L.push(`| 质量矩阵 | ${latestQuality ? `${latestQuality.ok ? "✅" : "🚩"} ${latestQuality.run_at.slice(0, 16).replace("T", " ")}（${latestQuality.results.filter((item) => item.status === "passed").length}/${latestQuality.results.length}）` : "⚠️ 尚无真实执行记录"} |`);
+  L.push(`| 质量矩阵 | ${latestQuality ? `${latestQuality.ok ? "✅" : "🚩"} ${latestQuality.run_at.slice(0, 16).replace("T", " ")}（命令 ${latestQuality.results.filter((item) => item.status === "passed").length}/${latestQuality.results.length}；证据 ${latestQuality.evidence_level ?? "旧格式未标级"}）` : "⚠️ 尚无真实执行记录"} |`);
   L.push(`| 标准化验收 | ${latestAcceptance ? `${latestAcceptance.verdict === "accepted" ? "✅" : "🚩"} ${latestAcceptance.report_generated_at.slice(0, 16).replace("T", " ")}（需求 ${latestAcceptance.summary.requirements_passed}/${latestAcceptance.summary.requirements_total}，errors ${latestAcceptance.summary.errors}）` : "⚠️ 尚无正式评价报告"} |`);
   L.push("");
 

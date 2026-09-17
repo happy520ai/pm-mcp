@@ -9,6 +9,7 @@ import {
 } from "../src/acceptance-model.ts";
 import { resolveJsonPointer, sha256AcceptanceFile } from "../src/acceptance-tools.ts";
 import { atomicWrite } from "../src/store.ts";
+import { acceptanceTarget } from "./acceptance-target.mts";
 
 function option(name: string, fallback: string): string {
   const index = process.argv.indexOf(name);
@@ -18,11 +19,13 @@ function option(name: string, fallback: string): string {
 }
 
 const root = path.resolve(option("--root", process.cwd()));
+const target = acceptanceTarget(root);
 const evidenceLocator = option("--evidence", ".pm/acceptance/evidence/product-evidence.json");
-const evaluationLocator = option("--evaluation", ".pm/acceptance/evaluations/pm-mcp-local-release-1.0.0.json");
-const reportId = option("--report-id", "pm-mcp-local-release-20260903");
-const planLocator = ".pm/acceptance/evidence/evaluation-plan.md";
-const firstFailureLocator = ".pm/acceptance/evidence/first-failure.md";
+const evaluationLocator = option("--evaluation", `.pm/acceptance/evaluations/${target.id}-${target.version}.json`);
+const reportId = option("--report-id", `${target.id}-${target.version}`);
+const legacy = target.id === "pm-mcp-local-release" && target.version === "1.0.0";
+const planLocator = option("--plan", legacy ? ".pm/acceptance/evidence/evaluation-plan.md" : `.pm/acceptance/evidence/${target.id}-${target.version}-plan.md`);
+const firstFailureLocator = option("--first-failure", legacy ? ".pm/acceptance/evidence/first-failure.md" : `.pm/acceptance/evidence/${target.id}-${target.version}-first-failure.md`);
 
 function absolute(locator: string): string {
   return path.resolve(root, locator);
@@ -53,7 +56,7 @@ function isoMtime(file: string): string {
   return fs.statSync(file).mtime.toISOString();
 }
 
-const baseline = loadAcceptanceBaseline(root, "pm-mcp-local-release", "1.0.0");
+const baseline = loadAcceptanceBaseline(root, target.id, target.version);
 if (baseline.approval.status !== "approved" || !baseline.approval.approved_at) throw new Error("验收基线尚未批准");
 const productFile = absolute(evidenceLocator);
 const product = JSON.parse(fs.readFileSync(productFile, "utf8")) as unknown;
@@ -63,7 +66,7 @@ if (!Number.isFinite(Date.parse(capturedAt))) throw new Error("产品证据 capt
 const evidence = [
   { id: "EV-BASELINE", kind: "review" as const, locator: path.relative(root, acceptanceBaselinePath(root, baseline.baseline_id, baseline.baseline_version)).replace(/\\/g, "/"), captured_at: baseline.approval.approved_at, produced_by: "pm-mcp baseline approval transaction", summary: "Immutable approved quality baseline and evaluation plan." },
   { id: "EV-PLAN", kind: "review" as const, locator: planLocator, captured_at: isoMtime(absolute(planLocator)), produced_by: "Codex first-party evaluation planner", summary: "Human-readable bounded evaluation plan and stop conditions." },
-  { id: "EV-FIRST-FAILURE", kind: "review" as const, locator: firstFailureLocator, captured_at: isoMtime(absolute(firstFailureLocator)), produced_by: "Node.js coverage gate", summary: "Preserved first failing coverage result before remediation." },
+  { id: "EV-FIRST-FAILURE", kind: "review" as const, locator: firstFailureLocator, captured_at: isoMtime(absolute(firstFailureLocator)), produced_by: "Local validation evidence record", summary: "Preserved earlier validation failures and their scope before current verification." },
   { id: "EV-MEASURE", kind: "measurement" as const, locator: evidenceLocator, captured_at: capturedAt, produced_by: "collect-acceptance-evidence.mts", summary: "Machine-collected numeric measurements bound to the current source tree." },
   { id: "EV-TEST", kind: "test_result" as const, locator: evidenceLocator, captured_at: capturedAt, produced_by: "npm quality and MCP integration collector", summary: "Machine test, build, typecheck, coverage and stdio inventory results." },
   { id: "EV-AUDIT", kind: "audit" as const, locator: evidenceLocator, captured_at: capturedAt, produced_by: "pm-mcp audit/governance/security collectors", summary: "Machine governance, documentation, security and maintainability audit results." },
@@ -119,7 +122,7 @@ const reportGeneratedAt = new Date(Date.parse(evaluatedAt) + 1).toISOString();
 const evaluation = AcceptanceEvaluationSchema.parse({
   schema_version: 1,
   report_id: reportId,
-  evaluation_id: "EVAL-PM-MCP-LOCAL-1.0.0",
+  evaluation_id: `EVAL-${target.id}-${target.version}`,
   baseline_id: baseline.baseline_id,
   baseline_version: baseline.baseline_version,
   evaluated_at: evaluatedAt,
@@ -129,7 +132,7 @@ const evaluation = AcceptanceEvaluationSchema.parse({
     { stage: "define", status: "completed", started_at: baseline.created_at, completed_at: baseline.approval.approved_at, artifact_evidence_ids: ["EV-BASELINE"], result_note: "Product, intended use, environment and exclusions were frozen in the approved baseline." },
     { stage: "design", status: "completed", started_at: baseline.created_at, completed_at: baseline.approval.approved_at, artifact_evidence_ids: ["EV-BASELINE"], result_note: "Nine characteristics, quantitative requirements, risks, tests and evidence pointers were designed before execution." },
     { stage: "plan", status: "completed", started_at: baseline.created_at, completed_at: baseline.approval.approved_at, artifact_evidence_ids: ["EV-BASELINE"], result_note: "Entry, stop, retest and reporting rules were frozen; the readable plan is supplementary evidence." },
-    { stage: "execute", status: "completed", started_at: baseline.approval.approved_at, completed_at: capturedAt, artifact_evidence_ids: [...productEvidenceIds, "EV-FIRST-FAILURE"], result_note: "The first failed coverage run was preserved; remediation added tests without lowering thresholds, followed by fresh quality and evidence collection." },
+    { stage: "execute", status: "completed", started_at: baseline.approval.approved_at, completed_at: capturedAt, artifact_evidence_ids: [...productEvidenceIds, "EV-FIRST-FAILURE"], result_note: "Earlier failures were preserved without lowering thresholds; current measurements were collected with fresh source-bound quality evidence." },
     { stage: "conclude", status: "completed", started_at: capturedAt, completed_at: evaluatedAt, artifact_evidence_ids: ["EV-PLAN", ...productEvidenceIds], result_note: "All evidence hashes and frozen JSON assertions are ready for evaluator recomputation and immutable report generation." },
   ],
   evidence,

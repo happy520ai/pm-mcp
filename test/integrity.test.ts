@@ -152,7 +152,7 @@ test("CRLF 不影响行号与检索语义；BOM 文件不崩", async () => {
   assert.equal(bomRes.matches.length, 1, "BOM 文件不崩且可检索");
 });
 
-test("规模：500 任务折叠在输出预算内，ID 不溢出", async (t) => {
+test("规模：500 任务按预算分页且通过真实MCP完整取回", async (t) => {
   const root = mkProject("规模");
   initProject(root, { name: "规模", exposure: "local", license: "MIT" });
   const data = loadTasks(root);
@@ -168,9 +168,18 @@ test("规模：500 任务折叠在输出预算内，ID 不溢出", async (t) => 
   const r = await client.callTool({ name: "list_tasks", arguments: {} });
   const out = ((r as { content: Array<{ text?: string }> }).content ?? []).map((c) => c.text ?? "").join("\n");
   const lineCount = out.split("\n").length;
-  assert.ok(lineCount <= 152, `输出 ${lineCount} 行应被折叠到预算 150 内`);
-  assert.ok(out.includes("另有"), "折叠提示出现");
+  assert.ok(lineCount <= 150, `输出 ${lineCount} 行应在预算 150 内`);
+  assert.ok(out.includes("下一页"), "应提供继续读取入口");
   assert.ok(out.includes("共 500 个任务"));
+  let page = r.structuredContent as { items: Array<{ id: string }>; next_cursor: string | null };
+  const ids = page.items.map((item) => item.id);
+  while (page.next_cursor) {
+    const next = await client.callTool({ name: "list_tasks", arguments: { cursor: page.next_cursor } });
+    assert.ok(!next.isError);
+    page = next.structuredContent as typeof page;
+    ids.push(...page.items.map((item) => item.id));
+  }
+  assert.equal(ids.length, 500); assert.equal(new Set(ids).size, 500);
   await client.close();
 });
 

@@ -11,6 +11,8 @@ const runner = path.resolve("scripts/quality-gate.mts");
 
 function fixture(withTest: boolean): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "pm-quality-gate-"));
+  // 沙箱化注册表（T-034 根因修复）：缺这行会把每个 fixture 泄入真实 ~/.pm-mcp/registry.json
+  process.env.PM_MCP_HOME = root + "-sandbox-home";
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.writeFileSync(path.join(root, "src", "index.ts"), "export const value = 1;\n");
   fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ scripts: withTest ? { test: "node -e \"process.exit(0)\"" } : {} }));

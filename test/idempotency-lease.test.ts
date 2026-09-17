@@ -26,8 +26,8 @@ test("a live unexpired write owner remains pending and is not taken over", async
   const entered = deferred();
   const finish = deferred();
   t.after(finish.resolve);
-  setPendingLeaseMsForTests(500);
-  t.after(() => setPendingLeaseMsForTests());
+  // 该场景验证仍有效的生产租约；500ms 人为缩短会把慢机器上的场景变成已过期。
+  // 过期分支由下面单独的 30ms 租约测试验证，不改变生产期限或 follower 等待窗口。
   setWriteWaitMsForTests(30);
   t.after(() => setWriteWaitMsForTests());
   let executions = 0;

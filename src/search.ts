@@ -6,6 +6,7 @@ import { decisionsDir } from "./paths.ts";
 import { loadGovernance } from "./governance-model.ts";
 import { listFiles, DEFAULT_IGNORE_DIRS } from "./scan.ts";
 import { foldLines, globToRegExp, normSep } from "./budget.ts";
+import { projectScanIgnores } from "./scan-policy.ts";
 
 /**
  * 求证与检索：search_code（锚定真实代码）+ search_knowledge（历史结论）。
@@ -35,11 +36,13 @@ export function rgSearch(root: string, query: string, glob: string | undefined, 
   for (const dir of DEFAULT_IGNORE_DIRS) {
     if (dir === ".pm") args.push("-g", "!.pm/**");
     else args.push("-g", `!${dir}/**`);
+    args.push("-g", `!**/${dir}/**`);
   }
   args.push("--max-count", String(maxResults * 3));
   if (regex) args.push("-e", query);
-  else args.push("-F", query);
+  else args.push("-F", "-e", query);
   if (glob) args.push("--glob", glob);
+  for (const excluded of projectScanIgnores(root)) args.push("--glob", `!${excluded}`);
   args.push(".");
   const r = spawnSync("rg", args, { cwd: root, encoding: "utf8", timeout: 120_000, maxBuffer: 64 * 1024 * 1024 });
   if (process.env.PM_RG_DEBUG) console.error("[rgSearch]", JSON.stringify({ status: r.status, err: r.error?.message, stdout: (r.stdout ?? "").slice(0, 200), args }));
