@@ -1,5 +1,5 @@
 {
-  "seq": 46,
+  "seq": 47,
   "sessions": [
     {
       "id": "S-0001",
@@ -1083,6 +1083,22 @@
       "next_steps": [
         "等待 CI（run 35231890524）结果；若失败优先看 coverage 门槛",
         "如需正式发布 0.3.0：统一 README 示例版本号、打 v0.3.0 tag、再走 publish-npm 工作流"
+      ]
+    },
+    {
+      "id": "S-0047",
+      "date": "2026-09-17T14:39:18.639Z",
+      "author": "workbuddy",
+      "summary": "接手并行会话遗留的 src/dashboard.ts 改动并验证提交。该改动把仪表盘的漂移对账统一到 audit.ts 的 detectDrift，口径由「仅 implemented 功能的 entry_files」扩为「功能入口文件 + done 任务关联文件」，消除 dashboard 与 audit_structure 两处口径不一致。验证：重建 dist、tsc --noEmit 干净、dashboard.test.ts + realrepo.test.ts 10/10 通过，提交 8892eb5 并推送，CI（Node 22.18/24）全绿。同时排查了「同步更新 GitHub 时出现死循环」：源头是另一会话（工作区在 E:/AI-Data/AI网关系统/unified-ai-system）跨项目反复操作本仓库（931 次 Bash、49 轮重复 get_status/get_roadmap/list_tasks，会话日志 36MB），该会话现已停止；其遗留的 dist.bak-20260917T2226/ 与 .tmp-test-full-20260917.log 已由其自行移除，本仓库 git status 归零。远程 main = 本地 HEAD = 8892eb5。",
+      "files": [
+        "src/dashboard.ts"
+      ],
+      "file_hashes": {
+        "src/dashboard.ts": "85f032d0852dcc0b1f62e56cc57aa2621276aefc409f096035c78ffc0114d728"
+      },
+      "next_steps": [
+        "T-051（safe-delete 钩子拦截 pm-mcp 幂等记录清理）仍未处置，三个方向待选",
+        "跨项目操作时不要依赖 pm-mcp 的 cwd 推断，建议在目标项目会话内操作"
       ]
     }
   ]
