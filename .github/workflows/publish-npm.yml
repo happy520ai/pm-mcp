@@ -34,6 +34,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          registry-url: https://registry.npmjs.org
           package-manager-cache: false
       - name: Use the verified OIDC-capable npm CLI
         run: npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
