@@ -86,8 +86,9 @@ test("searchPublicCode：凭据缺失、401、403、422 各自给出可行动错
   const root = fixture();
   const offline = { tokenResolver: noTokenResolver };
   await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", ...offline }), /未找到 GitHub 凭据/);
+  // 401/403/422 用例必须显式给 token：CI 环境没有 gh 凭据，否则会先在凭据解析处失败
   const status = (code: number): FetchLike => async () => ({ ok: false, status: code, text: async () => "" });
-  await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", fetcher: status(401) }), /token 无效/);
-  await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", fetcher: status(403) }), /限流/);
-  await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", fetcher: status(422) }), /短语可能不合法/);
+  await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", token: "t", fetcher: status(401) }), /token 无效/);
+  await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", token: "t", fetcher: status(403) }), /限流/);
+  await assert.rejects(searchPublicCode(root, { snippet: "enough length here 12345", token: "t", fetcher: status(422) }), /短语可能不合法/);
 });
