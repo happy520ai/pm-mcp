@@ -9,6 +9,7 @@ import { listRegistry } from "./registry.ts";
 import { auditSecurity, listFindings, prepareSecurityAudit, resolveFinding, type PreparedSecurityAudit } from "./security.ts";
 import { budgetLines, toolR, toolW } from "./tool-base.ts";
 import { walkRefresh } from "./index-store.ts";
+import { renderDuplicates } from "./duplicates.ts";
 
 export function registerAuditTools(server: McpServer, root: string): void {
   toolW(server, root, "snapshot_codebase", "给代码结构拍快照（文件数/行数/目录分布/测试数/skip 标记/依赖清单）。之后 audit_structure 会与上次快照 diff。建议每个会话或每个里程碑结束时拍一次。", {}, () => {
@@ -21,6 +22,14 @@ export function registerAuditTools(server: McpServer, root: string): void {
   toolR(server, root, "audit_structure", "八项结构对账（定期做）：①增长与新增依赖 ②漂移对账（功能↔文件，防幻觉）③债务与重构配额 ④churn 热点 ⑤复杂度预算 ⑥索引覆盖率 ⑦足迹/产出 ⑧测试健康（禁用/蒸发/空测试/背书占比）。", {}, () => {
     requireInitialized(root);
     return auditStructure(root, budgetLines(root), true);
+  });
+
+  toolR<{ min_lines?: number; limit?: number }>(server, root, "find_duplicates", "重复代码检测：注释剥离/字符串占位/空白归一化的行指纹滑动窗口聚类，跨文件重复块按长度降序列出。", {
+    min_lines: z.number().int().min(4).max(20).optional().describe("最小重复行数（有效代码行），默认 6"),
+    limit: z.number().int().min(1).max(100).optional().describe("最多列出的重复组数，默认 20"),
+  }, (args) => {
+    requireInitialized(root);
+    return renderDuplicates(root, args ?? {}, budgetLines(root));
   });
 
   toolW<Record<string, never>, PreparedSecurityAudit>(server, root, "audit_security", "安全体检（只扫描本地、不联网，结果写入安全台账）：密钥泄露 / 危险模式（eval、SQL 拼接、禁用证书校验等）/ 依赖风险。修复后重扫自动关闭；接受风险必须留理由。", {}, (_args, prepared) => {

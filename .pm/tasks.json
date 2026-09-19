@@ -1,5 +1,5 @@
 {
-  "seq": 56,
+  "seq": 57,
   "tasks": [
     {
       "id": "T-001",
@@ -221,11 +221,11 @@
       "files": [],
       "acceptance": "",
       "result_note": "由 T-056/F-024 实现并完成：fileCycles 文件级循环检测进 SemanticGraph 与 audit_governance（警告级），dependency_graph 工具提供摘要/环/枢纽/聚焦邻域查询；工具目录契约 49→50（TOOL_CATALOG_SIZE 单一事实来源，全部断言改用常量）。质量报告 quality-20260919-030433：301/301。",
-      "verification": "",
+      "verification": "经 T-056 验证：全量 301/301（quality-20260919-030433）+ probe 实测 50 工具 + integration/realrepo 断言改用 TOOL_CATALOG_SIZE 常量",
       "tags": [],
       "author": "",
       "created": "2026-09-01T16:30:56.646Z",
-      "updated": "2026-09-19T03:06:34.715Z",
+      "updated": "2026-09-19T03:19:41.478Z",
       "started_at": null,
       "completed_at": "2026-09-19T03:06:34.715Z"
     },
@@ -1858,13 +1858,61 @@
       ],
       "acceptance": "文件级循环进 SemanticGraph（fileCycles）且 audit_governance 发 file-cycle 告警；新增 dependency_graph 工具（摘要/环/枢纽/聚焦邻域，输出受行预算折叠）；契约仪式完整（TOOL_CATALOG_SIZE=50、doctor/测试断言改用常量、README/Codex 配置同步）；全量测试绿",
       "result_note": "T-010 落地：①SemanticGraph 新增 fileCycles（Tarjan 对 {from,to} 同构复用，仅统计 resolution=file 的已解析内部边）；②audit_governance 新增 file-cycle/file-cycle-truncated 警告（⚠️ 不阻断门禁，模块环保持 error）+ 关系摘要行带 file cycles 计数；③新工具 dependency_graph（toolR）：全局摘要（关系/环/入出边枢纽 Top5）、模块+文件级循环列表、聚焦文件 BFS 邻域（direction deps|dependents|both、depth 1-6、80 节点上限、未解析引用），输出走 foldLines 行预算；focus 先 path.relative 再 relPath 归一化（首版误用 relPath 已修，集成测试抓出）。④契约 49→50：upgrade-030 三处断言一并改用 TOOL_CATALOG_SIZE 常量，消除硬编码漂移类；README/Codex config 同步。验证：typecheck 干净 + 全量 301/301（quality-20260919-030433）+ probe 实测目录 50 含 dependency_graph + 巡检探针绿。",
-      "verification": "",
+      "verification": "typecheck 干净；全量 301/301（.pm/quality-runs/quality-20260919-030433-729-0000.json，tests_observed）；probe 实测目录 50 个且含 dependency_graph；集成测试覆盖摘要/聚焦/坏 focus 三分支；巡检探针绿",
       "tags": [],
       "author": "",
       "created": "2026-09-19T02:51:18.211Z",
-      "updated": "2026-09-19T03:06:16.728Z",
+      "updated": "2026-09-19T03:19:41.347Z",
       "started_at": null,
       "completed_at": "2026-09-19T03:06:16.728Z"
+    },
+    {
+      "id": "T-057",
+      "title": "T-011 重复代码检测：行指纹聚类 + find_duplicates 工具",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "src/duplicates.ts：归一化行指纹 + 窗口哈希 + 聚类",
+          "done": true
+        },
+        {
+          "text": "find_duplicates 工具注册（toolR）",
+          "done": true
+        },
+        {
+          "text": "契约 50→51：TOOL_CATALOG_SIZE/README/Codex config",
+          "done": true
+        },
+        {
+          "text": "duplicates 测试：跨文件重复/注释字符串不误报/忽略目录/阈值",
+          "done": true
+        },
+        {
+          "text": "全量绿 + 提交推送",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/duplicates.ts",
+        "src/audit-tools.ts",
+        "src/version.ts",
+        "test/duplicates.test.ts",
+        "README.md"
+      ],
+      "acceptance": "零依赖扫描器：注释剥离+字符串占位+空白归一化的行指纹滑动窗口聚类；默认 min_lines=6、至少 2 处、尊重 SCAN_IGNORE_DIRS；find_duplicates 工具（min_lines/limit 可调、输出折叠确定性排序）；契约 51 仪式；测试覆盖跨语言重复/注释字符串不误报/忽略目录；全量绿",
+      "result_note": "T-011 落地：src/duplicates.ts 零依赖行指纹聚类——单遍扫描剥离注释（//、#、块注释）+ 字符串字面量占位 + 空白折叠，双 32 位 djb2 64-bit 指纹滑窗，先收集全部成对匹配再按索引排序连续对齐合并成长块（修掉首版按哈希插入序处理的碎片化缺陷）；仅跨文件重复，≥2 处哈希位置截断与 MAX_RUNS 上限均置 truncated。find_duplicates 工具（audit-tools.ts，toolR）min_lines 4-20 默认 6、limit 默认 20，输出走 foldLines；复用索引表（ensureFresh + oversize/skip 过滤 + 400KB 单文件上限），SCAN_IGNORE_DIRS 天然生效。契约 50→51。dogfood：本仓 118 文件 204ms，检出 audit.ts:127-134 ↔ governance-audit.ts:110-117 真实 8 行重复。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-032302-534-0000.json\n报告 SHA-256: 8c02446108b9bad289a602b8eb21c53133bb4e6d995ae18993ffe7c7d117631d\n源码 SHA-256: 0e15a2cc2f4666b245cc1b479fc2c75f756726f98f95515475ae47664ae4f276\n执行时间: 2026-09-19T03:23:02.534Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: typecheck 干净；全量 307/307（.pm/quality-runs/quality-20260919-032302-534-0000.json，tests_observed）；probe 实测目录 51 且含 find_duplicates；dogfood 扫描本仓检出真实重复块；6 项专项测试（检出/字符串占位/不误报/忽略目录/超限/limit）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T03:07:34.629Z",
+      "updated": "2026-09-19T03:25:17.459Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T03:24:48.015Z"
     }
   ]
 }

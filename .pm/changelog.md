@@ -2,6 +2,14 @@
 
 ## 2026-09-19 — 未知
 
+完成 T-011/T-057/F-025：零依赖行指纹重复代码检测（注释剥离/字符串占位/空白归一化，64-bit 指纹滑窗，成对连续对齐合并），find_duplicates 工具 + 契约 50→51。dogfood 检出本仓 audit.ts↔governance-audit.ts 真实 8 行重复。全量 307/307（quality-20260919-032302）。仓库外：E:\\Codex\\.codex\\config.toml 增 find_duplicates 条目。
+
+改动文件（5）: src/duplicates.ts, src/audit-tools.ts, src/version.ts, test/duplicates.test.ts, README.md
+
+下一步: T-008 OSV 联网漏洞查询（默认关，需设计 flag 门控）；T-012 Web UI 仪表盘；T-009 版权相似度需外部服务选型，待用户决策
+
+## 2026-09-19 — 未知
+
 M2 backlog 动工：完成 T-010/T-056/F-024——SemanticGraph.fileCycles（Tarjan 复用）、audit_governance file-cycle 警告、dependency_graph 工具（摘要/环/枢纽/聚焦 BFS 邻域，foldLines 折叠）、契约 49→50 且全部测试断言改用 TOOL_CATALOG_SIZE 常量（upgrade-030 三处硬编码一并消灭）；README/Codex config 同步。验证：301/301（quality-20260919-030433）+ probe 实测 50 工具 + 巡检探针绿。仓库外：E:\\Codex\\.codex\\config.toml 增 dependency_graph 条目。
 
 改动文件（9）: src/semantic-graph.ts, src/governance-audit.ts, src/governance-tools.ts, src/version.ts, test/semantic-graph.test.ts, test/integration.test.ts, test/realrepo.test.ts, test/upgrade-030.test.ts, README.md

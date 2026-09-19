@@ -1,5 +1,5 @@
 {
-  "seq": 24,
+  "seq": 25,
   "features": [
     {
       "id": "F-001",
@@ -432,6 +432,22 @@
       "status": "implemented",
       "created": "2026-09-19T03:06:16.851Z",
       "updated": "2026-09-19T03:06:16.851Z"
+    },
+    {
+      "id": "F-025",
+      "name": "find_duplicates 重复代码检测（行指纹聚类）",
+      "description": "零依赖重复代码检测：行指纹（注释剥离/字符串占位/空白归一化）滑动窗口聚类，跨文件重复块按长度降序；min_lines 4-20（默认 6）、limit 可调；基于 .pm 索引（尊重 SCAN_IGNORE_DIRS 与 400KB 单文件上限），输出受行预算折叠。",
+      "module": "质量与组合",
+      "entry_files": [
+        "src/duplicates.ts",
+        "src/audit-tools.ts"
+      ],
+      "test_files": [
+        "test/duplicates.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T03:24:48.174Z",
+      "updated": "2026-09-19T03:24:48.174Z"
     }
   ]
 }
