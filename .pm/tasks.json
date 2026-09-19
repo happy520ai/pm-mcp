@@ -1,5 +1,5 @@
 {
-  "seq": 55,
+  "seq": 56,
   "tasks": [
     {
       "id": "T-001",
@@ -213,21 +213,21 @@
       "title": "依赖图与循环依赖检测",
       "detail": "",
       "type": "refactor",
-      "status": "backlog",
+      "status": "done",
       "priority": null,
       "milestone": "M2",
       "steps": [],
       "checkpoint": null,
       "files": [],
       "acceptance": "",
-      "result_note": "",
+      "result_note": "由 T-056/F-024 实现并完成：fileCycles 文件级循环检测进 SemanticGraph 与 audit_governance（警告级），dependency_graph 工具提供摘要/环/枢纽/聚焦邻域查询；工具目录契约 49→50（TOOL_CATALOG_SIZE 单一事实来源，全部断言改用常量）。质量报告 quality-20260919-030433：301/301。",
       "verification": "",
       "tags": [],
       "author": "",
       "created": "2026-09-01T16:30:56.646Z",
-      "updated": "2026-09-01T16:30:56.646Z",
+      "updated": "2026-09-19T03:06:34.715Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-19T03:06:34.715Z"
     },
     {
       "id": "T-011",
@@ -1813,6 +1813,58 @@
       "updated": "2026-09-19T02:09:30.147Z",
       "started_at": null,
       "completed_at": null
+    },
+    {
+      "id": "T-056",
+      "title": "T-010 依赖图与循环依赖检测：fileCycles + dependency_graph 工具",
+      "detail": "",
+      "type": "refactor",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "semantic-graph：fileCycles（Tarjan 复用到文件内边）",
+          "done": true
+        },
+        {
+          "text": "governance-audit：file-cycle 告警 + 摘要计数",
+          "done": true
+        },
+        {
+          "text": "dependency_graph 工具（toolR + 邻域 BFS + 折叠）",
+          "done": true
+        },
+        {
+          "text": "契约仪式：TOOL_CATALOG_SIZE=50 / 测试断言改用常量 / README / Codex config",
+          "done": true
+        },
+        {
+          "text": "算法与集成测试 + 全量绿 + 提交推送",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/semantic-graph.ts",
+        "src/governance-audit.ts",
+        "src/governance-tools.ts",
+        "src/version.ts",
+        "test/semantic-graph.test.ts",
+        "test/integration.test.ts",
+        "test/realrepo.test.ts",
+        "test/upgrade-030.test.ts",
+        "README.md"
+      ],
+      "acceptance": "文件级循环进 SemanticGraph（fileCycles）且 audit_governance 发 file-cycle 告警；新增 dependency_graph 工具（摘要/环/枢纽/聚焦邻域，输出受行预算折叠）；契约仪式完整（TOOL_CATALOG_SIZE=50、doctor/测试断言改用常量、README/Codex 配置同步）；全量测试绿",
+      "result_note": "T-010 落地：①SemanticGraph 新增 fileCycles（Tarjan 对 {from,to} 同构复用，仅统计 resolution=file 的已解析内部边）；②audit_governance 新增 file-cycle/file-cycle-truncated 警告（⚠️ 不阻断门禁，模块环保持 error）+ 关系摘要行带 file cycles 计数；③新工具 dependency_graph（toolR）：全局摘要（关系/环/入出边枢纽 Top5）、模块+文件级循环列表、聚焦文件 BFS 邻域（direction deps|dependents|both、depth 1-6、80 节点上限、未解析引用），输出走 foldLines 行预算；focus 先 path.relative 再 relPath 归一化（首版误用 relPath 已修，集成测试抓出）。④契约 49→50：upgrade-030 三处断言一并改用 TOOL_CATALOG_SIZE 常量，消除硬编码漂移类；README/Codex config 同步。验证：typecheck 干净 + 全量 301/301（quality-20260919-030433）+ probe 实测目录 50 含 dependency_graph + 巡检探针绿。",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T02:51:18.211Z",
+      "updated": "2026-09-19T03:06:16.728Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T03:06:16.728Z"
     }
   ]
 }

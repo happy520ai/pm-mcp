@@ -1,5 +1,5 @@
 {
-  "seq": 23,
+  "seq": 24,
   "features": [
     {
       "id": "F-001",
@@ -414,6 +414,24 @@
       "status": "implemented",
       "created": "2026-09-19T02:27:42.312Z",
       "updated": "2026-09-19T02:27:42.312Z"
+    },
+    {
+      "id": "F-024",
+      "name": "dependency_graph 依赖图查询与文件级循环检测",
+      "description": "查询跨文件/模块依赖图：全局摘要（关系/环/入出边枢纽 Top5）、模块与文件级循环列表、聚焦文件的依赖邻域（BFS，direction deps|dependents|both，depth 1-6，80 节点上限，未解析引用）；输出受行预算折叠。配套 audit_governance 新增 file-cycle 警告与 SemanticGraph.fileCycles。",
+      "module": "语义治理",
+      "entry_files": [
+        "src/governance-tools.ts",
+        "src/governance-audit.ts",
+        "src/semantic-graph.ts"
+      ],
+      "test_files": [
+        "test/semantic-graph.test.ts",
+        "test/integration.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T03:06:16.851Z",
+      "updated": "2026-09-19T03:06:16.851Z"
     }
   ]
 }

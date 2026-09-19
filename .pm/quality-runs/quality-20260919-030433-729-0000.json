@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-19T03:04:33.729Z",
+  "ok": true,
+  "reported_ok": true,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "c452ce47e9b485cad02c704edea7d7b75ba6021a6bf53164a850e3a54b2e6cda",
+      "files": 133,
+      "bytes": 1285599
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "c452ce47e9b485cad02c704edea7d7b75ba6021a6bf53164a850e3a54b2e6cda",
+      "files": 133,
+      "bytes": 1285599
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 50337,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 35055,
+        "stderr_bytes": 0,
+        "output_sha256": "04c951763e838ff618ad48118b6157308f4213aba158537066e403ac12cf9f1d",
+        "tests": 301,
+        "passed": 301,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 7153,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 106,
+        "stderr_bytes": 0,
+        "output_sha256": "d283b66777f9493d253feeadd853f7fbb1a1a66d14bdbc76c57b9b355db5bf94",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    }
+  ]
+}

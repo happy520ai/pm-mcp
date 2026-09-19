@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { TOOL_CATALOG_SIZE } from "../src/version.ts";
 import {
   loadDebugLog,
   loadFeatures,
@@ -102,14 +103,15 @@ test("真实安全台账：全部发现已处置且 accepted 都留了理由", (
   assert.ok(!raw.includes("sk-"), "台账无 API key 明文");
 });
 
-test("真实 server 起在本仓库：49 工具可用，路线图与状态如实", async (t) => {
+test("真实 server 起在本仓库：工具目录与契约一致，路线图与状态如实", async (t) => {
   const client = new Client({ name: "realrepo", version: "0" });
   t.after(() => client.close().catch(() => undefined));
   await client.connect(
     new StdioClientTransport({ command: process.execPath, args: [path.resolve("src/index.ts"), "--root", REPO], env: { PM_MCP_HOME: REPO + "-test-home" } }),
   );
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 49);
+  assert.equal(tools.tools.length, TOOL_CATALOG_SIZE);
+  assert.ok(tools.tools.some((tool) => tool.name === "dependency_graph"), "dependency_graph 必须在目录中");
   const r = await client.callTool({ name: "get_status", arguments: {} });
   const text = ((r as { content: Array<{ text?: string }> }).content ?? []).map((c) => c.text ?? "").join("\n");
   assert.ok(text.includes("pm-mcp"));

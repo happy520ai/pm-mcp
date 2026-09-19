@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { TOOL_CATALOG_SIZE } from "../src/version.ts";
 import { runFixtureTestEvidence } from "./helpers.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -49,6 +50,27 @@ function text(result: { content: Array<{ type: string; text?: string }> }): stri
   return (result.content ?? []).map((c) => c.text ?? "").join("\n");
 }
 
+test("dependency_graph：摘要、聚焦邻域与坏 focus 容错", async (t) => {
+  const root = mkTmpProject();
+  const client = await connect(root);
+  t.after(() => client.close());
+  const init = await client.callTool({ name: "init_project", arguments: { name: "依赖图", modules: ["src"] } });
+  assert.ok(!(init as { isError?: boolean }).isError);
+
+  const summary = await client.callTool({ name: "dependency_graph", arguments: {} });
+  const summaryText = text(summary as never);
+  assert.ok(summaryText.includes("依赖图"), summaryText);
+  assert.ok(summaryText.includes("file cycles"), summaryText);
+
+  const focus = await client.callTool({ name: "dependency_graph", arguments: { focus: "src/app.ts", direction: "deps", depth: 2 } });
+  const focusText = text(focus as never);
+  assert.ok(!(focus as { isError?: boolean }).isError, focusText);
+  assert.ok(focusText.includes("聚焦 src/app.ts"), focusText);
+
+  const bad = await client.callTool({ name: "dependency_graph", arguments: { focus: "src/nope.ts" } });
+  assert.ok(text(bad as never).includes("不在语义图中"));
+});
+
 test("全链路：工具清单、初始化、任务闭环、断点、审计、资源与提示词", async (t) => {
   const root = mkTmpProject();
   const client = await connect(root);
@@ -56,9 +78,10 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
 
   // 工具清单：基础工具 + AST/运行时语义证据 + 标准化验收工具
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 49, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
+  assert.equal(tools.tools.length, TOOL_CATALOG_SIZE, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
   assert.ok(tools.tools.some((x) => x.name === "evaluate_acceptance"));
   assert.ok(tools.tools.some((x) => x.name === "save_semantic_evidence"));
+  assert.ok(tools.tools.some((x) => x.name === "dependency_graph"));
   const writeTools = tools.tools.filter((item) => item.annotations?.readOnlyHint === false);
   assert.ok(writeTools.length >= 20, `应识别主要写工具，实际 ${writeTools.length}`);
   for (const item of writeTools) {

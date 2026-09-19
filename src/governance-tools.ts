@@ -14,7 +14,7 @@ import {
   type ModuleSpec,
   type RepositorySpec,
 } from "./governance-model.ts";
-import { auditGovernance } from "./governance-audit.ts";
+import { auditGovernance, dependencyGraphReport } from "./governance-audit.ts";
 import { impactAnalysis } from "./semantic-graph.ts";
 import { assessQualityCoverage, createQualityPlan, discoverProjectUnits, runQualityPlan, type QualityCommand } from "./language-adapters.ts";
 import { buildPortfolioFromRegistry, buildPortfolioReport, loadPortfolioProject } from "./portfolio.ts";
@@ -167,6 +167,15 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
   toolR(server, root, "audit_governance", "审计跨文件/模块/语言语义覆盖、owner、公开接口、依赖边界、循环、unresolved 与质量矩阵覆盖。", {}, () => {
     requireInitialized(root);
     return auditGovernance(root, budgetLines(root)).report;
+  });
+
+  toolR<{ focus?: string; direction?: "deps" | "dependents" | "both"; depth?: number }>(server, root, "dependency_graph", "查询跨文件/模块依赖图：全局摘要（关系/环/入出边枢纽）、模块与文件级循环、聚焦文件的依赖邻域（BFS 方向与深度可调、未解析引用）。", {
+    focus: z.string().trim().min(1).max(512).optional().describe("聚焦文件（相对项目根路径）"),
+    direction: z.enum(["deps", "dependents", "both"]).optional().describe("邻域方向，默认 both"),
+    depth: z.number().int().min(1).max(6).optional().describe("邻域深度 1-6，默认 2"),
+  }, (args) => {
+    requireInitialized(root);
+    return dependencyGraphReport(root, args ?? {}, budgetLines(root));
   });
 
   toolR(server, root, "list_semantic_evidence", "列出已登记的语言原生 AST、编译器或运行时语义证据；损坏文档会使整次读取失败。", {}, () => {

@@ -108,6 +108,8 @@ export interface SemanticGraph {
   contracts: { file: string; kind: "openapi" | "protobuf" | "graphql"; module: string | null; confidence: number }[];
   unresolved: FileEdge[];
   cycles: string[][];
+  /** 文件级依赖循环（仅统计已解析到具体文件的内部边）；模块级循环见 cycles。 */
+  fileCycles: string[][];
   violations: DependencyViolation[];
   coverage: {
     totalFiles: number;
@@ -459,6 +461,10 @@ export function buildSemanticGraph(root: string, governance: GovernanceFileLike,
       limitations: [...analysisLimitations],
     },
     files, fileEdges, moduleEdges, exports: exportedSymbols, contracts, unresolved, cycles: findModuleCycles(moduleEdges), violations,
+    // Tarjan 对 {from,to} 边同构，文件内边与模块边共用同一实现。
+    fileCycles: findModuleCycles(
+      fileEdges.flatMap((edge) => (edge.to !== null && edge.resolution === "file" ? [{ from: edge.from, to: edge.to }] : [])),
+    ),
     coverage: {
       totalFiles: files.length,
       sourceCandidateFiles,

@@ -1,5 +1,5 @@
 {
-  "seq": 51,
+  "seq": 53,
   "sessions": [
     {
       "id": "S-0001",
@@ -1196,6 +1196,55 @@
       "next_steps": [
         "用户在 npmjs.com 为 @luckychen1993/pm-mcp 配置 Trusted Publisher（happy520ai/pm-mcp + publish-npm.yml + 环境留空）后，gh workflow run publish-npm.yml -f publish=true 重发；工作流自带完整性核验",
         "Codex 侧新的 output_token_limit 条目在重开会话后生效"
+      ]
+    },
+    {
+      "id": "S-0052",
+      "date": "2026-09-19T02:45:37.507Z",
+      "author": "",
+      "summary": "0.3.0 发布完成：用户配置 npm Trusted Publisher 后重发 publish=true，OIDC 发布成功（ Publish 步 success）；工作流核验步因 registry CDN 复制延迟误报 404，已改 180 秒轮询（223cec0 已推送）。registry 实证：latest=0.3.0、integrity 与验证过的 tarball 一致（Fzrco6lOPFvhx…）；冷安装 @0.3.0 并用其自带 probe 自探 49 工具全通过。记忆已更新。",
+      "files": [
+        ".github/workflows/publish-npm.yml"
+      ],
+      "file_hashes": {
+        ".github/workflows/publish-npm.yml": "9c00f3b6724715f38542589b6db32b002b11bab8986109fdb2cae7d9c33eaa9d"
+      },
+      "next_steps": [
+        "各宿主按需切换到 npx @luckychen1993/pm-mcp@0.3.0（本地钉根 dist 的安装不受影响）",
+        "T-008~T-012 等 M2 backlog 待排期"
+      ]
+    },
+    {
+      "id": "S-0053",
+      "date": "2026-09-19T03:06:34.848Z",
+      "author": "",
+      "summary": "M2 backlog 动工：完成 T-010/T-056/F-024——SemanticGraph.fileCycles（Tarjan 复用）、audit_governance file-cycle 警告、dependency_graph 工具（摘要/环/枢纽/聚焦 BFS 邻域，foldLines 折叠）、契约 49→50 且全部测试断言改用 TOOL_CATALOG_SIZE 常量（upgrade-030 三处硬编码一并消灭）；README/Codex config 同步。验证：301/301（quality-20260919-030433）+ probe 实测 50 工具 + 巡检探针绿。仓库外：E:\\\\Codex\\\\.codex\\\\config.toml 增 dependency_graph 条目。",
+      "files": [
+        "src/semantic-graph.ts",
+        "src/governance-audit.ts",
+        "src/governance-tools.ts",
+        "src/version.ts",
+        "test/semantic-graph.test.ts",
+        "test/integration.test.ts",
+        "test/realrepo.test.ts",
+        "test/upgrade-030.test.ts",
+        "README.md"
+      ],
+      "file_hashes": {
+        "src/semantic-graph.ts": "e505343fffae725de8936ccf4707176cf8005eae6220aafdb88689e1384b45d0",
+        "src/governance-audit.ts": "d4ff74fa9f6b3f1bc528f892bdefb14d4eab684bf595bcccb9c769a2ab7c9b8b",
+        "src/governance-tools.ts": "d0b9b1447589b9cceec45c94c041546feca55c1e518cb3a7220c270cc664c163",
+        "src/version.ts": "65a5042f7de3fe28e4114528bdf88b31b57dd67d9ffd951f97e58b890f2b5231",
+        "test/semantic-graph.test.ts": "66a017913352681d9604e70b76f439609e0e881b52dcf4d446e181967e3f2ad7",
+        "test/integration.test.ts": "ac65938cba10a0202a1b670c921bd6d4b3675576f19cd2cbc9721b7ec423a0f3",
+        "test/realrepo.test.ts": "52aba1965ea456e1576025ca1b391e10d05564a3a31ce560c3a7fa1577f4cc83",
+        "test/upgrade-030.test.ts": "8664bdeb76da5a5103959a40f65183e821a6fb6f7058d3af7520e8a49fc4b9ff",
+        "README.md": "5900aa6ebea69110c9f2b205610b5cd90e4153ef6b9241395ee74a842afe3061"
+      },
+      "next_steps": [
+        "T-011 重复代码检测（下一个动工项）",
+        "T-008 OSV 联网查询（默认关）",
+        "T-012 Web UI 仪表盘"
       ]
     }
   ]

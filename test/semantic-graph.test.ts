@@ -197,3 +197,28 @@ test("默认排除测试 fixture，普通 JSON 文件名不冒充跨语言契约
   assert.equal(graph.unresolved.length, 0);
   assert.ok(!graph.files.some((file) => file.path.includes("fixture.test.ts")));
 });
+
+test("文件级依赖循环进入 fileCycles；同模块文件环不升级为模块环，外部引用不构成环", () => {
+  const root = mkProj({
+    "src/a.ts": "import { b } from './b.ts';\nexport const a = b;\n",
+    "src/b.ts": "import { a } from './a.ts';\nexport const b = a;\n",
+    "src/c.ts": "import { a } from './a.ts';\nimport { copy } from 'external-pkg';\nexport const c = a + copy.length;\n",
+  });
+  roots.push(root);
+  const graph = buildSemanticGraph(root, {
+    modules: [{ id: "app", roots: ["src"], owners: ["team"], public_interfaces: [], depends_on: [], allowed_dependencies: [], denied_dependencies: [] }],
+    interfaces: [],
+    policies: { enforce_declared_dependencies: true, enforce_ownership: true, fail_on_unresolved: true, enforce_public_interfaces: true, minimum_coverage_pct: 100 },
+  });
+  assert.equal(graph.fileCycles.length, 1, JSON.stringify(graph.fileCycles));
+  assert.deepEqual(graph.fileCycles[0], ["src/a.ts", "src/b.ts"]);
+  assert.equal(graph.cycles.length, 0, "自环模块边不得计为模块循环");
+});
+
+test("跨模块文件环（fixture: main.ts ↔ packages/b/index.ts）进入 fileCycles", () => {
+  const graph = buildSemanticGraph(fixture(), governance);
+  assert.ok(
+    graph.fileCycles.some((cycle) => cycle.includes("apps/web/src/main.ts") && cycle.includes("packages/b/index.ts")),
+    JSON.stringify(graph.fileCycles),
+  );
+});
