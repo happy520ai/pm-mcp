@@ -21,7 +21,7 @@ import { buildPortfolioFromRegistry, buildPortfolioReport, loadPortfolioProject 
 import { saveQualityRun } from "./quality-store.ts";
 import { evidenceLabel, qualityResultSummary } from "./quality-evidence.ts";
 import { SemanticEvidenceDocumentSchema } from "./semantic-evidence.ts";
-import { listSemanticEvidence, saveSemanticEvidence } from "./semantic-evidence-store.ts";
+import { listSemanticEvidence, replaceSemanticEvidenceForFile, saveSemanticEvidence } from "./semantic-evidence-store.ts";
 import { fingerprintProject } from "./project-fingerprint.ts";
 
 const id = z.string().trim().min(1);
@@ -172,6 +172,15 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
   toolR(server, root, "list_semantic_evidence", "列出已登记的语言原生 AST、编译器或运行时语义证据；损坏文档会使整次读取失败。", {}, () => {
     requireInitialized(root);
     return JSON.stringify(listSemanticEvidence(root), null, 2);
+  });
+
+  toolI<{ id: string; document: unknown }>(server, root, "replace_semantic_evidence_for_file", "按源码文件原子替换语义证据：删除该文件旧 evidence，仅保留当前 hash-bound evidence。", {
+    id: z.string().trim().min(1).max(128),
+    document: SemanticEvidenceDocumentSchema,
+  }, (args) => {
+    requireInitialized(root);
+    const saved = replaceSemanticEvidenceForFile(root, args.id, args.document);
+    return `✅ semantic evidence replaced ${args.id}：${saved.file} · ${saved.analyzer.id} · ${saved.analyzer.assurance} · ${saved.status}`;
   });
 
   toolI<{ id: string; document: unknown }>(server, root, "save_semantic_evidence", "保存一份绑定源码 SHA-256 的语言原生 AST/编译器/运行时证据；过期摘要在治理审计中严格失败。", {

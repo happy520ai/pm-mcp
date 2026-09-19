@@ -102,14 +102,14 @@ test("真实安全台账：全部发现已处置且 accepted 都留了理由", (
   assert.ok(!raw.includes("sk-"), "台账无 API key 明文");
 });
 
-test("真实 server 起在本仓库：48 工具可用，路线图与状态如实", async (t) => {
+test("真实 server 起在本仓库：49 工具可用，路线图与状态如实", async (t) => {
   const client = new Client({ name: "realrepo", version: "0" });
   t.after(() => client.close().catch(() => undefined));
   await client.connect(
     new StdioClientTransport({ command: process.execPath, args: [path.resolve("src/index.ts"), "--root", REPO], env: { PM_MCP_HOME: REPO + "-test-home" } }),
   );
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 48);
+  assert.equal(tools.tools.length, 49);
   const r = await client.callTool({ name: "get_status", arguments: {} });
   const text = ((r as { content: Array<{ text?: string }> }).content ?? []).map((c) => c.text ?? "").join("\n");
   assert.ok(text.includes("pm-mcp"));

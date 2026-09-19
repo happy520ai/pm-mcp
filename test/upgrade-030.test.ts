@@ -160,7 +160,7 @@ test("doctor 对本地配置执行真实握手，拒绝旧版本与禁用设置"
   appendCodexProjectConfig(file, root, false, false, () => {}, launch);
   const result = await runDoctor({ root, config: file });
   assert.equal(result.ok, true, JSON.stringify(result));
-  assert.equal(result.probe?.tools, 48); assert.equal(result.existing_client, "not_observed");
+  assert.equal(result.probe?.tools, 49); assert.equal(result.existing_client, "not_observed");
   const config = fs.readFileSync(file, "utf8");
   fs.writeFileSync(file, config + "enabled = false\n");
   assert.equal((await runDoctor({ root, config: file })).ok, false);
@@ -185,7 +185,7 @@ test("doctor 读取 WorkBuddy 标准 mcp.json：补 --root 真实握手，拒绝
   write({ command: process.execPath, args: [path.resolve("dist/index.js")], env: {} });
   const result = await runDoctor({ root, client: "workbuddy", config: file });
   assert.equal(result.ok, true, JSON.stringify(result));
-  assert.equal(result.probe?.tools, 48);
+  assert.equal(result.probe?.tools, 49);
   assert.equal(result.configuration, "workbuddy_local_probe");
   assert.equal(result.configured_server, "pm-mcp");
 
@@ -230,7 +230,7 @@ test("doctor 对 WorkBuddy 配置缺失/坏 JSON/非法字段一律 fail-closed�
   write(JSON.stringify({ mcpServers: { "pm-mcp": { command: process.execPath, args: [path.resolve("dist/index.js"), "--root", root] } } }));
   const pinned = await probe(file);
   assert.equal(pinned.ok, true, JSON.stringify(pinned));
-  assert.equal(pinned.probe?.tools, 48);
+  assert.equal(pinned.probe?.tools, 49);
 });
 
 test("验收选择来自单一项目配置，CLI可显式覆盖且非法版本拒绝", (t) => {

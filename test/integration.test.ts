@@ -56,7 +56,7 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
 
   // 工具清单：基础工具 + AST/运行时语义证据 + 标准化验收工具
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 48, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
+  assert.equal(tools.tools.length, 49, `实际 ${tools.tools.length}: ${tools.tools.map((x) => x.name).join(",")}`);
   assert.ok(tools.tools.some((x) => x.name === "evaluate_acceptance"));
   assert.ok(tools.tools.some((x) => x.name === "save_semantic_evidence"));
   const writeTools = tools.tools.filter((item) => item.annotations?.readOnlyHint === false);

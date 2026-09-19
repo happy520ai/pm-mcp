@@ -8,6 +8,7 @@ import {
   loadAllSemanticEvidence,
   loadSemanticEvidence,
   saveSemanticEvidence,
+  replaceSemanticEvidenceForFile,
   semanticEvidenceDir,
   semanticEvidencePath,
   validateSemanticEvidenceId,
@@ -60,6 +61,21 @@ test("save/load/list/loadAll preserve validated evidence with atomic files", () 
   saveSemanticEvidence(root, "a_evidence.v1", replacement);
   assert.equal(loadSemanticEvidence(root, "a_evidence.v1").analyzer.id, "python:tree-sitter@3");
   assert.deepEqual(fs.readdirSync(semanticEvidenceDir(root)).filter((name) => name.endsWith(".tmp")), []);
+});
+
+test("replace by file removes stale evidence IDs and preserves unrelated files", () => {
+  const source = `print('current')
+`;
+  const other = `print('b')
+`;
+  const root = mkProj({ "python/a.py": source, "python/b.py": other });
+  roots.push(root);
+  saveSemanticEvidence(root, "a-old", document("python/a.py", source, "python:old"));
+  saveSemanticEvidence(root, "a-other", document("python/a.py", source, "python:other"));
+  saveSemanticEvidence(root, "b-keep", document("python/b.py", other));
+  replaceSemanticEvidenceForFile(root, "a-current", document("python/a.py", source, "python:current"));
+  assert.deepEqual(listSemanticEvidence(root).map((item) => item.id), ["a-current", "b-keep"]);
+  assert.equal(loadSemanticEvidence(root, "a-current").analyzer.id, "python:current");
 });
 
 test("unsafe IDs and invalid schema are rejected before a ledger file is written", () => {

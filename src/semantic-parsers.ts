@@ -252,6 +252,18 @@ export function candidates(from: string, specifier: string, language: string, ow
     const base = relPath(path.posix.normalize(raw));
     if (base === ".." || base.startsWith("../")) continue;
     out.add(base);
+    // TypeScript ESM convention: source specifiers ending in .js/.jsx/.mjs/.cjs often
+    // refer to .ts/.tsx/.mts/.cts files on disk (tsc rewriteRelativeImportExtensions
+    // and Node type stripping both map them this way). Candidates are appended after
+    // the literal path, so an existing .js file still wins resolution.
+    const specExt = path.posix.extname(base);
+    if (specExt === ".js" || specExt === ".jsx" || specExt === ".mjs" || specExt === ".cjs") {
+      const stem = base.slice(0, base.length - specExt.length);
+      if (specExt === ".js") { out.add(`${stem}.ts`); out.add(`${stem}.tsx`); }
+      else if (specExt === ".jsx") out.add(`${stem}.tsx`);
+      else if (specExt === ".mjs") out.add(`${stem}.mts`);
+      else out.add(`${stem}.cts`);
+    }
     if (!path.posix.extname(base)) {
       for (const ext of RESOLVE_EXTS) out.add(base + ext);
       for (const ext of RESOLVE_EXTS) out.add(`${base}/index${ext}`);

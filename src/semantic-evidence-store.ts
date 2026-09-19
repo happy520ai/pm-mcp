@@ -114,6 +114,28 @@ export function saveSemanticEvidence(root: string, id: string, input: unknown): 
   });
 }
 
+/** Atomically replace the evidence set for one repository-relative source file under the ledger lock. */
+export function replaceSemanticEvidenceForFile(root: string, id: string, input: unknown): SemanticEvidenceDocument {
+  const safeId = validateSemanticEvidenceId(id);
+  const parsed = SemanticEvidenceDocumentSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error(`语义证据 schema 校验失败: ${parsed.error.issues.map((issue) => `${issue.path.join(".") || "document"}: ${issue.message}`).join("; ")}`);
+  }
+  const absoluteRoot = path.resolve(root);
+  const directory = semanticEvidenceDir(absoluteRoot);
+  assertRealDirectoryWithinRoot(absoluteRoot, directory, true);
+  return withLedgerLock(absoluteRoot, () => {
+    assertRealDirectoryWithinRoot(absoluteRoot, directory, false);
+    const oldIds = evidenceIdsUnlocked(absoluteRoot)
+      .filter((candidate) => candidate !== safeId)
+      .filter((candidate) => loadUnlocked(absoluteRoot, candidate).file === parsed.data.file);
+    atomicWrite(semanticEvidencePath(absoluteRoot, safeId), `${JSON.stringify(parsed.data, null, 2)}
+`);
+    for (const oldId of oldIds) fs.rmSync(semanticEvidencePath(absoluteRoot, oldId), { force: false });
+    return parsed.data;
+  });
+}
+
 export function loadSemanticEvidence(root: string, id: string): SemanticEvidenceDocument {
   return loadUnlocked(path.resolve(root), validateSemanticEvidenceId(id));
 }

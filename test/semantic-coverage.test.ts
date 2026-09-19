@@ -121,7 +121,10 @@ test("contract detection and path candidates cover relative, logical, rooted, ex
 
   const relative = candidates("src/nested/app.ts", "../core?raw", "typescript");
   assert.ok(relative.includes("src/core.ts") && relative.includes("src/core/index.ts"));
-  assert.deepEqual(candidates("src/app.ts", "./ready.js", "javascript"), ["src/ready.js"]);
+  assert.deepEqual(candidates("src/app.ts", "./ready.js", "javascript"), ["src/ready.js", "src/ready.ts", "src/ready.tsx"]);
+  assert.ok(candidates("src/app.ts", "./mod.mjs", "typescript").includes("src/mod.mts"));
+  assert.ok(candidates("src/app.ts", "./legacy.cjs", "typescript").includes("src/legacy.cts"));
+  assert.ok(candidates("src/app.ts", "./plain.d.ts", "typescript").every((p) => p.endsWith(".d.ts")));
   assert.ok(candidates("python/pkg/app.py", "..shared.tool", "python").includes("python/shared/tool.py"));
   assert.ok(candidates("src/app.ts", "/contracts/api", "typescript").includes("contracts/api.proto"));
   assert.ok(candidates("src/app.rs", "crate::domain::model", "rust", ["src"]).includes("src/domain/model.rs"));
