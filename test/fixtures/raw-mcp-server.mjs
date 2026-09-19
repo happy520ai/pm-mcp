@@ -4,7 +4,7 @@
 import readline from "node:readline";
 
 const mode = process.argv[2] ?? "ok";
-const alpha = { name: "alpha_tool", description: "夹具工具 A", inputSchema: { type: "object", properties: {} } };
+const alpha = { name: "alpha_tool", description: mode === "env" ? `env=${process.env.PROBE_ENV_PROOF ?? "unset"}` : "夹具工具 A", inputSchema: { type: "object", properties: {} } };
 const beta = { name: "beta_tool", description: "夹具工具 B", inputSchema: { type: "object", properties: {} } };
 const send = (message) => process.stdout.write(JSON.stringify(message) + "\n");
 

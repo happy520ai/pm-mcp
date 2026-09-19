@@ -17,6 +17,7 @@ import { auditLicense } from "../src/license.ts";
 import { walkRefresh } from "../src/index-store.ts";
 import { TaskSchema, now } from "../src/types.ts";
 import { isInitialized } from "../src/paths.ts";
+import fs from "node:fs";
 import path from "node:path";
 
 const HARD_FLAG = /🚩|🔴/;
@@ -73,6 +74,35 @@ async function addTask(root: string, title: string, type: string): Promise<void>
 
 /* -------------------------------- 巡检主体 -------------------------------- */
 
+/**
+ * pm-mcp 自身仓库的额外体检：用 `pm-mcp probe` 直连 dist 服务器取原始工具清单，
+ * 核对工具目录契约（src/version.ts 的 TOOL_CATALOG_SIZE）。非 pm-mcp 项目直接跳过。
+ */
+async function auditToolCatalog(root: string): Promise<string> {
+  const manifest = path.join(root, "package.json");
+  if (!fs.existsSync(manifest) || !fs.existsSync(path.join(root, "dist", "index.js"))) return "";
+  const name = (JSON.parse(fs.readFileSync(manifest, "utf8")) as { name?: unknown } | null)?.name;
+  if (name !== "@luckychen1993/pm-mcp") return "";
+  const { runProbe } = await import("../src/probe.ts");
+  const { TOOL_CATALOG_SIZE } = await import("../src/version.ts");
+  const report = await runProbe({
+    command: process.execPath,
+    args: [path.join(root, "dist", "index.js"), "--root", root],
+    timeoutMs: 60_000,
+    // 与 doctor 同款隔离：探针拉起的进程不得污染真实全局注册表（T-034 的教训）。
+    env: { PM_MCP_HOME: path.join(root, ".pm", ".runtime", "health-check-home") },
+  });
+  if (!report.ok) return `## 工具目录探针\n🔴 raw tools/list 探测失败：${report.issues.join("；")}`;
+  const lines = [
+    "## 工具目录探针",
+    `✅ 直连服务器取到原始工具清单 ${report.toolCount} 个（serverInfo ${report.serverInfo?.name}@${report.serverInfo?.version}）。`,
+  ];
+  if (report.toolCount !== TOOL_CATALOG_SIZE) {
+    lines.push(`🔴 工具目录漂移：服务器实际 ${report.toolCount} 个，契约 TOOL_CATALOG_SIZE=${TOOL_CATALOG_SIZE} 个；请同步 doctor/测试/README 后更新 src/version.ts。`);
+  }
+  return lines.join("\n");
+}
+
 interface ProjectReport {
   name: string;
   root: string;
@@ -121,6 +151,7 @@ async function inspectProject(root: string): Promise<ProjectReport> {
     hardFlags.push(`安全体检：高危未处理 ${sec.highCount} 个（含 ${sec.newFindings} 个本次新发现）`);
   }
   collect(auditLicense(abs, 120, false, true));
+  collect(await auditToolCatalog(abs));
   // 只有无硬红旗的完整巡检才推进基线。否则同一坏状态在持久化工作区内
   // 第二次运行会因“已成为新基线”而假绿；显式修复后再由绿灯运行推进。
   if (hardFlags.length === 0) snapshotCodebase(abs, false, true);

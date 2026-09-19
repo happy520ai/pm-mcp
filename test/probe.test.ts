@@ -53,6 +53,12 @@ test("probe 对不回应 tools/list 的服务器按超时失败", async () => {
   assert.ok(report.issues[0].includes("探测失败"));
 });
 
+test("probe env 覆盖透传到服务器进程（PM_MCP_HOME 沙箱依赖此行为）", async () => {
+  const report = await runProbe(spawnFixture("env", { env: { PROBE_ENV_PROOF: "sandboxed" } }));
+  assert.equal(report.ok, true);
+  assert.equal(report.tools[0]?.description, "env=sandboxed");
+});
+
 test("parseProbeArgs 解析选项与 -- 之后的启动命令", () => {
   const options = parseProbeArgs(["--timeout", "5000", "--expect", "a,b,c", "--", "node", "server.js", "--root", "x"]);
   assert.equal(options.command, "node");

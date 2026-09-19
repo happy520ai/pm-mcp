@@ -1,5 +1,5 @@
 {
-  "seq": 54,
+  "seq": 55,
   "tasks": [
     {
       "id": "T-001",
@@ -1699,24 +1699,24 @@
       "id": "T-052",
       "title": "[巡检] git 对账：2 个文件未入账（src/governance-tools.ts、test/integration.test.ts——后台会话改动未记 log_session），请补记账或 git commit 收口",
       "detail": "由定时健康巡检自动登记，请人工确认后处置",
-      "type": "fix",
-      "status": "backlog",
+      "type": "chore",
+      "status": "done",
       "priority": "P1",
       "milestone": null,
       "steps": [],
       "checkpoint": null,
       "files": [],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "事实核销：复核 git status 时 src/governance-tools.ts 与 test/integration.test.ts 已被其作者会话自行提交（当前工作区无未提交业务文件），无需补账",
+      "verification": "git status --porcelain -uall 非 .pm/PROJECT.md 条目为 0",
       "tags": [
         "巡检"
       ],
       "author": "cron",
       "created": "2026-09-19T01:17:04.236Z",
-      "updated": "2026-09-19T01:17:04.236Z",
+      "updated": "2026-09-19T02:07:30.326Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-19T02:07:30.326Z"
     },
     {
       "id": "T-053",
@@ -1790,6 +1790,29 @@
       "updated": "2026-09-19T02:00:11.144Z",
       "started_at": null,
       "completed_at": "2026-09-19T01:44:18.019Z"
+    },
+    {
+      "id": "T-055",
+      "title": "git 对账应尊重 project.json scan_ignore（客户端运行时目录不再误报）",
+      "detail": "gitAudit 的变更清单目前只排除 .pm/PROJECT.md/.gitignore，不消费 scan_ignore——导致被项目显式排除的运行时目录（如 .workbuddy-ai/）的变更反复被点名。修法：git-state.ts 的 changedGitFiles 或 gitAudit 过滤时应用 ignoreMatcher(projectScanIgnores(root))",
+      "type": "fix",
+      "status": "backlog",
+      "priority": "P2",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/git-state.ts"
+      ],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T02:09:30.147Z",
+      "updated": "2026-09-19T02:09:30.147Z",
+      "started_at": null,
+      "completed_at": null
     }
   ]
 }

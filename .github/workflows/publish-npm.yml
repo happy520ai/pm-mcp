@@ -26,7 +26,7 @@ jobs:
       id-token: write
     env:
       TARBALL: luckychen1993-pm-mcp-0.3.0.tgz
-      EXPECTED_SHA256: a42b173df7f4485ed59421b70606f2335e8d10d188c905aefe19bc073e6d07aa
+      EXPECTED_SHA256: d01d86033bad541d94e754a7a757687b6890b684ff442eb0abe8ec28ded9636b
     steps:
       - uses: actions/checkout@v5
         with:

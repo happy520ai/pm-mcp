@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { PACKAGE_SPEC, RUNTIME_CONTRACT, SERVER_NAME, VERSION } from "./version.ts";
+import { PACKAGE_SPEC, RUNTIME_CONTRACT, SERVER_NAME, TOOL_CATALOG_SIZE, VERSION } from "./version.ts";
 import { canonicalProjectRoot, findCodexProjectEntry, isLocalLaunch, isLocalServerEntry, isPackageLaunch, readCodexConfig, type ProjectLaunch } from "./setup-project.ts";
 import { localProjectLaunch, workbuddyConfigPath } from "./setup.ts";
 
@@ -75,7 +75,7 @@ export async function runDoctor(options: DoctorOptions) {
       if (!entry) throw new Error("未找到已明确绑定此项目的 Codex pm-mcp 配置。");
       report.configured_server = entry.name;
       if (!entry.enabled) throw new Error("该服务在配置中被禁用，现有客户端不会启动它。");
-      if (entry.toolFilters) throw new Error("存在工具过滤设置，请核对后再确认全部49工具可用。");
+      if (entry.toolFilters) throw new Error(`存在工具过滤设置，请核对后再确认全部${TOOL_CATALOG_SIZE}工具可用。`);
       if (isPackageLaunch(entry)) {
         if (entry.args[1] !== PACKAGE_SPEC) throw new Error(`启动配置版本与本包 ${PACKAGE_SPEC} 不一致，请先预览并升级配置。`);
         launch = localProjectLaunch(root);
@@ -103,7 +103,7 @@ export async function runDoctor(options: DoctorOptions) {
     if (runtime?.version !== VERSION || runtime?.contract !== RUNTIME_CONTRACT) report.issues.push("实际运行契约不支持本轮升级，不能仅凭配置宣称生效。");
     const list = inventory.tools.find((tool) => tool.name === "list_tasks");
     const project = inventory.tools.find((tool) => tool.name === "update_project");
-    if (inventory.tools.length !== 49 || !list?.inputSchema.properties?.cursor || !project?.inputSchema.properties?.completion_evidence) report.issues.push("工具目录或新参数契约不完整。");
+    if (inventory.tools.length !== TOOL_CATALOG_SIZE || !list?.inputSchema.properties?.cursor || !project?.inputSchema.properties?.completion_evidence) report.issues.push("工具目录或新参数契约不完整。");
     report.ok = report.issues.length === 0;
   } catch (error) { report.issues.push(`本地连接验证失败: ${(error as Error).message}`); }
   finally { clearTimeout(timer); await client.close(); }

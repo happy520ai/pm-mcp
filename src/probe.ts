@@ -14,7 +14,7 @@ import { VERSION } from "./version.ts";
 
 export const PROBE_USAGE = "pm-mcp probe [--timeout <毫秒>] [--expect <逗号分隔工具名> | --expect-file <json>] -- <启动 MCP 服务器的命令...>";
 
-export interface ProbeOptions { command: string; args: string[]; timeoutMs: number; expect?: string[]; }
+export interface ProbeOptions { command: string; args: string[]; timeoutMs: number; expect?: string[]; env?: Record<string, string>; }
 export interface ProbeTool { name: string; description?: string; inputSchema?: unknown; }
 export interface ProbeReport {
   ok: boolean;
@@ -81,7 +81,8 @@ export async function runProbe(options: ProbeOptions): Promise<ProbeReport> {
   const timeoutMs = options.timeoutMs;
   const report: ProbeReport = { ok: false, command: options.command, args: options.args, toolCount: 0, tools: [], issues: [] };
   const client = new Client({ name: "pm-mcp-probe", version: VERSION });
-  const transport = new StdioClientTransport({ command: options.command, args: options.args, stderr: "pipe" });
+  // env 为覆盖式合并（SDK 先取默认安全白名单再覆盖），供 PM_MCP_HOME 之类的沙箱重定向。
+  const transport = new StdioClientTransport({ command: options.command, args: options.args, stderr: "pipe", env: options.env });
   try {
     await client.connect(transport, { timeout: timeoutMs });
     transport.stderr?.on("data", () => undefined);
