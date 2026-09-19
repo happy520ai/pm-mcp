@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the verified 0.3.0 tarball (false only validates)
+        description: Publish the verified 0.4.0 tarball (false only validates)
         type: boolean
         default: false
         required: true
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: npm-publish-0.3.0
+  group: npm-publish-0.4.0
   cancel-in-progress: false
 
 jobs:
@@ -25,8 +25,8 @@ jobs:
       contents: read
       id-token: write
     env:
-      TARBALL: luckychen1993-pm-mcp-0.3.0.tgz
-      EXPECTED_SHA256: d01d86033bad541d94e754a7a757687b6890b684ff442eb0abe8ec28ded9636b
+      TARBALL: luckychen1993-pm-mcp-0.4.0.tgz
+      EXPECTED_SHA256: 0bca3ece3bb62b596726aead4fc9ab78b08dfad9253e795b3d5f7580952d28bc
     steps:
       - uses: actions/checkout@v5
         with:
@@ -48,7 +48,7 @@ jobs:
             | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const c=JSON.parse(s);console.log(JSON.stringify({repository:c.repository,repository_owner:c.repository_owner,workflow_ref:c.workflow_ref,job_workflow_ref:c.job_workflow_ref,ref:c.ref,environment:c.environment,aud:c.aud,event_name:c.event_name},null,2))})"
       - name: Download and verify the released artifact
         run: |
-          curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.3.0/$TARBALL"
+          curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.4.0/$TARBALL"
           echo "$EXPECTED_SHA256  $TARBALL" | sha256sum --check --strict
           npm publish "$TARBALL" --dry-run --ignore-scripts --access public --tag latest
       - name: Publish to npm using the configured trusted publisher
@@ -59,7 +59,7 @@ jobs:
         run: |
           # 发布成功 ≠ 元数据立即可见：registry CDN 复制有秒级~分钟级延迟，轮询而不是假红。
           for i in $(seq 1 36); do
-            if npm view @luckychen1993/pm-mcp@0.3.0 dist.integrity --json > published-integrity.json 2>/dev/null; then break; fi
+            if npm view @luckychen1993/pm-mcp@0.4.0 dist.integrity --json > published-integrity.json 2>/dev/null; then break; fi
             if [ "$i" = 36 ]; then echo "registry metadata did not propagate within 3 minutes" >&2; exit 1; fi
             sleep 5
           done
@@ -69,5 +69,5 @@ jobs:
           const expected = 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(process.env.TARBALL)).digest('base64');
           const actual = JSON.parse(fs.readFileSync('published-integrity.json', 'utf8'));
           if (actual !== expected) throw new Error('Published tarball integrity does not match the verified release');
-          console.log('Verified npm 0.3.0 artifact integrity');
+          console.log('Verified npm 0.4.0 artifact integrity');
           NODE

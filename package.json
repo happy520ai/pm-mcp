@@ -1,6 +1,6 @@
 {
   "name": "@luckychen1993/pm-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "AI 编码项目的单一事实来源 + 健康台账 MCP 服务（事实来源 / 路线图 / 防幻觉 / 七本账 / 断点续做 / token 经济）",
   "keywords": [
     "mcp",
@@ -33,7 +33,10 @@
     "node": ">=22.18.0"
   },
   "pm_mcp": {
-    "acceptance_baseline": { "id": "pm-mcp-local-release", "version": "1.1.0" }
+    "acceptance_baseline": {
+      "id": "pm-mcp-local-release",
+      "version": "1.1.0"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
