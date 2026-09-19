@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { discoverProjectUnits } from "./language-adapters.ts";
 import { foldLines } from "./budget.ts";
 
@@ -22,20 +24,43 @@ export function ecosystemFor(parser: string): string | null {
   return null;
 }
 
-export interface OsvQuery { name: string; version: string; ecosystem: string; sourceManifests: string[]; }
+export interface OsvQuery { name: string; version: string; ecosystem: string; sourceManifests: string[]; versionSource: "lockfile" | "manifest"; }
+
+/**
+ * npm 生态优先用 package-lock.json 的实装版本：manifest 里的 ^ ~ 范围串发给 OSV
+ * 会被解析到边界之下造成误报（实装版本已在修复线之上也会命中），实装版本才准确。
+ */
+function npmLockVersions(root: string): Map<string, string> {
+  const versions = new Map<string, string>();
+  try {
+    const lock = JSON.parse(fs.readFileSync(path.join(root, "package-lock.json"), "utf8")) as {
+      packages?: Record<string, { version?: unknown }>;
+    };
+    for (const [key, entry] of Object.entries(lock.packages ?? {})) {
+      if (!key.startsWith("node_modules/")) continue;
+      const name = key.slice("node_modules/".length);
+      if (name.length === 0 || name.includes("node_modules/") || typeof entry.version !== "string") continue;
+      if (!versions.has(name)) versions.set(name, entry.version);
+    }
+  } catch { /* 无 lockfile 或不可读：退回 manifest 版本并在报告中声明 */ }
+  return versions;
+}
 
 export function collectOsvQueries(root: string): { queries: OsvQuery[]; skippedUnknownEcosystem: number; } {
+  const npmVersions = npmLockVersions(root);
   const merged = new Map<string, OsvQuery>();
   let skippedUnknownEcosystem = 0;
   for (const unit of discoverProjectUnits(root)) {
     for (const dep of unit.dependencies) {
       const ecosystem = ecosystemFor(dep.parser);
       if (!ecosystem) { skippedUnknownEcosystem += 1; continue; }
-      const key = `${dep.name}@${dep.version}@${ecosystem}`;
+      const resolved = ecosystem === "npm" ? npmVersions.get(dep.name) : undefined;
+      const version = resolved ?? dep.version;
+      const key = `${dep.name}@${version}@${ecosystem}`;
       const existing = merged.get(key);
       if (existing) {
         if (!existing.sourceManifests.includes(dep.sourceManifest)) existing.sourceManifests.push(dep.sourceManifest);
-      } else merged.set(key, { name: dep.name, version: dep.version, ecosystem, sourceManifests: [dep.sourceManifest] });
+      } else merged.set(key, { name: dep.name, version, ecosystem, sourceManifests: [dep.sourceManifest], versionSource: resolved ? "lockfile" : "manifest" });
     }
   }
   return { queries: [...merged.values()].sort((a, b) => a.ecosystem.localeCompare(b.ecosystem) || a.name.localeCompare(b.name)), skippedUnknownEcosystem };
@@ -48,6 +73,8 @@ export interface OsvFinding { name: string; version: string; ecosystem: string; 
 export interface OsvScan {
   queried: number;
   batches: number;
+  lockfileVersions: number;
+  manifestVersions: number;
   vulnerablePackages: OsvFinding[];
   vulnCount: number;
   durationMs: number;
@@ -87,7 +114,15 @@ export async function auditOsv(root: string, options: { timeoutMs?: number; fetc
       vulnCount += vulns.length;
     }
   }
-  return { queried: capped.length, batches, vulnerablePackages, vulnCount, durationMs: Date.now() - started };
+  return {
+    queried: capped.length,
+    batches,
+    lockfileVersions: capped.filter((q) => q.versionSource === "lockfile").length,
+    manifestVersions: capped.filter((q) => q.versionSource === "manifest").length,
+    vulnerablePackages,
+    vulnCount,
+    durationMs: Date.now() - started,
+  };
 }
 
 export function renderOsv(scan: OsvScan, maxLines = 150, skippedUnknownEcosystem = 0): string {
@@ -103,6 +138,9 @@ export function renderOsv(scan: OsvScan, maxLines = 150, skippedUnknownEcosystem
   }
   if (scan.vulnerablePackages.length === 0) lines.push("- ✅ 未命中已知漏洞");
   else lines.push(`- ✅ 其余 ${scan.queried - scan.vulnerablePackages.length} 个依赖未命中已知漏洞`);
-  lines.push("> 边界：范围声明（^ ~ >=）按原样精确匹配可能漏报；devDependencies 一并计入；结果不写台账，联网由每次调用显式 confirm 门控。" + (skippedUnknownEcosystem > 0 ? ` 未识别生态依赖 ${skippedUnknownEcosystem} 个已跳过。` : ""));
+  lines.push("> 边界：npm 依赖按 package-lock.json 实装版本查询（" + scan.lockfileVersions + " 个）" +
+    (scan.manifestVersions > 0 ? `；${scan.manifestVersions} 个非 npm 依赖按 manifest 声明版本（范围声明可能不准）` : "") +
+    "；devDependencies 一并计入；结果不写台账，联网由每次调用显式 confirm 门控。" +
+    (skippedUnknownEcosystem > 0 ? ` 未识别生态依赖 ${skippedUnknownEcosystem} 个已跳过。` : ""));
   return foldLines(lines, { maxLines, hint: "修复后可再次 audit_osv 复核" });
 }

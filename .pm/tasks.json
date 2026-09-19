@@ -1707,14 +1707,14 @@
       "checkpoint": null,
       "files": [],
       "acceptance": "",
-      "result_note": "事实核销：复核 git status 时 src/governance-tools.ts 与 test/integration.test.ts 已被其作者会话自行提交（当前工作区无未提交业务文件），无需补账",
-      "verification": "git status --porcelain -uall 非 .pm/PROJECT.md 条目为 0",
+      "result_note": "对应改动（src/governance-tools.ts、test/integration.test.ts 的语义证据特性）已随 e910ca0 提交收口，且该会话已补 log_session（S-0050）；后续 49→52 的目录演进也均有台账。",
+      "verification": "git log 确认 e910ca0 包含上述两文件；audit_structure 无未入账红旗",
       "tags": [
         "巡检"
       ],
       "author": "cron",
       "created": "2026-09-19T01:17:04.236Z",
-      "updated": "2026-09-19T02:07:30.326Z",
+      "updated": "2026-09-19T04:42:17.249Z",
       "started_at": null,
       "completed_at": "2026-09-19T02:07:30.326Z"
     },
@@ -1964,21 +1964,24 @@
       "title": "处置 OSV 命中：升级 @modelcontextprotocol/sdk 与 zod",
       "detail": "2026-09-19 audit_osv 真网首跑：11 个依赖命中 2 包 2 条——@modelcontextprotocol/sdk@^1.30.0 → GHSA-w48q-cv73-mx4w；zod@^3.25.76 → GHSA-m95q-7qp3-xv42（summary 为空，需查公告确认影响面与修复版本）。处置：升级两依赖到公告修复版，npm test 全绿后提交。",
       "type": "chore",
-      "status": "backlog",
+      "status": "done",
       "priority": "P2",
       "milestone": "M2",
       "steps": [],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/osv.ts",
+        "test/osv.test.ts"
+      ],
       "acceptance": "npm audit/更新依赖后 audit_osv（confirm=true）对本仓不再命中 GHSA-w48q-cv73-mx4w 与 GHSA-m95q-7qp3-xv42；全量测试绿",
-      "result_note": "",
-      "verification": "",
+      "result_note": "复核结论变更：两条 GHSA 命中均为误报——公告受影响区间（SDK<1.24.0、zod<3.22.3）不含实装版本（1.30.0/3.25.76），npm audit 同判 0。根因是 osv.ts 把 manifest 范围串（^1.30.0）原样发给 OSV 被解析到边界之下。修复：npm 生态改用 package-lock.json 实装版本查询（osv.ts npmLockVersions，含 scoped 包与嵌套路径过滤），无 lockfile 回退 manifest 并在报告中分列计数；非 npm 生态维持 manifest 版本+边界声明。复扫归零：11/11 实装版本、0 命中。过程中修复了自查发现的跳过条件反写 bug（首轮实现把全部正常包 continue 掉了，被专项测试抓住）。",
+      "verification": "真网复扫：queried 11 · lockfile 11 · manifest 0 · vulnerable 0；专项测试含 lockfile 覆盖/回退路径断言（修正 requirements == 前缀预期）；全量 318/318",
       "tags": [],
       "author": "",
       "created": "2026-09-19T04:18:13.410Z",
-      "updated": "2026-09-19T04:18:13.410Z",
+      "updated": "2026-09-19T05:02:23.676Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-19T05:02:23.676Z"
     },
     {
       "id": "T-060",

@@ -54,8 +54,34 @@ test("collectOsvQueries 收齐六种生态并按名称排序", () => {
   }
 });
 
+test("npm 生态优先用 lockfile 实装版本（范围串会误报），无 lockfile 回退 manifest", () => {
+  const root = depFixture();
+  fs.writeFileSync(path.join(root, "package-lock.json"), JSON.stringify({
+    name: "x",
+    version: "1.0.0",
+    lockfileVersion: 3,
+    packages: {
+      "": { name: "x", version: "1.0.0" },
+      "node_modules/lodash": { version: "4.17.21" },
+      "node_modules/express": { version: "4.18.2" },
+    },
+  }), "utf8");
+  const { queries } = collectOsvQueries(root);
+  const lodash = queries.find((q) => q.name === "lodash");
+  assert.equal(lodash?.version, "4.17.21");
+  assert.equal(lodash?.versionSource, "lockfile");
+  const flask = queries.find((q) => q.name === "flask");
+  assert.equal(flask?.version, "==2.0.1");
+  assert.equal(flask?.versionSource, "manifest");
+});
+
 test("auditOsv 解析命中与干净结果，报告如实声明边界", async () => {
   const root = depFixture();
+  // lockfile 实装版本优先：报告与请求体都不应再出现 ^ 范围串
+  fs.writeFileSync(path.join(root, "package-lock.json"), JSON.stringify({
+    name: "x", version: "1.0.0", lockfileVersion: 3,
+    packages: { "": { version: "1.0.0" }, "node_modules/lodash": { version: "4.17.21" }, "node_modules/express": { version: "4.18.2" } },
+  }), "utf8");
   const requests: string[] = [];
   const fetcher: FetchLike = async (_url, init) => {
     requests.push(init.body);
@@ -78,8 +104,11 @@ test("auditOsv 解析命中与干净结果，报告如实声明边界", async ()
   assert.equal(scan.vulnerablePackages[0]?.name, "lodash");
   assert.equal(scan.vulnerablePackages[0]?.vulns[0]?.id, "GHSA-lodash-test");
   assert.match(requests[0], /"ecosystem":"npm"/);
+  assert.match(requests[0], /"version":"4\.17\.21"/);
+  assert.doesNotMatch(requests[0], /\^/);
+  assert.equal(scan.lockfileVersions, 2);
   const report = renderOsv(scan, 150);
-  assert.ok(report.includes("🚩 npm/lodash@^4.17.15 GHSA-lodash-test"), report);
+  assert.ok(report.includes("🚩 npm/lodash@4.17.21 GHSA-lodash-test"), report);
   assert.ok(report.includes("CVE-2020-8203"), report);
   assert.ok(report.includes("边界"), report);
 });
