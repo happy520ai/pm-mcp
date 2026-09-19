@@ -57,7 +57,12 @@ jobs:
       - name: Verify the public registry artifact
         if: inputs.publish
         run: |
-          npm view @luckychen1993/pm-mcp@0.3.0 dist.integrity --json > published-integrity.json
+          # 发布成功 ≠ 元数据立即可见：registry CDN 复制有秒级~分钟级延迟，轮询而不是假红。
+          for i in $(seq 1 36); do
+            if npm view @luckychen1993/pm-mcp@0.3.0 dist.integrity --json > published-integrity.json 2>/dev/null; then break; fi
+            if [ "$i" = 36 ]; then echo "registry metadata did not propagate within 3 minutes" >&2; exit 1; fi
+            sleep 5
+          done
           node <<'NODE'
           const fs = require('node:fs');
           const crypto = require('node:crypto');

@@ -2,6 +2,14 @@
 
 ## 2026-09-19 — 未知
 
+三件事执行：①推送 3 个提交（e910ca0/42c0e5a/e307ab6）到 origin main，CI 双节点全绿。②npm 0.3.0 发布：重打包并替换 Release v0.3.0 资产（d01d8603…含 probe），工作流重 pin 哈希，publish=false 验证跑全绿（OIDC 声明/SHA/干跑全对），publish=true 真发失败 ENEEDAUTH——官方文档确认这是 npm 网站侧 Trusted Publisher 未配置/不匹配的标准报错，待用户在 npmjs.com 配置（仓库外变更：GitHub Release 资产）。③工具目录探针接入 health-check（TOOL_CATALOG_SIZE 单一事实来源 + probe env 沙箱支持），真跑巡检绿，298/298（quality-20260919-022756），F-023 已登记。
+
+改动文件（7）: src/version.ts, src/doctor.ts, src/probe.ts, scripts/health-check.mts, test/probe.test.ts, test/fixtures/raw-mcp-server.mjs, .github/workflows/publish-npm.yml
+
+下一步: 用户在 npmjs.com 为 @luckychen1993/pm-mcp 配置 Trusted Publisher（happy520ai/pm-mcp + publish-npm.yml + 环境留空）后，gh workflow run publish-npm.yml -f publish=true 重发；工作流自带完整性核验；Codex 侧新的 output_token_limit 条目在重开会话后生效
+
+## 2026-09-19 — 未知
+
 「全部解决修复」收尾：①用 codex app-server mcpServerStatus/list 实证三宿主均全量暴露 49 工具，更正上轮「23 个不可见」误判（tools.X 子段是 output_token_limit 覆盖非过滤器）；为 Codex config.toml 补齐 23 个缺失工具的 output_token_limit 条目（备份 config.toml.backup-before-tools-49-20260919-095205，tomllib 校验过，名字与服务器 49/49 对齐）。②WorkBuddy/ZCode 配置核对无过滤。③把语义证据特性与 probe 特性分两个提交落账。仓库外变更：E:\\Codex\\.codex\\config.toml。
 
 改动文件（7）: src/doctor.ts, test/upgrade-030.test.ts, src/probe.ts, src/cli.ts, test/probe.test.ts, test/fixtures/raw-mcp-server.mjs, README.md

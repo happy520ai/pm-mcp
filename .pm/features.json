@@ -1,5 +1,5 @@
 {
-  "seq": 22,
+  "seq": 23,
   "features": [
     {
       "id": "F-001",
@@ -397,6 +397,23 @@
       "status": "implemented",
       "created": "2026-09-19T01:44:30.030Z",
       "updated": "2026-09-19T01:44:30.030Z"
+    },
+    {
+      "id": "F-023",
+      "name": "定时巡检工具目录探针（TOOL_CATALOG_SIZE 漂移检测）",
+      "description": "健康巡检（npm run audit → scripts/health-check.mts）在巡检 pm-mcp 自身仓库时，自动用 pm-mcp probe 直连 dist 服务器取原始工具清单，并与 src/version.ts 的 TOOL_CATALOG_SIZE 契约核对；漂移记 🔴 硬红旗（fail-closed，CI 退出码 1）。探针进程以 PM_MCP_HOME 沙箱隔离，不污染真实全局注册表。",
+      "module": "工具目录核验",
+      "entry_files": [
+        "scripts/health-check.mts",
+        "src/version.ts",
+        "src/probe.ts"
+      ],
+      "test_files": [
+        "test/probe.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T02:27:42.312Z",
+      "updated": "2026-09-19T02:27:42.312Z"
     }
   ]
 }

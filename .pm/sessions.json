@@ -1,5 +1,5 @@
 {
-  "seq": 50,
+  "seq": 51,
   "sessions": [
     {
       "id": "S-0001",
@@ -1168,6 +1168,34 @@
       "next_steps": [
         "T-051 safe-delete 钩子方向仍未选（需用户拍板）",
         "npm 发布 0.3.0 待可信发布通道解决后再推（delivery 副本已含 49 工具目录）"
+      ]
+    },
+    {
+      "id": "S-0051",
+      "date": "2026-09-19T02:30:01.669Z",
+      "author": "",
+      "summary": "三件事执行：①推送 3 个提交（e910ca0/42c0e5a/e307ab6）到 origin main，CI 双节点全绿。②npm 0.3.0 发布：重打包并替换 Release v0.3.0 资产（d01d8603…含 probe），工作流重 pin 哈希，publish=false 验证跑全绿（OIDC 声明/SHA/干跑全对），publish=true 真发失败 ENEEDAUTH——官方文档确认这是 npm 网站侧 Trusted Publisher 未配置/不匹配的标准报错，待用户在 npmjs.com 配置（仓库外变更：GitHub Release 资产）。③工具目录探针接入 health-check（TOOL_CATALOG_SIZE 单一事实来源 + probe env 沙箱支持），真跑巡检绿，298/298（quality-20260919-022756），F-023 已登记。",
+      "files": [
+        "src/version.ts",
+        "src/doctor.ts",
+        "src/probe.ts",
+        "scripts/health-check.mts",
+        "test/probe.test.ts",
+        "test/fixtures/raw-mcp-server.mjs",
+        ".github/workflows/publish-npm.yml"
+      ],
+      "file_hashes": {
+        "src/version.ts": "d8428e82bceafb47bc84fba3aa6138cb9f69398033220b4ea6f86ebb7e6776d0",
+        "src/doctor.ts": "0719c05da6f15fa76d0deb04e31e99e55d81d453bacf7366e959d5da0a603f5c",
+        "src/probe.ts": "94106cd4ef48aff34d8b9ef5d627bb721809238bb3f0e893a7e4d48fd6966ce0",
+        "scripts/health-check.mts": "994c3be15ebf799cf314d912886a1f844042a573a244ce1b151d82789ab66f42",
+        "test/probe.test.ts": "f8f5f4f3ba85f9ab5ae2546abd9ebce6f140e7289370ec5c7d4a3c54b3fb4d90",
+        "test/fixtures/raw-mcp-server.mjs": "cc0b11a8b32e67337daba1781c1dadaa61344dd9ae47d3564e71f157b4c6a7eb",
+        ".github/workflows/publish-npm.yml": "5b3c3a37e72092a458a135ade095154183b16845bf40087613ec7042552e894b"
+      },
+      "next_steps": [
+        "用户在 npmjs.com 为 @luckychen1993/pm-mcp 配置 Trusted Publisher（happy520ai/pm-mcp + publish-npm.yml + 环境留空）后，gh workflow run publish-npm.yml -f publish=true 重发；工作流自带完整性核验",
+        "Codex 侧新的 output_token_limit 条目在重开会话后生效"
       ]
     }
   ]
