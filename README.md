@@ -202,6 +202,17 @@ node dist/cli.js probe --expect-file 上一轮probe报告.json -- node 其他服
 - `--expect-file` 接受上一轮 probe 报告、字符串数组或 `{tools:[...]}`，便于跨项目基线比对。
 - 探测进程与服务器子进程在结束时都会被清理，不会残留。
 
+### pm-mcp ui：本地只读 Web 仪表盘
+
+```bash
+node dist/cli.js ui --root .            # 端口自动分配
+node dist/cli.js ui --root . --port 7781
+```
+
+- 仅绑定 `127.0.0.1`、纯 GET 只读、未纳管项目拒绝启动；概览（任务/功能/安全/会话/索引/质量门禁）+ 里程碑进度 + 最近任务。
+- `/api/state` 输出同源 JSON，`/healthz` 健康检查；所有插值 HTML 转义，CSP 禁止脚本。
+- Ctrl+C 退出。不新增 MCP 工具，不改变工具目录契约。
+
 ## 推荐工作流（写给 AI 的规矩）
 
 把下面这段放进目标项目的 `AGENTS.md`，任何 AI 会话自动遵守：

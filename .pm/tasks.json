@@ -1,5 +1,5 @@
 {
-  "seq": 59,
+  "seq": 60,
   "tasks": [
     {
       "id": "T-001",
@@ -1979,6 +1979,53 @@
       "updated": "2026-09-19T04:18:13.410Z",
       "started_at": null,
       "completed_at": null
+    },
+    {
+      "id": "T-060",
+      "title": "T-012 Web UI 仪表盘：本地只读 SSR 服务",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "src/ui.ts：renderDashboard（域层只读聚合 + HTML 转义）",
+          "done": true
+        },
+        {
+          "text": "startUiServer（127.0.0.1 / port 0 自动 / /api/state /healthz）",
+          "done": true
+        },
+        {
+          "text": "cli.ts 挂 ui 子命令",
+          "done": true
+        },
+        {
+          "text": "测试：渲染/转义/HTTP/未初始化",
+          "done": true
+        },
+        {
+          "text": "全量绿 + 提交推送",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/ui.ts",
+        "src/cli.ts",
+        "test/ui.test.ts",
+        "README.md"
+      ],
+      "acceptance": "src/ui.ts：SSR 仪表盘（项目/里程碑/任务/安全/会话/质量报告）+ startUiServer 只绑 127.0.0.1、未初始化 fail-closed、GET 只读、全部插值 HTML 转义（XSS 测试）；CLI 子命令 ui --root --port(0=自动)；测试覆盖渲染/转义/HTTP 行为；全量绿",
+      "result_note": "T-012 落地：src/ui.ts 本地只读 SSR 仪表盘——buildDashboardState 聚合七本账（项目元数据/里程碑进度/任务分布与最近10条/功能/安全发现/会话/索引规模/最新质量报告），renderDashboardHtml 全插值 HTML 转义（集成测试断言 <script> 标题不可注入）+ CSP default-src 'none' 禁脚本；startUiServer 仅绑定 127.0.0.1、port 0 自动分配、未初始化 fail-closed、GET/HEAD 之外 405、未知路径 404、错误不泄漏堆栈。cli.ts 挂 ui 子命令（--root/--port，SIGINT/SIGTERM 优雅关闭）。CLI 冒烟：healthz/api/state/HTML/404 全过。不新增 MCP 工具，目录保持 52。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-043548-245-0000.json\n报告 SHA-256: 2ca1400a83198a7b3a5bc675e3da1b8b23e3219d208d49614b02d2c45534df04\n源码 SHA-256: 9abd25c8a87fca0814f99f20bc719497074cd3b6e430058a75b492d4a835c263\n执行时间: 2026-09-19T04:35:48.245Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: typecheck 干净；全量 317/317（.pm/quality-runs/quality-20260919-043548-245-0000.json，tests_observed）；专项 4 测试（聚合/转义/HTTP 行为/未纳管拒绝）+ 真实 CLI 冒烟（127.0.0.1:7781 三端点 + 404）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T04:26:38.677Z",
+      "updated": "2026-09-19T04:38:56.602Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T04:37:22.786Z"
     }
   ]
 }

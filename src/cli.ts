@@ -21,6 +21,26 @@ if (process.argv[2] === "setup") {
     console.error(`[pm-mcp doctor] ERROR: ${(error as Error).message}`);
     process.exitCode = 1;
   }
+} else if (process.argv[2] === "ui") {
+  try {
+    const { startUiServer } = await import("./ui.ts");
+    const args = process.argv.slice(3);
+    const value = (flag: string): string | undefined => {
+      const index = args.indexOf(flag);
+      return index >= 0 ? args[index + 1] : undefined;
+    };
+    const root = value("--root") ?? process.cwd();
+    const portArg = value("--port");
+    const { url, close } = await startUiServer(root, { port: portArg ? Number(portArg) : 0 });
+    console.log(`pm-mcp ui 已启动（只读、仅绑定 127.0.0.1）：${url}  按 Ctrl+C 退出`);
+    const shutdown = (): void => { void close().finally(() => process.exit(0)); };
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+    await new Promise<never>(() => {});
+  } catch (error) {
+    console.error(`[pm-mcp ui] ERROR: ${(error as Error).message}`);
+    process.exitCode = 1;
+  }
 } else if (process.argv[2] === "probe") {
   try {
     const { PROBE_USAGE, parseProbeArgs, runProbe } = await import("./probe.ts");

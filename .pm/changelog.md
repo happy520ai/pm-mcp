@@ -2,6 +2,14 @@
 
 ## 2026-09-19 — 未知
 
+完成 T-012/T-060/F-027：pm-mcp ui 本地只读 Web 仪表盘（零依赖 node:http，127.0.0.1 only，SSR + /api/state + /healthz，全插值 HTML 转义 + CSP 禁脚本，未纳管 fail-closed，SIGINT 优雅关闭）；CLI 冒烟通过；317/317（quality-20260919-043548）。不新增 MCP 工具（目录保持 52）。至此 M2 backlog 可实现项全部完成，仅剩 T-009 待用户选型。
+
+改动文件（4）: src/ui.ts, src/cli.ts, test/ui.test.ts, README.md
+
+下一步: T-009 版权相似度：唯一剩余 backlog 项，需用户选定外部服务后再动工；0.4.0 发布：本轮 4 个提交（3 新工具 + ui 子命令）待打包发布；T-059：升级 SDK/zod 消除 OSV 命中
+
+## 2026-09-19 — 未知
+
 完成 T-008/T-058/F-026：audit_osv 联网漏洞查询（confirm=z.literal(true) 显式门控，只发包名/版本/生态，querybatch 100/批，fetcher 注入全 mock 测试），契约 51→52。真网首跑命中本仓 2 条 GHSA（SDK/zod），登记 T-059 处置。全量 313/313（quality-20260919-041919）。仓库外：E:\\Codex\\.codex\\config.toml 增 audit_osv 条目。
 
 改动文件（6）: src/osv.ts, src/audit-tools.ts, src/version.ts, test/osv.test.ts, test/integration.test.ts, README.md

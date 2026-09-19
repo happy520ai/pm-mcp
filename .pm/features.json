@@ -1,5 +1,5 @@
 {
-  "seq": 26,
+  "seq": 27,
   "features": [
     {
       "id": "F-001",
@@ -465,6 +465,22 @@
       "status": "implemented",
       "created": "2026-09-19T04:20:54.347Z",
       "updated": "2026-09-19T04:20:54.347Z"
+    },
+    {
+      "id": "F-027",
+      "name": "pm-mcp ui 本地只读 Web 仪表盘",
+      "description": "本地只读 Web 仪表盘：`pm-mcp ui [--root <项目>] [--port <端口>]`（端口 0 自动分配），仅绑定 127.0.0.1，GET 只读 SSR（概览卡片/里程碑进度条/最近任务/会话/质量门禁），/api/state JSON、/healthz；所有插值 HTML 转义，CSP 禁脚本，未纳管项目 fail-closed。",
+      "module": "仪表盘",
+      "entry_files": [
+        "src/ui.ts",
+        "src/cli.ts"
+      ],
+      "test_files": [
+        "test/ui.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T04:37:22.950Z",
+      "updated": "2026-09-19T04:37:22.950Z"
     }
   ]
 }
