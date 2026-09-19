@@ -33,7 +33,7 @@ node dist/cli.js doctor --root .
 
 ## 已有管理流程
 
-用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。48 个工具全部保留，由 AI 组合调用，无需用户记工具名。
+用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。49 个工具全部保留，由 AI 组合调用，无需用户记工具名。
 
 - `update_task` 可同时更新进度、保存 `checkpoint:{note,next_step}` 并记录会话；完成时给 `record_session:true`，返回会话编号后不再另调 `log_session`。省略该参数仍兼容旧的手动记会话流程。同一幂等键重放不会重复落账；跨多个文件的异常仍遵守原有“不确定状态需核对”规则，不宣称事务原子性。
 - `feature/fix` 转 `done` 必须关联实际文件，并先通过 `run_quality_matrix` 执行相应测试。系统自动选择最新报告，核对执行成功、测试前后与当前源码摘要、测试单元目录和项目证据策略。`verification_run` 可明确指向最新报告，文字 `verification` 只作补充说明。报告存于 `.pm/quality-runs/`，任务保存报告与源码 SHA-256。目录范围匹配不等于代码覆盖率证明；第一方报告也不构成防篡改认证。
@@ -187,6 +187,21 @@ node dist/cli.js doctor --root . --client workbuddy           # 核验 48 工具
 | `PM_ROOT` | 项目根（次优先级） |
 | `PM_MCP_HOME` | 全局注册表重定向（默认 `~`；多环境/测试隔离用） |
 
+### pm-mcp probe：标准 raw tools/list 直连探针
+
+宿主（ZCode/Codex/Cursor 等）是唯一 MCP client 持有者，不会向模型透传原始 `tools/list`；要拿服务器在协议线上的真实工具清单，用 `probe` 绕过宿主直连：
+
+```bash
+node dist/cli.js probe -- node dist/index.js --root .
+node dist/cli.js probe --timeout 10000 --expect get_status,list_tasks,search_code -- node dist/index.js --root .
+node dist/cli.js probe --expect-file 上一轮probe报告.json -- node 其他服务器/dist/index.js
+```
+
+- 输出原始工具清单 JSON（`tools` 含 name/description/inputSchema，自动翻页取全）与 `serverInfo`；退出码 0/1。
+- `--expect` 与期望工具表比对（如从 Codex `config.toml` 的 `[mcp_servers.X.tools.*]` 提取），缺失/多余都会列进 `issues` 并置 `ok:false`。
+- `--expect-file` 接受上一轮 probe 报告、字符串数组或 `{tools:[...]}`，便于跨项目基线比对。
+- 探测进程与服务器子进程在结束时都会被清理，不会残留。
+
 ## 推荐工作流（写给 AI 的规矩）
 
 把下面这段放进目标项目的 `AGENTS.md`，任何 AI 会话自动遵守：
@@ -220,7 +235,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 也可以直接用内置 prompts：`start-session` / `end-session` / `onboard` / `architecture-review` / `acceptance-review`；其中 `onboard` 会引导客户端读取状态并生成新人/AI 入职简报。
 
-## 工具清单（48 个）
+## 工具清单（49 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
@@ -238,7 +253,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 | 可观测 | `get_usage_log` / `get_runtime_log` | 使用日志（工具调用统计、错误率、耗时、输出与折叠省下的 token 估算——验证省不省 token）与运行日志（server/watcher/工具报错）；只记计量不记参数内容 |
 | 注册表 | `list_projects` | 本机所有被管理项目 |
 | 治理模型 | `init_governance` / `get_governance` / `upsert_module` / `upsert_interface` / `upsert_repository` / `set_governance_policies` | 结构化模块根、owner、语言、公开接口、允许/禁止依赖、跨仓版本约束与强制策略 |
-| 语义治理 | `discover_languages` / `audit_governance` / `impact_analysis` / `list_semantic_evidence` / `save_semantic_evidence` | 编译器/Tree-sitter AST 关系、hash-bound 原生分析器/运行时证据、循环/越界/unresolved/覆盖率与变更反向闭包 |
+| 语义治理 | `discover_languages` / `audit_governance` / `impact_analysis` / `list_semantic_evidence` / `save_semantic_evidence` / `replace_semantic_evidence_for_file` | 编译器/Tree-sitter AST 关系、hash-bound 原生分析器/运行时证据、循环/越界/unresolved/覆盖率与变更反向闭包 |
 | 质量与组合 | `plan_quality_matrix` / `run_quality_matrix` / `get_portfolio` | plan 与真实执行严格分离；shell=false；跨仓阶段/债务/安全/版本/cycle 聚合 |
 | 标准化验收 | `list_acceptance_baselines` / `get_acceptance_baseline` / `save_acceptance_baseline_draft` / `approve_acceptance_baseline` / `evaluate_acceptance` | ISO/SQuaRE 对齐的版本化质量基线、冻结证据指针、需求—风险—测试追踪、机器判定报告与 SHA-256 manifest |
 

@@ -155,6 +155,24 @@
       "source": "",
       "license": "",
       "updated": "2026-09-03T01:11:37.301Z"
+    },
+    "src/probe.ts": {
+      "purpose": "pm-mcp probe 子命令实现：直连任意 stdio MCP 服务器取标准 raw tools/list，支持 expect 比对",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-19T01:44:30.176Z"
+    },
+    "test/fixtures/raw-mcp-server.mjs": {
+      "purpose": "probe 测试夹具：不经 SDK 的最小 stdio JSON-RPC MCP 服务器（ok/paged/hang 三模式，模式经 argv 传递因 SDK 只继承白名单 env）",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-19T01:44:39.393Z"
+    },
+    "test/probe.test.ts": {
+      "purpose": "probe 探针测试：原始清单/翻页/expect 比对/超时失败/参数解析（8 例）",
+      "source": "",
+      "license": "",
+      "updated": "2026-09-19T01:44:39.522Z"
     }
   }
 }

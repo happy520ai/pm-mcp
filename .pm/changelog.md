@@ -1,5 +1,27 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-09-19 — 未知
+
+「全部解决修复」收尾：①用 codex app-server mcpServerStatus/list 实证三宿主均全量暴露 49 工具，更正上轮「23 个不可见」误判（tools.X 子段是 output_token_limit 覆盖非过滤器）；为 Codex config.toml 补齐 23 个缺失工具的 output_token_limit 条目（备份 config.toml.backup-before-tools-49-20260919-095205，tomllib 校验过，名字与服务器 49/49 对齐）。②WorkBuddy/ZCode 配置核对无过滤。③把语义证据特性与 probe 特性分两个提交落账。仓库外变更：E:\\Codex\\.codex\\config.toml。
+
+改动文件（7）: src/doctor.ts, test/upgrade-030.test.ts, src/probe.ts, src/cli.ts, test/probe.test.ts, test/fixtures/raw-mcp-server.mjs, README.md
+
+下一步: T-051 safe-delete 钩子方向仍未选（需用户拍板）；npm 发布 0.3.0 待可信发布通道解决后再推（delivery 副本已含 49 工具目录）
+
+## 2026-09-19 — 未知
+
+根治「宿主不提供标准 raw tools/list」：新增 pm-mcp probe 子命令（T-053/F-022），SDK client 直连任意 stdio MCP 服务器取原始 tools/list 并支持 expect 基线比对；真实验收列出 49 工具、对 Codex allowlist（26 个）比对 missing 0/extra 23。顺带修复并行会话造成的工具契约漂移 48→49（T-054：doctor/upgrade-030 测试/README），全量测试 297/297 全绿（正式报告 quality-20260919-014142-253-0000.json）。未提交任何 git 提交。
+
+改动文件（7）: src/probe.ts, src/cli.ts, test/probe.test.ts, test/fixtures/raw-mcp-server.mjs, src/doctor.ts, test/upgrade-030.test.ts, README.md
+
+下一步: 决定是否把 Codex config.toml 的 pm-mcp allowlist 从 26 个扩充（当前 23 个工具对 Codex 不可见），改完用 pm-mcp probe --expect 复核；并行会话遗留的语义证据未提交改动（semantic-* 文件）仍待处置；本次已把其工具契约（49）补齐；T-051 safe-delete 钩子方向仍未选
+
+## 2026-09-19 — 未知
+
+诊断「当前活动 MCP 宿主仍未提供标准 raw tools/list」：确认为宿主架构使然而非配置故障。排查了 pm-mcp 代码、共享目录、codex中间层对照验证、统一网关证据与 Codex 历史会话，溯源到 2026-09-07 Cursor 3.19.13 宿主验收会话；Cursor 仅有内部 IPC mcp.listToolsRaw 非公开 API，Codex app-server 用私有 mcpServerStatus/list，ZCode 只注入翻译后的函数 schema。未改任何文件。
+
+下一步: 如需标准 raw tools/list 响应：仿照 v6/mcp-observer.mjs 写一个直接 spawn pm-mcp 服务器进程的主动 stdio MCP client 探针（initialize → tools/list）；Codex 侧宿主暴露面继续用 app-server 的 mcpServerStatus/list 枚举
+
 ## 2026-09-17 — workbuddy
 
 接手并行会话遗留的 src/dashboard.ts 改动并验证提交。该改动把仪表盘的漂移对账统一到 audit.ts 的 detectDrift，口径由「仅 implemented 功能的 entry_files」扩为「功能入口文件 + done 任务关联文件」，消除 dashboard 与 audit_structure 两处口径不一致。验证：重建 dist、tsc --noEmit 干净、dashboard.test.ts + realrepo.test.ts 10/10 通过，提交 8892eb5 并推送，CI（Node 22.18/24）全绿。同时排查了「同步更新 GitHub 时出现死循环」：源头是另一会话（工作区在 E:/AI-Data/AI网关系统/unified-ai-system）跨项目反复操作本仓库（931 次 Bash、49 轮重复 get_status/get_roadmap/list_tasks，会话日志 36MB），该会话现已停止；其遗留的 dist.bak-20260917T2226/ 与 .tmp-test-full-20260917.log 已由其自行移除，本仓库 git status 归零。远程 main = 本地 HEAD = 8892eb5。

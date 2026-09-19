@@ -1,5 +1,5 @@
 {
-  "seq": 21,
+  "seq": 22,
   "features": [
     {
       "id": "F-001",
@@ -381,6 +381,22 @@
       "status": "implemented",
       "created": "2026-09-11T12:17:54.407Z",
       "updated": "2026-09-11T12:17:54.407Z"
+    },
+    {
+      "id": "F-022",
+      "name": "pm-mcp probe：标准 raw tools/list 直连探针",
+      "description": "绕过宿主以 MCP client 身份直连任意 stdio 服务器，取标准 raw tools/list 原始响应（自动翻页取全），支持 --expect/--expect-file 与期望工具表比对（如 Codex allowlist），用于核实「服务器真实工具目录 vs 宿主暴露面」。`pm-mcp probe [--timeout ms] [--expect a,b | --expect-file x.json] -- <服务器命令...>`，退出码 0/1。",
+      "module": "工具目录核验",
+      "entry_files": [
+        "src/probe.ts",
+        "src/cli.ts"
+      ],
+      "test_files": [
+        "test/probe.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T01:44:30.030Z",
+      "updated": "2026-09-19T01:44:30.030Z"
     }
   ]
 }

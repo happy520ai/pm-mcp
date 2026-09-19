@@ -1,5 +1,5 @@
 {
-  "seq": 51,
+  "seq": 54,
   "tasks": [
     {
       "id": "T-001",
@@ -1694,6 +1694,102 @@
       "updated": "2026-09-17T15:02:41.921Z",
       "started_at": null,
       "completed_at": "2026-09-17T14:43:19.972Z"
+    },
+    {
+      "id": "T-052",
+      "title": "[巡检] git 对账：2 个文件未入账（src/governance-tools.ts、test/integration.test.ts——后台会话改动未记 log_session），请补记账或 git commit 收口",
+      "detail": "由定时健康巡检自动登记，请人工确认后处置",
+      "type": "fix",
+      "status": "backlog",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [
+        "巡检"
+      ],
+      "author": "cron",
+      "created": "2026-09-19T01:17:04.236Z",
+      "updated": "2026-09-19T01:17:04.236Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-053",
+      "title": "pm-mcp probe 子命令：标准 raw tools/list 直连探针",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "实现 src/probe.ts（SDK Client 直连、分页 tools/list、expect 比对）",
+          "done": true
+        },
+        {
+          "text": "cli.ts 挂 probe 子命令与 --help",
+          "done": true
+        },
+        {
+          "text": "test/fixtures/raw-mcp-server.mjs + test/probe.test.ts",
+          "done": true
+        },
+        {
+          "text": "README 增补用法",
+          "done": true
+        },
+        {
+          "text": "typecheck + 全量测试通过（297/297）",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/probe.ts",
+        "src/cli.ts",
+        "test/probe.test.ts",
+        "test/fixtures/raw-mcp-server.mjs",
+        "README.md"
+      ],
+      "acceptance": "npx pm-mcp probe -- node <任意MCP服务器> 输出原始 tools/list 工具清单 JSON；--expect 与期望表不一致时退出码 1；对无响应服务器能超时退出并杀干净子进程",
+      "result_note": "新增 pm-mcp probe 子命令：以 SDK Client 直连任意 stdio MCP 服务器，分页取全标准 raw tools/list，--expect/--expect-file 比对期望工具表（接受上一轮 probe 报告作基线），超时失败并兜底杀净子进程，退出码 0/1。真实验收：对 pm-mcp 本身列出 49 工具；对 Codex allowlist（26 个）比对 missing 0 / extra 23。期间发现并行会话引入第 49 个工具导致 doctor 48 契约漂移（3 个既有测试失败，HEAD worktree 证实与本任务无关），已另立 T-054 并修复。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-014142-253-0000.json\n报告 SHA-256: 9774abdba53eaee1c4cd50747d3e3c7e0f27836caca889412dd9e099e2bde796\n源码 SHA-256: 3f9701401e03c254b125c0d3ad5b1be9b0851f3676e4128f6088f181f52831c6\n执行时间: 2026-09-19T01:41:42.253Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: node --test test/probe.test.ts 8/8；node dist/cli.js probe 对本机 pm-mcp 列出 49 工具 exit=0、--expect 不匹配 exit=1；正式质量报告 quality-20260919-014142-253-0000.json：tests 297/297 passed + typecheck passed，源码 SHA 指纹稳定",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T01:20:58.160Z",
+      "updated": "2026-09-19T01:44:18.175Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T01:44:01.054Z"
+    },
+    {
+      "id": "T-054",
+      "title": "工具目录契约漂移：49 工具 vs doctor/README 的 48 契约",
+      "detail": "2026-09-19 用 HEAD worktree 证实：HEAD 干净构建 16/16 doctor 测试通过；未提交改动新增第 49 个工具 replace_semantic_evidence_for_file（governance-tools.ts:174 区段），src/doctor.ts 的 inventory.tools.length !== 48、upgrade-030.test.ts 三处 ===48 断言、README「工具清单（48 个）」均未跟上，npm test 现 294/297。修复时需同时核对 Codex allowlist（当前仅 26 个工具被放行，23 个不可见）。",
+      "type": "debt",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/doctor.ts",
+        "test/upgrade-030.test.ts",
+        "README.md"
+      ],
+      "acceptance": "doctor 三处 tools===48 断言与 README 工具计数改为与实际目录一致；npm test 全绿",
+      "result_note": "工具目录契约 48→49：src/doctor.ts 计数检查与提示文案、upgrade-030.test.ts 三处断言、README 工具清单计数与语义治理行（补 replace_semantic_evidence_for_file）。全量测试恢复全绿。【2026-09-19 更正】经 codex app-server mcpServerStatus/list 实证（49/49），此前「Codex allowlist 只放行 26 个、23 个不可见」为误判：config.toml 的 [mcp_servers.X.tools.*] 子段是每工具 output_token_limit 覆盖而非可见性过滤，Codex/ZCode/WorkBuddy 三宿主均全量暴露；已为缺失的 23 个工具补齐 output_token_limit 条目（写入前有备份 config.toml.backup-before-tools-49-20260919-095205），仅统一了输出上限。",
+      "verification": "npm test 297/297 通过；typecheck 干净；正式报告 quality-20260919-014142-253-0000.json（tests 297/297 passed）。注：Codex config.toml 的 pm-mcp allowlist 仍为 26 个工具（23 个对 Codex 不可见），属客户端配置，需用户自行决定是否扩充",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T01:36:05.334Z",
+      "updated": "2026-09-19T02:00:11.144Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T01:44:18.019Z"
     }
   ]
 }

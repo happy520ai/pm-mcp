@@ -1,5 +1,5 @@
 {
-  "seq": 47,
+  "seq": 50,
   "sessions": [
     {
       "id": "S-0001",
@@ -1099,6 +1099,75 @@
       "next_steps": [
         "T-051（safe-delete 钩子拦截 pm-mcp 幂等记录清理）仍未处置，三个方向待选",
         "跨项目操作时不要依赖 pm-mcp 的 cwd 推断，建议在目标项目会话内操作"
+      ]
+    },
+    {
+      "id": "S-0048",
+      "date": "2026-09-19T01:08:35.403Z",
+      "author": "",
+      "summary": "诊断「当前活动 MCP 宿主仍未提供标准 raw tools/list」：确认为宿主架构使然而非配置故障。排查了 pm-mcp 代码、共享目录、codex中间层对照验证、统一网关证据与 Codex 历史会话，溯源到 2026-09-07 Cursor 3.19.13 宿主验收会话；Cursor 仅有内部 IPC mcp.listToolsRaw 非公开 API，Codex app-server 用私有 mcpServerStatus/list，ZCode 只注入翻译后的函数 schema。未改任何文件。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "如需标准 raw tools/list 响应：仿照 v6/mcp-observer.mjs 写一个直接 spawn pm-mcp 服务器进程的主动 stdio MCP client 探针（initialize → tools/list）",
+        "Codex 侧宿主暴露面继续用 app-server 的 mcpServerStatus/list 枚举"
+      ]
+    },
+    {
+      "id": "S-0049",
+      "date": "2026-09-19T01:44:59.759Z",
+      "author": "",
+      "summary": "根治「宿主不提供标准 raw tools/list」：新增 pm-mcp probe 子命令（T-053/F-022），SDK client 直连任意 stdio MCP 服务器取原始 tools/list 并支持 expect 基线比对；真实验收列出 49 工具、对 Codex allowlist（26 个）比对 missing 0/extra 23。顺带修复并行会话造成的工具契约漂移 48→49（T-054：doctor/upgrade-030 测试/README），全量测试 297/297 全绿（正式报告 quality-20260919-014142-253-0000.json）。未提交任何 git 提交。",
+      "files": [
+        "src/probe.ts",
+        "src/cli.ts",
+        "test/probe.test.ts",
+        "test/fixtures/raw-mcp-server.mjs",
+        "src/doctor.ts",
+        "test/upgrade-030.test.ts",
+        "README.md"
+      ],
+      "file_hashes": {
+        "src/probe.ts": "24306316b2f386884cbd81d2cc8e1e10424e80893104d58cae8c01b6784c8cee",
+        "src/cli.ts": "c76f98e99ff5b051930237942cb26076afe8dc81dbe6a96e33ebb1645363f9c3",
+        "test/probe.test.ts": "d4c42574b4f9fc6081a31bfb3aaa3f49629b66f214c40af306a4c46a3f08ac05",
+        "test/fixtures/raw-mcp-server.mjs": "c2043de6b351d17a1b3076772471b20cef8411b703530cfd1c81a4aa4da8949c",
+        "src/doctor.ts": "dfef872414a4ada1ea230b15ffb476851694bfa398a6251f2651f0ff0ca6c93f",
+        "test/upgrade-030.test.ts": "d733795ef9ffb1682966a4ee03901bf188bf7ab8b8aadb431d35b557aeb1b9dd",
+        "README.md": "a56d273f43fa2defeb02605e26217482c31837e694fea870c012ae6613257d6a"
+      },
+      "next_steps": [
+        "决定是否把 Codex config.toml 的 pm-mcp allowlist 从 26 个扩充（当前 23 个工具对 Codex 不可见），改完用 pm-mcp probe --expect 复核",
+        "并行会话遗留的语义证据未提交改动（semantic-* 文件）仍待处置；本次已把其工具契约（49）补齐",
+        "T-051 safe-delete 钩子方向仍未选"
+      ]
+    },
+    {
+      "id": "S-0050",
+      "date": "2026-09-19T02:00:32.064Z",
+      "author": "",
+      "summary": "「全部解决修复」收尾：①用 codex app-server mcpServerStatus/list 实证三宿主均全量暴露 49 工具，更正上轮「23 个不可见」误判（tools.X 子段是 output_token_limit 覆盖非过滤器）；为 Codex config.toml 补齐 23 个缺失工具的 output_token_limit 条目（备份 config.toml.backup-before-tools-49-20260919-095205，tomllib 校验过，名字与服务器 49/49 对齐）。②WorkBuddy/ZCode 配置核对无过滤。③把语义证据特性与 probe 特性分两个提交落账。仓库外变更：E:\\\\Codex\\\\.codex\\\\config.toml。",
+      "files": [
+        "src/doctor.ts",
+        "test/upgrade-030.test.ts",
+        "src/probe.ts",
+        "src/cli.ts",
+        "test/probe.test.ts",
+        "test/fixtures/raw-mcp-server.mjs",
+        "README.md"
+      ],
+      "file_hashes": {
+        "src/doctor.ts": "dfef872414a4ada1ea230b15ffb476851694bfa398a6251f2651f0ff0ca6c93f",
+        "test/upgrade-030.test.ts": "d733795ef9ffb1682966a4ee03901bf188bf7ab8b8aadb431d35b557aeb1b9dd",
+        "src/probe.ts": "24306316b2f386884cbd81d2cc8e1e10424e80893104d58cae8c01b6784c8cee",
+        "src/cli.ts": "c76f98e99ff5b051930237942cb26076afe8dc81dbe6a96e33ebb1645363f9c3",
+        "test/probe.test.ts": "d4c42574b4f9fc6081a31bfb3aaa3f49629b66f214c40af306a4c46a3f08ac05",
+        "test/fixtures/raw-mcp-server.mjs": "c2043de6b351d17a1b3076772471b20cef8411b703530cfd1c81a4aa4da8949c",
+        "README.md": "a56d273f43fa2defeb02605e26217482c31837e694fea870c012ae6613257d6a"
+      },
+      "next_steps": [
+        "T-051 safe-delete 钩子方向仍未选（需用户拍板）",
+        "npm 发布 0.3.0 待可信发布通道解决后再推（delivery 副本已含 49 工具目录）"
       ]
     }
   ]
