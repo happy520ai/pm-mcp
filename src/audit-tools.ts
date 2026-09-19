@@ -11,6 +11,7 @@ import { budgetLines, toolR, toolW } from "./tool-base.ts";
 import { walkRefresh } from "./index-store.ts";
 import { renderDuplicates } from "./duplicates.ts";
 import { renderOsv, auditOsv } from "./osv.ts";
+import { renderPublicSearch, searchPublicCode } from "./public-search.ts";
 
 export function registerAuditTools(server: McpServer, root: string): void {
   toolW(server, root, "snapshot_codebase", "给代码结构拍快照（文件数/行数/目录分布/测试数/skip 标记/依赖清单）。之后 audit_structure 会与上次快照 diff。建议每个会话或每个里程碑结束时拍一次。", {}, () => {
@@ -40,6 +41,19 @@ export function registerAuditTools(server: McpServer, root: string): void {
     requireInitialized(root);
     const scan = await auditOsv(root, { timeoutMs: args.timeout_ms });
     return renderOsv(scan, budgetLines(root));
+  });
+
+  toolR<{ confirm: true; snippet?: string; file?: string; line?: number; max_results?: number; timeout_ms?: number }>(server, root, "search_code_public", "公开代码反查（联网！默认关）：把一段本仓源码行作为精确短语发给 GitHub Code Search，列出包含相同代码的公开仓库；片段在参数里对用户全程可见，必须显式 confirm=true。", {
+    confirm: z.literal(true).describe("显式确认联网：本工具会把一段真实代码行发送到 GitHub"),
+    snippet: z.string().trim().min(8).max(400).optional().describe("要反查的单行代码片段（与 file 二选一）"),
+    file: z.string().trim().min(1).max(512).optional().describe("从该文件取一行作为片段（相对项目根；缺省取最长行）"),
+    line: z.number().int().min(1).optional().describe("指定取第几行（1-based）"),
+    max_results: z.number().int().min(1).max(30).optional().describe("列出的命中数上限，默认 10"),
+    timeout_ms: z.number().int().min(5000).max(120000).optional().describe("请求超时毫秒数，默认 30000"),
+  }, async (args) => {
+    requireInitialized(root);
+    const result = await searchPublicCode(root, { snippet: args.snippet, file: args.file, line: args.line, maxResults: args.max_results, timeoutMs: args.timeout_ms });
+    return renderPublicSearch(result, budgetLines(root));
   });
 
   toolW<Record<string, never>, PreparedSecurityAudit>(server, root, "audit_security", "安全体检（只扫描本地、不联网，结果写入安全台账）：密钥泄露 / 危险模式（eval、SQL 拼接、禁用证书校验等）/ 依赖风险。修复后重扫自动关闭；接受风险必须留理由。", {}, (_args, prepared) => {

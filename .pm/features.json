@@ -1,5 +1,5 @@
 {
-  "seq": 27,
+  "seq": 28,
   "features": [
     {
       "id": "F-001",
@@ -481,6 +481,23 @@
       "status": "implemented",
       "created": "2026-09-19T04:37:22.950Z",
       "updated": "2026-09-19T04:37:22.950Z"
+    },
+    {
+      "id": "F-028",
+      "name": "search_code_public 公开代码反查（ 版权溯源初版）",
+      "description": "公开代码反查（GitHub Code Search，联网默认关）：把一段本仓源码行作为词项 AND 查询发给 GitHub，列出包含相同代码的公开仓库；confirm 门控 + 片段在工具参数中全程可见；凭据链 GH_TOKEN/GITHUB_TOKEN/gh auth token；报告强制声明字面命中≠侵权结论。",
+      "module": "安全",
+      "entry_files": [
+        "src/public-search.ts",
+        "src/audit-tools.ts"
+      ],
+      "test_files": [
+        "test/public-search.test.ts",
+        "test/integration.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T05:37:05.941Z",
+      "updated": "2026-09-19T05:37:05.941Z"
     }
   ]
 }

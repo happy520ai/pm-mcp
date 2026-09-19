@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-19T05:02:23.718Z
+> 生成时间: 2026-09-19T05:37:42.475Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,7 +18,7 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [█████████░] 86% M2 v2 增强（25/29）
+▶ [█████████░] 90% M2 v2 增强（27/30）
 - ⚠️ 重构被挤出: M2 v2 增强 重构类占比 17% < 配额 20%
 
 ## 🎯 当前焦点
@@ -30,12 +30,12 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(28), package.json(16), src/index.ts(14) |
+| churn（变更率） | ⚠️ 热点 README.md(29), package.json(17), src/index.ts(14) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 19 条记录 |
-| 测试背书 | 27/27 个功能带测试 |
+| 测试背书 | 28/28 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-09-19 04:35（命令 2/2；证据 tests_observed） |
+| 质量矩阵 | ✅ 2026-09-19 05:35（命令 2/2；证据 tests_observed） |
 | 标准化验收 | ✅ 2026-09-17 15:22（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
@@ -44,7 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 55 · backlog 5
+- 总览: done 57 · backlog 4
 
 ## 🧩 功能清单
 ### src
@@ -83,6 +83,8 @@ flowchart LR
 - ✅ F-026 audit_osv 联网漏洞查询（显式确认门控） — OSV.dev 已知漏洞查询（联网、默认关）：复用多语言 manifest 解析收集依赖，仅发送包名/版本/生态到 api.osv.dev querybatch
 ### 仪表盘
 - ✅ F-027 pm-mcp ui 本地只读 Web 仪表盘 — 本地只读 Web 仪表盘：`pm-mcp ui [--root <项目>] [--port <端口>]`（端口 0 自动分配），仅绑定 127.0.0.1，GE
+### 安全
+- ✅ F-028 search_code_public 公开代码反查（ 版权溯源初版） — 公开代码反查（GitHub Code Search，联网默认关）：把一段本仓源码行作为词项 AND 查询发给 GitHub，列出包含相同代码的公开仓库；conf
 
 ## 🏛️ 架构决策（最近）
 - [ADR-004-语义治理采用AST保证分层与运行时证据扩展](.pm/decisions/ADR-004-语义治理采用AST保证分层与运行时证据扩展.md)
@@ -91,16 +93,16 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-19 [?] 完成 T-009/T-061/F-028：search_code_public 公开代码反查（GitHub Code Search 词项 AND；grep.app 因 Vercel 反机器人弃用并记录；confirm=z.literal(true)+片段参数内可见的双重门控；凭据链 env→gh auth token；401/403/422 可行动错误）。契约 52→53。真网两连验证（独特行 0 命中/公开行 8 命中，跨项目同名常量碰撞实证）。全量 323/323（quality-20260919-053505）。仓库外：E:\\Codex\\.codex\\config.toml 增 search_code_public 条目。至此 M2 backlog 全部清零。
+  - 改动: src/public-search.ts, src/audit-tools.ts, src/version.ts, test/public-search.test.ts, test/integration.test.ts, README.md
+- 2026-09-19 [?] T-059 收口（结论反转：两条 GHSA 均为误报，实装版本已过修复线；根因=范围串发给 OSV 被解析到边界下；修复=npm 按 lockfile 实装版本查询，复扫 11/11 归零，fe83493）。0.4.0 发布全链路成功：21fb107 版本+pin→Release v0.4.0 资产 sha 一致（0bca3ece）→validate+publish 双 dispatch 全绿→npm latest=0.4.0→冷安装自探 52 工具齐。T-009 立项并完成选型调研（推荐 grep.app confirm 门控起步，代码片段外发边界需用户确认）。
+  - 改动: src/osv.ts, test/osv.test.ts, .github/workflows/publish-npm.yml, package.json, package-lock.json
 - 2026-09-19 [?] 完成 T-012/T-060/F-027：pm-mcp ui 本地只读 Web 仪表盘（零依赖 node:http，127.0.0.1 only，SSR + /api/state + /healthz，全插值 HTML 转义 + CSP 禁脚本，未纳管 fail-closed，SIGINT 优雅关闭）；CLI 冒烟通过；317/317（quality-20260919-043548）。不新增 MCP 工具（目录保持 52）。至此 M2 backlog 可实现项全部完成，仅剩 T-009 待用户选型。
   - 改动: src/ui.ts, src/cli.ts, test/ui.test.ts, README.md
 - 2026-09-19 [?] 完成 T-008/T-058/F-026：audit_osv 联网漏洞查询（confirm=z.literal(true) 显式门控，只发包名/版本/生态，querybatch 100/批，fetcher 注入全 mock 测试），契约 51→52。真网首跑命中本仓 2 条 GHSA（SDK/zod），登记 T-059 处置。全量 313/313（quality-20260919-041919）。仓库外：E:\\Codex\\.codex\\config.toml 增 audit_osv 条目。
   - 改动: src/osv.ts, src/audit-tools.ts, src/version.ts, test/osv.test.ts, test/integration.test.ts, README.md
 - 2026-09-19 [?] 完成 T-011/T-057/F-025：零依赖行指纹重复代码检测（注释剥离/字符串占位/空白归一化，64-bit 指纹滑窗，成对连续对齐合并），find_duplicates 工具 + 契约 50→51。dogfood 检出本仓 audit.ts↔governance-audit.ts 真实 8 行重复。全量 307/307（quality-20260919-032302）。仓库外：E:\\Codex\\.codex\\config.toml 增 find_duplicates 条目。
   - 改动: src/duplicates.ts, src/audit-tools.ts, src/version.ts, test/duplicates.test.ts, README.md
-- 2026-09-19 [?] M2 backlog 动工：完成 T-010/T-056/F-024——SemanticGraph.fileCycles（Tarjan 复用）、audit_governance file-cycle 警告、dependency_graph 工具（摘要/环/枢纽/聚焦 BFS 邻域，foldLines 折叠）、契约 49→50 且全部测试断言改用 TOOL_CATALOG_SIZE 常量（upgrade-030 三处硬编码一并消灭）；README/Codex config 同步。验证：301/301（quality-20260919-030433）+ probe 实测 50 工具 + 巡检探针绿。仓库外：E:\\Codex\\.codex\\config.toml 增 dependency_graph 条目。
-  - 改动: src/semantic-graph.ts, src/governance-audit.ts, src/governance-tools.ts, src/version.ts, test/semantic-graph.test.ts, test/integration.test.ts, test/realrepo.test.ts, test/upgrade-030.test.ts 等 9 个
-- 2026-09-19 [?] 0.3.0 发布完成：用户配置 npm Trusted Publisher 后重发 publish=true，OIDC 发布成功（ Publish 步 success）；工作流核验步因 registry CDN 复制延迟误报 404，已改 180 秒轮询（223cec0 已推送）。registry 实证：latest=0.3.0、integrity 与验证过的 tarball 一致（Fzrco6lOPFvhx…）；冷安装 @0.3.0 并用其自带 probe 自探 49 工具全通过。记忆已更新。
-  - 改动: .github/workflows/publish-npm.yml
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

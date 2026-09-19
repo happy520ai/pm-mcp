@@ -81,6 +81,15 @@ test("audit_osv 未显式 confirm 不得联网", async (t) => {
   assert.ok(text(refused as never).length > 0);
 });
 
+test("search_code_public 未显式 confirm 不得联网", async (t) => {
+  const root = mkTmpProject();
+  const client = await connect(root);
+  t.after(() => client.close());
+  await client.callTool({ name: "init_project", arguments: { name: "门控二", agents_md: false } });
+  const refused = await client.callTool({ name: "search_code_public", arguments: { snippet: "export function veryDistinctiveCalculator(input: number) {" } });
+  assert.equal((refused as { isError?: boolean }).isError, true, "缺少 confirm=true 必须被拒绝");
+});
+
 test("全链路：工具清单、初始化、任务闭环、断点、审计、资源与提示词", async (t) => {
   const root = mkTmpProject();
   const client = await connect(root);

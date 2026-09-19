@@ -1,5 +1,5 @@
 {
-  "seq": 60,
+  "seq": 61,
   "tasks": [
     {
       "id": "T-001",
@@ -192,21 +192,28 @@
       "title": "受版权代码外部相似度检索",
       "detail": "",
       "type": "feature",
-      "status": "backlog",
+      "status": "done",
       "priority": null,
       "milestone": "M2",
       "steps": [],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/public-search.ts",
+        "src/audit-tools.ts",
+        "src/version.ts",
+        "test/public-search.test.ts",
+        "test/integration.test.ts",
+        "README.md"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "由 T-061/F-028 实现并完成：search_code_public 公开代码反查（GitHub Code Search 词项 AND 查询）。方案变更：grep.app 被 Vercel 反机器人拦截弃用。选型、外发边界（片段参数内可见 + confirm 门控）均已按推荐方案实现；更强的语义相似检索留待后续按需扩展。质量报告 quality-20260919-053505：323/323。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-053505-202-0000.json\n报告 SHA-256: bcb5397a1b01180ce1df7ebf665df9c5dfc840ceccbdb415b14cddbf15ec00df\n源码 SHA-256: 88e7248f0782577a8bcddb60b6ec6e9c1bee30f8d686122260730c2fbba3d085\n执行时间: 2026-09-19T05:35:05.202Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）",
       "tags": [],
       "author": "",
       "created": "2026-09-01T16:30:56.630Z",
-      "updated": "2026-09-01T16:30:56.630Z",
+      "updated": "2026-09-19T05:37:42.437Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-09-19T05:37:42.437Z"
     },
     {
       "id": "T-010",
@@ -2029,6 +2036,34 @@
       "updated": "2026-09-19T04:38:56.602Z",
       "started_at": null,
       "completed_at": "2026-09-19T04:37:22.786Z"
+    },
+    {
+      "id": "T-061",
+      "title": "T-009 受版权代码外部相似度检索（选型待拍板：grep.app / GitHub API）",
+      "detail": "选型调研（2026-09-19）：①grep.app——索引约 50万–100万公开仓库，2025-07 起官方支持 MCP（Vercel），无需 key，无正式配额文档（非官方接口，低频适用），仅字面/精确匹配；②GitHub Code Search API——精确/正则最权威，token 必需 + 10 req/min 独立限流；③Sourcegraph v7 外部 API 转型中，接口未稳，观望；④本地 copydetect 类只解仓内互抄，不满足外部反查本意。推荐 v1=方案①（grep.app 适配器，模式复用 audit_osv 的 confirm 门控）。⚠️ 关键差异：audit_osv 只发包名/版本，本工具会把**真实代码片段**发到外部服务——门控必须更强（逐片段展示外发内容 + confirm），token 类方案需用户自备并走环境变量（禁止入库）。待用户拍板：服务选型 + 是否接受代码片段外发边界。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P3",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [
+        "src/public-search.ts",
+        "src/audit-tools.ts",
+        "src/version.ts",
+        "test/public-search.test.ts",
+        "test/integration.test.ts",
+        "README.md"
+      ],
+      "acceptance": "选定服务后：search_code_public 工具（confirm 门控 + 片段外发脱敏边界）能对指定源码片段反查公开仓库命中，测试全 mock；契约 53 仪式；全量绿",
+      "result_note": "T-009 落地（方案变更记录：grep.app 已上 Vercel 反机器人检查，非浏览器客户端 429 挑战页不可用，按备选改走 GitHub Code Search API）。实现 src/public-search.ts：resolveSnippet（显式 snippet 优先/file+line 取行/file 缺省取最长行，项目根内防穿越，≥8 字符）；查询语义=词项 AND（GitHub REST 不支持带引号短语，实测带 = 的短语 0 命中后修正）；凭据链 GH_TOKEN/GITHUB_TOKEN→gh auth token（tokenResolver 可注入）；401/403/422 各给可行动错误。search_code_public 工具：confirm=z.literal(true) + 片段在参数中对用户全程可见（更强的外发门控）；报告强制声明「字面命中≠侵权结论、私有仓库不可见、10 次/分钟」。契约 52→53。真网验证：外发 \"TOOL_CATALOG_SIZE = 52\" 命中 8 处公开仓库（含其他项目同名常量，证明常见写法碰撞是真实场景）。用户侧承诺的外发边界=片段在审批界面可见+每次显式 confirm，已按此实现。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-053505-202-0000.json\n报告 SHA-256: bcb5397a1b01180ce1df7ebf665df9c5dfc840ceccbdb415b14cddbf15ec00df\n源码 SHA-256: 88e7248f0782577a8bcddb60b6ec6e9c1bee30f8d686122260730c2fbba3d085\n执行时间: 2026-09-19T05:35:05.202Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: typecheck 干净；全量 323/323（.pm/quality-runs/quality-20260919-053505-202-0000.json，tests_observed）；专项 4 测试（snippet 解析/词项查询与映射/引号剔除/凭据与错误路径，全 mock fetch）+ 集成负路径（无 confirm isError）+ 真网两连（0 命中行与 8 命中行）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T05:12:06.595Z",
+      "updated": "2026-09-19T05:37:05.780Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T05:37:05.780Z"
     }
   ]
 }

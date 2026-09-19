@@ -2,6 +2,22 @@
 
 ## 2026-09-19 — 未知
 
+完成 T-009/T-061/F-028：search_code_public 公开代码反查（GitHub Code Search 词项 AND；grep.app 因 Vercel 反机器人弃用并记录；confirm=z.literal(true)+片段参数内可见的双重门控；凭据链 env→gh auth token；401/403/422 可行动错误）。契约 52→53。真网两连验证（独特行 0 命中/公开行 8 命中，跨项目同名常量碰撞实证）。全量 323/323（quality-20260919-053505）。仓库外：E:\\Codex\\.codex\\config.toml 增 search_code_public 条目。至此 M2 backlog 全部清零。
+
+改动文件（6）: src/public-search.ts, src/audit-tools.ts, src/version.ts, test/public-search.test.ts, test/integration.test.ts, README.md
+
+下一步: 0.5.0 发布可随时走已验证流程（打包→资产→pin→dispatch）；search_code_public 如需语义级相似度可再议 Sourcegraph v7 或本地 embedding 方案
+
+## 2026-09-19 — 未知
+
+T-059 收口（结论反转：两条 GHSA 均为误报，实装版本已过修复线；根因=范围串发给 OSV 被解析到边界下；修复=npm 按 lockfile 实装版本查询，复扫 11/11 归零，fe83493）。0.4.0 发布全链路成功：21fb107 版本+pin→Release v0.4.0 资产 sha 一致（0bca3ece）→validate+publish 双 dispatch 全绿→npm latest=0.4.0→冷安装自探 52 工具齐。T-009 立项并完成选型调研（推荐 grep.app confirm 门控起步，代码片段外发边界需用户确认）。
+
+改动文件（5）: src/osv.ts, test/osv.test.ts, .github/workflows/publish-npm.yml, package.json, package-lock.json
+
+下一步: T-009 待用户拍板服务选型（推荐 grep.app 适配器起步）；各宿主可选升级到 npx @luckychen1993/pm-mcp@0.4.0
+
+## 2026-09-19 — 未知
+
 完成 T-012/T-060/F-027：pm-mcp ui 本地只读 Web 仪表盘（零依赖 node:http，127.0.0.1 only，SSR + /api/state + /healthz，全插值 HTML 转义 + CSP 禁脚本，未纳管 fail-closed，SIGINT 优雅关闭）；CLI 冒烟通过；317/317（quality-20260919-043548）。不新增 MCP 工具（目录保持 52）。至此 M2 backlog 可实现项全部完成，仅剩 T-009 待用户选型。
 
 改动文件（4）: src/ui.ts, src/cli.ts, test/ui.test.ts, README.md

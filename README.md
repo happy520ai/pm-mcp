@@ -33,7 +33,7 @@ node dist/cli.js doctor --root .
 
 ## 已有管理流程
 
-用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。52 个工具全部保留，由 AI 组合调用，无需用户记工具名。
+用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。53 个工具全部保留，由 AI 组合调用，无需用户记工具名。
 
 - `update_task` 可同时更新进度、保存 `checkpoint:{note,next_step}` 并记录会话；完成时给 `record_session:true`，返回会话编号后不再另调 `log_session`。省略该参数仍兼容旧的手动记会话流程。同一幂等键重放不会重复落账；跨多个文件的异常仍遵守原有“不确定状态需核对”规则，不宣称事务原子性。
 - `feature/fix` 转 `done` 必须关联实际文件，并先通过 `run_quality_matrix` 执行相应测试。系统自动选择最新报告，核对执行成功、测试前后与当前源码摘要、测试单元目录和项目证据策略。`verification_run` 可明确指向最新报告，文字 `verification` 只作补充说明。报告存于 `.pm/quality-runs/`，任务保存报告与源码 SHA-256。目录范围匹配不等于代码覆盖率证明；第一方报告也不构成防篡改认证。
@@ -246,7 +246,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 也可以直接用内置 prompts：`start-session` / `end-session` / `onboard` / `architecture-review` / `acceptance-review`；其中 `onboard` 会引导客户端读取状态并生成新人/AI 入职简报。
 
-## 工具清单（52 个）
+## 工具清单（53 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
@@ -259,7 +259,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 | 调试 | `log_debug` | 调试知识账：症状/根因/修法/验证 |
 | 求证 | `search_code` / `search_knowledge` / `annotate_file` | 代码检索（file:line）、七类知识源检索（含模块/接口/仓库治理）、文件用途索引 |
 | 审计 | `snapshot_codebase` / `audit_structure` | 结构快照；完整性/增长/漂移/债务/churn/复杂度/索引/足迹/测试/Git 十节对账 |
-| 安全 | `audit_security` / `list_findings` / `resolve_finding` | 密钥+危险模式+新增/通配依赖提示；扫描命中原文不落盘，处置 note 拒绝内置密钥形态 |
+| 安全 | `audit_security` / `list_findings` / `resolve_finding` / `search_code_public` | 密钥+危险模式+新增/通配依赖提示；扫描命中原文不落盘，处置 note 拒绝内置密钥形态；公开代码反查（联网默认关，confirm 门控，字面命中≠侵权结论） |
 | 法律 | `audit_license` | 依赖许可证清单、copyleft 冲突、GPL 头检测、LICENSE 检查、来源登记 |
 | 可观测 | `get_usage_log` / `get_runtime_log` | 使用日志（工具调用统计、错误率、耗时、输出与折叠省下的 token 估算——验证省不省 token）与运行日志（server/watcher/工具报错）；只记计量不记参数内容 |
 | 注册表 | `list_projects` | 本机所有被管理项目 |

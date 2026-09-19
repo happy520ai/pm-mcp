@@ -1,5 +1,5 @@
 {
-  "seq": 56,
+  "seq": 58,
   "sessions": [
     {
       "id": "S-0001",
@@ -1319,6 +1319,56 @@
         "T-009 版权相似度：唯一剩余 backlog 项，需用户选定外部服务后再动工",
         "0.4.0 发布：本轮 4 个提交（3 新工具 + ui 子命令）待打包发布",
         "T-059：升级 SDK/zod 消除 OSV 命中"
+      ]
+    },
+    {
+      "id": "S-0057",
+      "date": "2026-09-19T05:12:06.764Z",
+      "author": "",
+      "summary": "T-059 收口（结论反转：两条 GHSA 均为误报，实装版本已过修复线；根因=范围串发给 OSV 被解析到边界下；修复=npm 按 lockfile 实装版本查询，复扫 11/11 归零，fe83493）。0.4.0 发布全链路成功：21fb107 版本+pin→Release v0.4.0 资产 sha 一致（0bca3ece）→validate+publish 双 dispatch 全绿→npm latest=0.4.0→冷安装自探 52 工具齐。T-009 立项并完成选型调研（推荐 grep.app confirm 门控起步，代码片段外发边界需用户确认）。",
+      "files": [
+        "src/osv.ts",
+        "test/osv.test.ts",
+        ".github/workflows/publish-npm.yml",
+        "package.json",
+        "package-lock.json"
+      ],
+      "file_hashes": {
+        "src/osv.ts": "d080d0614c6ae7423d0c23c127d027f2d7fd6912b706a588b92e37f58b2ac5d2",
+        "test/osv.test.ts": "b37f6c3b3f4712c7c291f6cf640d2857b6cc76434c5f8d862738731542eeaccc",
+        ".github/workflows/publish-npm.yml": "52ab274061a5fd1b127a8333e4457f859e308b52056a6b314bb86e4e64f99f33",
+        "package.json": "59de51781234a08061cfdef9342ffa9210552e12e8c0571b89e738bd489bf8af",
+        "package-lock.json": "2c7d35bc88851d3b7631c1998dec3441ee2f92dc41972cf86aa73ac2cb6d45c1"
+      },
+      "next_steps": [
+        "T-009 待用户拍板服务选型（推荐 grep.app 适配器起步）",
+        "各宿主可选升级到 npx @luckychen1993/pm-mcp@0.4.0"
+      ]
+    },
+    {
+      "id": "S-0058",
+      "date": "2026-09-19T05:37:26.938Z",
+      "author": "",
+      "summary": "完成 T-009/T-061/F-028：search_code_public 公开代码反查（GitHub Code Search 词项 AND；grep.app 因 Vercel 反机器人弃用并记录；confirm=z.literal(true)+片段参数内可见的双重门控；凭据链 env→gh auth token；401/403/422 可行动错误）。契约 52→53。真网两连验证（独特行 0 命中/公开行 8 命中，跨项目同名常量碰撞实证）。全量 323/323（quality-20260919-053505）。仓库外：E:\\\\Codex\\\\.codex\\\\config.toml 增 search_code_public 条目。至此 M2 backlog 全部清零。",
+      "files": [
+        "src/public-search.ts",
+        "src/audit-tools.ts",
+        "src/version.ts",
+        "test/public-search.test.ts",
+        "test/integration.test.ts",
+        "README.md"
+      ],
+      "file_hashes": {
+        "src/public-search.ts": "350e6b683708334b15e5a8a92c17c8524daa4eeba3dd2a247530116a1da898dd",
+        "src/audit-tools.ts": "04d2d3dc6035ed4e09224ccd44cd997b586569eaa3f183868391c71fb3c619e2",
+        "src/version.ts": "b295b09068dd30e244c177fcfe518896264ca3fbdb1019b39ba791ed6dd44a24",
+        "test/public-search.test.ts": "f9c6fa362a9de7a391fc089750b23f6399f701672fa21cccfe967d7dc0aea017",
+        "test/integration.test.ts": "9e8a922fea24f580468ea78e09c260e581c2d13f27937fc4340779f3781bd94b",
+        "README.md": "14bf944279c4d48fa8a8edde78a1051f286e186e0f1fd72981f8bb21f2eabb30"
+      },
+      "next_steps": [
+        "0.5.0 发布可随时走已验证流程（打包→资产→pin→dispatch）",
+        "search_code_public 如需语义级相似度可再议 Sourcegraph v7 或本地 embedding 方案"
       ]
     }
   ]
