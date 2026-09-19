@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-19T05:37:42.475Z
+> 生成时间: 2026-09-19T05:52:20.295Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -30,7 +30,7 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(29), package.json(17), src/index.ts(14) |
+| churn（变更率） | ⚠️ 热点 README.md(29), package.json(18), src/index.ts(14) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 19 条记录 |
 | 测试背书 | 28/28 个功能带测试 |
@@ -93,6 +93,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-19 [?] 0.5.0 发布完成：a72240d 版本+pin（sha 5428a7ac）→Release v0.5.0 资产（重打包确定性一致）→validate+publish 双 dispatch 全绿（核验轮询正常）→npm latest=0.5.0→冷安装自探 53 工具含 search_code_public。内容：search_code_public 版权溯源 + OSV lockfile 误报修复。台账 S-0059。
+  - 改动: .github/workflows/publish-npm.yml, package.json, package-lock.json
 - 2026-09-19 [?] 完成 T-009/T-061/F-028：search_code_public 公开代码反查（GitHub Code Search 词项 AND；grep.app 因 Vercel 反机器人弃用并记录；confirm=z.literal(true)+片段参数内可见的双重门控；凭据链 env→gh auth token；401/403/422 可行动错误）。契约 52→53。真网两连验证（独特行 0 命中/公开行 8 命中，跨项目同名常量碰撞实证）。全量 323/323（quality-20260919-053505）。仓库外：E:\\Codex\\.codex\\config.toml 增 search_code_public 条目。至此 M2 backlog 全部清零。
   - 改动: src/public-search.ts, src/audit-tools.ts, src/version.ts, test/public-search.test.ts, test/integration.test.ts, README.md
 - 2026-09-19 [?] T-059 收口（结论反转：两条 GHSA 均为误报，实装版本已过修复线；根因=范围串发给 OSV 被解析到边界下；修复=npm 按 lockfile 实装版本查询，复扫 11/11 归零，fe83493）。0.4.0 发布全链路成功：21fb107 版本+pin→Release v0.4.0 资产 sha 一致（0bca3ece）→validate+publish 双 dispatch 全绿→npm latest=0.4.0→冷安装自探 52 工具齐。T-009 立项并完成选型调研（推荐 grep.app confirm 门控起步，代码片段外发边界需用户确认）。
@@ -101,8 +103,6 @@ flowchart LR
   - 改动: src/ui.ts, src/cli.ts, test/ui.test.ts, README.md
 - 2026-09-19 [?] 完成 T-008/T-058/F-026：audit_osv 联网漏洞查询（confirm=z.literal(true) 显式门控，只发包名/版本/生态，querybatch 100/批，fetcher 注入全 mock 测试），契约 51→52。真网首跑命中本仓 2 条 GHSA（SDK/zod），登记 T-059 处置。全量 313/313（quality-20260919-041919）。仓库外：E:\\Codex\\.codex\\config.toml 增 audit_osv 条目。
   - 改动: src/osv.ts, src/audit-tools.ts, src/version.ts, test/osv.test.ts, test/integration.test.ts, README.md
-- 2026-09-19 [?] 完成 T-011/T-057/F-025：零依赖行指纹重复代码检测（注释剥离/字符串占位/空白归一化，64-bit 指纹滑窗，成对连续对齐合并），find_duplicates 工具 + 契约 50→51。dogfood 检出本仓 audit.ts↔governance-audit.ts 真实 8 行重复。全量 307/307（quality-20260919-032302）。仓库外：E:\\Codex\\.codex\\config.toml 增 find_duplicates 条目。
-  - 改动: src/duplicates.ts, src/audit-tools.ts, src/version.ts, test/duplicates.test.ts, README.md
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

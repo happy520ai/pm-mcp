@@ -2,6 +2,14 @@
 
 ## 2026-09-19 — 未知
 
+0.5.0 发布完成：a72240d 版本+pin（sha 5428a7ac）→Release v0.5.0 资产（重打包确定性一致）→validate+publish 双 dispatch 全绿（核验轮询正常）→npm latest=0.5.0→冷安装自探 53 工具含 search_code_public。内容：search_code_public 版权溯源 + OSV lockfile 误报修复。台账 S-0059。
+
+改动文件（3）: .github/workflows/publish-npm.yml, package.json, package-lock.json
+
+下一步: 各宿主可选升级 npx @luckychen1993/pm-mcp@0.5.0 或保持钉根 dist；M2 完成后可规划 M3（或收尾 v2 增强）
+
+## 2026-09-19 — 未知
+
 完成 T-009/T-061/F-028：search_code_public 公开代码反查（GitHub Code Search 词项 AND；grep.app 因 Vercel 反机器人弃用并记录；confirm=z.literal(true)+片段参数内可见的双重门控；凭据链 env→gh auth token；401/403/422 可行动错误）。契约 52→53。真网两连验证（独特行 0 命中/公开行 8 命中，跨项目同名常量碰撞实证）。全量 323/323（quality-20260919-053505）。仓库外：E:\\Codex\\.codex\\config.toml 增 search_code_public 条目。至此 M2 backlog 全部清零。
 
 改动文件（6）: src/public-search.ts, src/audit-tools.ts, src/version.ts, test/public-search.test.ts, test/integration.test.ts, README.md

@@ -14,7 +14,7 @@ import {
   type ModuleSpec,
   type RepositorySpec,
 } from "./governance-model.ts";
-import { auditGovernance, dependencyGraphReport } from "./governance-audit.ts";
+import { auditGovernance, dependencyGraphReport, listGovernanceIssues } from "./governance-audit.ts";
 import { impactAnalysis } from "./semantic-graph.ts";
 import { assessQualityCoverage, createQualityPlan, discoverProjectUnits, runQualityPlan, type QualityCommand } from "./language-adapters.ts";
 import { buildPortfolioFromRegistry, buildPortfolioReport, loadPortfolioProject } from "./portfolio.ts";
@@ -167,6 +167,16 @@ export function registerGovernanceTools(server: McpServer, root: string): void {
   toolR(server, root, "audit_governance", "审计跨文件/模块/语言语义覆盖、owner、公开接口、依赖边界、循环、unresolved 与质量矩阵覆盖。", {}, () => {
     requireInitialized(root);
     return auditGovernance(root, budgetLines(root)).report;
+  });
+
+  toolR<{ offset?: number; limit?: number; severity?: "all" | "error" | "warning"; code?: string }>(server, root, "list_governance_issues", "分页读取完整治理审计问题，不受 audit_governance 文本预算折叠影响；只读且按 offset/limit 返回。", {
+    offset: z.number().int().min(0).optional().describe("起始偏移，默认 0"),
+    limit: z.number().int().min(1).max(100).optional().describe("每页数量，默认 50"),
+    severity: z.enum(["all", "error", "warning"]).optional().describe("按级别过滤"),
+    code: z.string().trim().max(100).optional().describe("按问题 code 过滤"),
+  }, (args) => {
+    requireInitialized(root);
+    return JSON.stringify(listGovernanceIssues(root, args ?? {}), null, 2);
   });
 
   toolR<{ focus?: string; direction?: "deps" | "dependents" | "both"; depth?: number }>(server, root, "dependency_graph", "查询跨文件/模块依赖图：全局摘要（关系/环/入出边枢纽）、模块与文件级循环、聚焦文件的依赖邻域（BFS 方向与深度可调、未解析引用）。", {

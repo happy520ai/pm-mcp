@@ -127,6 +127,27 @@ function render(
   return foldLines(lines, { maxLines, hint: "用 impact_analysis 或治理过滤参数缩小范围" });
 }
 
+export interface GovernanceIssuePage {
+  total: number;
+  offset: number;
+  limit: number;
+  items: GovernanceIssue[];
+  nextOffset: number | null;
+}
+
+export function listGovernanceIssues(root: string, options: { offset?: number; limit?: number; severity?: "all" | "error" | "warning"; code?: string } = {}): GovernanceIssuePage {
+  const audit = auditGovernance(root, Number.MAX_SAFE_INTEGER);
+  const offset = Math.max(0, Math.trunc(options.offset ?? 0));
+  const limit = Math.min(100, Math.max(1, Math.trunc(options.limit ?? 50)));
+  const filtered = audit.issues.filter((issue) =>
+    (options.severity === undefined || options.severity === "all" || issue.severity === options.severity) &&
+    (!options.code || options.code === "all" || issue.code === options.code),
+  );
+  const items = filtered.slice(offset, offset + limit);
+  const nextOffset = offset + items.length < filtered.length ? offset + items.length : null;
+  return { total: filtered.length, offset, limit, items, nextOffset };
+}
+
 export function auditGovernance(root: string, maxLines = 150): GovernanceAudit {
   const absolute = path.resolve(root);
   const governance = loadGovernance(absolute);

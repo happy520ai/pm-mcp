@@ -1,5 +1,5 @@
 {
-  "seq": 58,
+  "seq": 59,
   "sessions": [
     {
       "id": "S-0001",
@@ -1369,6 +1369,26 @@
       "next_steps": [
         "0.5.0 发布可随时走已验证流程（打包→资产→pin→dispatch）",
         "search_code_public 如需语义级相似度可再议 Sourcegraph v7 或本地 embedding 方案"
+      ]
+    },
+    {
+      "id": "S-0059",
+      "date": "2026-09-19T05:52:20.262Z",
+      "author": "",
+      "summary": "0.5.0 发布完成：a72240d 版本+pin（sha 5428a7ac）→Release v0.5.0 资产（重打包确定性一致）→validate+publish 双 dispatch 全绿（核验轮询正常）→npm latest=0.5.0→冷安装自探 53 工具含 search_code_public。内容：search_code_public 版权溯源 + OSV lockfile 误报修复。台账 S-0059。",
+      "files": [
+        ".github/workflows/publish-npm.yml",
+        "package.json",
+        "package-lock.json"
+      ],
+      "file_hashes": {
+        ".github/workflows/publish-npm.yml": "64d441cf353ef04a01d4078ee8df5c6ab4e0a4facc7dff01d66381cda448b250",
+        "package.json": "384924e9040cac324d2889df4018aa9235d5d006290130139b1014e0fd0541cd",
+        "package-lock.json": "be81776ca2c8f51e0540d0543419534f8028bda97c778a8a86c92f80b28651ca"
+      },
+      "next_steps": [
+        "各宿主可选升级 npx @luckychen1993/pm-mcp@0.5.0 或保持钉根 dist",
+        "M2 完成后可规划 M3（或收尾 v2 增强）"
       ]
     }
   ]

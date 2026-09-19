@@ -90,6 +90,21 @@ test("search_code_public 未显式 confirm 不得联网", async (t) => {
   assert.equal((refused as { isError?: boolean }).isError, true, "缺少 confirm=true 必须被拒绝");
 });
 
+test("list_governance_issues 分页返回完整问题且不受 audit 文本预算影响", async (t) => {
+  const root = mkTmpProject();
+  const client = await connect(root);
+  t.after(() => client.close());
+  await client.callTool({ name: "init_project", arguments: { name: "分页治理", agents_md: false } });
+  const page = await client.callTool({ name: "list_governance_issues", arguments: { offset: 0, limit: 2 } });
+  const body = JSON.parse(text(page as never)) as { total: number; items: unknown[]; nextOffset: number | null };
+  assert.ok(body.total >= body.items.length);
+  assert.ok(body.items.length <= 2);
+  if (body.total > 2) assert.equal(body.nextOffset, 2);
+  const filtered = await client.callTool({ name: "list_governance_issues", arguments: { severity: "error", limit: 100 } });
+  const filteredBody = JSON.parse(text(filtered as never)) as { items: Array<{ severity: string }> };
+  assert.ok(filteredBody.items.every((issue) => issue.severity === "error"));
+});
+
 test("全链路：工具清单、初始化、任务闭环、断点、审计、资源与提示词", async (t) => {
   const root = mkTmpProject();
   const client = await connect(root);
