@@ -1,5 +1,5 @@
 {
-  "seq": 57,
+  "seq": 59,
   "tasks": [
     {
       "id": "T-001",
@@ -1913,6 +1913,72 @@
       "updated": "2026-09-19T03:25:17.459Z",
       "started_at": null,
       "completed_at": "2026-09-19T03:24:48.015Z"
+    },
+    {
+      "id": "T-058",
+      "title": "T-008 OSV 联网漏洞查询（显式确认门控）",
+      "detail": "",
+      "type": "feature",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "src/osv.ts：依赖收集 + querybatch + 解析（可注入 fetch）",
+          "done": true
+        },
+        {
+          "text": "audit_osv 工具（confirm 门控）+ 契约 51→52",
+          "done": true
+        },
+        {
+          "text": "测试：生态映射/分批/解析/拒绝未确认（全 mock）",
+          "done": true
+        },
+        {
+          "text": "全量绿 + 提交推送",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/osv.ts",
+        "src/audit-tools.ts",
+        "src/version.ts",
+        "test/osv.test.ts",
+        "test/integration.test.ts",
+        "README.md"
+      ],
+      "acceptance": "src/osv.ts：多语言依赖收集（复用 discoverProjectUnits）→ OSV querybatch（生态映射 npm/PyPI/Go/crates/Maven/NuGet，100/批，30s 超时）→ 漏洞清单渲染；audit_osv 工具必须显式 confirm:true 才联网，测试全 mock fetch；契约 52 仪式；全量绿",
+      "result_note": "T-008 落地：src/osv.ts——collectOsvQueries（复用 discoverProjectUnits 八种 manifest 解析器，parser→OSV 生态映射 npm/PyPI/Go/crates.io/Maven/NuGet，同名同版本跨 manifest 去重合并来源）；auditOsv querybatch 分批 100、AbortSignal 超时、fetcher 可注入（测试全程离线）；渲染含命中清单+边界声明（范围版本精确匹配可能漏报、dev 依赖计入、结果不写台账）。audit_osv 工具（toolR 异步）必须显式 confirm: true（z.literal）才联网——集成测试验证未确认即拒绝。契约 51→52。真网验证：本仓 11 依赖命中 2 包（SDK/zod 的 GHSA），已登记 T-059 处置。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-041919-675-0000.json\n报告 SHA-256: 06fdd83b2186a5be109c38db1ecf5b616241f7caee4a0f69d0ca0229f4016533\n源码 SHA-256: d1b647c99ea00fd2a33a65d1528c201d4781329ed6dce523631990cabc0535ed\n执行时间: 2026-09-19T04:19:19.675Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: typecheck 干净；全量 313/313（.pm/quality-runs/quality-20260919-041919-675-0000.json，tests_observed）；专项 5 测试（映射/收集/mock 命中/分批 150→2 批/HTTP fail-closed）+ 集成负路径（无 confirm isError）+ 真网单次验证（11 依赖/1 批/875ms）",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T04:10:12.651Z",
+      "updated": "2026-09-19T04:21:07.260Z",
+      "started_at": null,
+      "completed_at": "2026-09-19T04:20:54.200Z"
+    },
+    {
+      "id": "T-059",
+      "title": "处置 OSV 命中：升级 @modelcontextprotocol/sdk 与 zod",
+      "detail": "2026-09-19 audit_osv 真网首跑：11 个依赖命中 2 包 2 条——@modelcontextprotocol/sdk@^1.30.0 → GHSA-w48q-cv73-mx4w；zod@^3.25.76 → GHSA-m95q-7qp3-xv42（summary 为空，需查公告确认影响面与修复版本）。处置：升级两依赖到公告修复版，npm test 全绿后提交。",
+      "type": "chore",
+      "status": "backlog",
+      "priority": "P2",
+      "milestone": "M2",
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "npm audit/更新依赖后 audit_osv（confirm=true）对本仓不再命中 GHSA-w48q-cv73-mx4w 与 GHSA-m95q-7qp3-xv42；全量测试绿",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T04:18:13.410Z",
+      "updated": "2026-09-19T04:18:13.410Z",
+      "started_at": null,
+      "completed_at": null
     }
   ]
 }

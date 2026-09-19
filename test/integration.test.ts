@@ -71,6 +71,16 @@ test("dependency_graph：摘要、聚焦邻域与坏 focus 容错", async (t) =>
   assert.ok(text(bad as never).includes("不在语义图中"));
 });
 
+test("audit_osv 未显式 confirm 不得联网", async (t) => {
+  const root = mkTmpProject();
+  const client = await connect(root);
+  t.after(() => client.close());
+  await client.callTool({ name: "init_project", arguments: { name: "门控", agents_md: false } });
+  const refused = await client.callTool({ name: "audit_osv", arguments: {} });
+  assert.equal((refused as { isError?: boolean }).isError, true, "缺少 confirm=true 必须被拒绝");
+  assert.ok(text(refused as never).length > 0);
+});
+
 test("全链路：工具清单、初始化、任务闭环、断点、审计、资源与提示词", async (t) => {
   const root = mkTmpProject();
   const client = await connect(root);

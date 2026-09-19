@@ -1,5 +1,5 @@
 {
-  "seq": 25,
+  "seq": 26,
   "features": [
     {
       "id": "F-001",
@@ -448,6 +448,23 @@
       "status": "implemented",
       "created": "2026-09-19T03:24:48.174Z",
       "updated": "2026-09-19T03:24:48.174Z"
+    },
+    {
+      "id": "F-026",
+      "name": "audit_osv 联网漏洞查询（显式确认门控）",
+      "description": "OSV.dev 已知漏洞查询（联网、默认关）：复用多语言 manifest 解析收集依赖，仅发送包名/版本/生态到 api.osv.dev querybatch（100/批、30s 超时）；必须显式 confirm=true 才发起请求；输出命中清单与边界声明，不写台账。",
+      "module": "质量与组合",
+      "entry_files": [
+        "src/osv.ts",
+        "src/audit-tools.ts"
+      ],
+      "test_files": [
+        "test/osv.test.ts",
+        "test/integration.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T04:20:54.347Z",
+      "updated": "2026-09-19T04:20:54.347Z"
     }
   ]
 }

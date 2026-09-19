@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-19T03:25:17.626Z
+> 生成时间: 2026-09-19T04:21:07.423Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -18,8 +18,8 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [█████████░] 85% M2 v2 增强（22/26）
-- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 19% < 配额 20%
+▶ [████████░░] 82% M2 v2 增强（23/28）
+- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 18% < 配额 20%
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
@@ -30,12 +30,12 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(26), package.json(16), src/index.ts(14) |
+| churn（变更率） | ⚠️ 热点 README.md(27), package.json(16), src/index.ts(14) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 19 条记录 |
-| 测试背书 | 25/25 个功能带测试 |
+| 测试背书 | 26/26 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-09-19 03:23（命令 2/2；证据 tests_observed） |
+| 质量矩阵 | ✅ 2026-09-19 04:19（命令 2/2；证据 tests_observed） |
 | 标准化验收 | ✅ 2026-09-17 15:22（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
@@ -44,7 +44,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 52 · backlog 5
+- 总览: done 53 · backlog 6
 
 ## 🧩 功能清单
 ### src
@@ -80,6 +80,7 @@ flowchart LR
 - ✅ F-024 dependency_graph 依赖图查询与文件级循环检测 — 查询跨文件/模块依赖图：全局摘要（关系/环/入出边枢纽 Top5）、模块与文件级循环列表、聚焦文件的依赖邻域（BFS，direction deps|depend
 ### 质量与组合
 - ✅ F-025 find_duplicates 重复代码检测（行指纹聚类） — 零依赖重复代码检测：行指纹（注释剥离/字符串占位/空白归一化）滑动窗口聚类，跨文件重复块按长度降序；min_lines 4-20（默认 6）、limit 可调；
+- ✅ F-026 audit_osv 联网漏洞查询（显式确认门控） — OSV.dev 已知漏洞查询（联网、默认关）：复用多语言 manifest 解析收集依赖，仅发送包名/版本/生态到 api.osv.dev querybatch
 
 ## 🏛️ 架构决策（最近）
 - [ADR-004-语义治理采用AST保证分层与运行时证据扩展](.pm/decisions/ADR-004-语义治理采用AST保证分层与运行时证据扩展.md)
@@ -88,6 +89,8 @@ flowchart LR
 - [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
+- 2026-09-19 [?] 完成 T-008/T-058/F-026：audit_osv 联网漏洞查询（confirm=z.literal(true) 显式门控，只发包名/版本/生态，querybatch 100/批，fetcher 注入全 mock 测试），契约 51→52。真网首跑命中本仓 2 条 GHSA（SDK/zod），登记 T-059 处置。全量 313/313（quality-20260919-041919）。仓库外：E:\\Codex\\.codex\\config.toml 增 audit_osv 条目。
+  - 改动: src/osv.ts, src/audit-tools.ts, src/version.ts, test/osv.test.ts, test/integration.test.ts, README.md
 - 2026-09-19 [?] 完成 T-011/T-057/F-025：零依赖行指纹重复代码检测（注释剥离/字符串占位/空白归一化，64-bit 指纹滑窗，成对连续对齐合并），find_duplicates 工具 + 契约 50→51。dogfood 检出本仓 audit.ts↔governance-audit.ts 真实 8 行重复。全量 307/307（quality-20260919-032302）。仓库外：E:\\Codex\\.codex\\config.toml 增 find_duplicates 条目。
   - 改动: src/duplicates.ts, src/audit-tools.ts, src/version.ts, test/duplicates.test.ts, README.md
 - 2026-09-19 [?] M2 backlog 动工：完成 T-010/T-056/F-024——SemanticGraph.fileCycles（Tarjan 复用）、audit_governance file-cycle 警告、dependency_graph 工具（摘要/环/枢纽/聚焦 BFS 邻域，foldLines 折叠）、契约 49→50 且全部测试断言改用 TOOL_CATALOG_SIZE 常量（upgrade-030 三处硬编码一并消灭）；README/Codex config 同步。验证：301/301（quality-20260919-030433）+ probe 实测 50 工具 + 巡检探针绿。仓库外：E:\\Codex\\.codex\\config.toml 增 dependency_graph 条目。
@@ -96,8 +99,6 @@ flowchart LR
   - 改动: .github/workflows/publish-npm.yml
 - 2026-09-19 [?] 三件事执行：①推送 3 个提交（e910ca0/42c0e5a/e307ab6）到 origin main，CI 双节点全绿。②npm 0.3.0 发布：重打包并替换 Release v0.3.0 资产（d01d8603…含 probe），工作流重 pin 哈希，publish=false 验证跑全绿（OIDC 声明/SHA/干跑全对），publish=true 真发失败 ENEEDAUTH——官方文档确认这是 npm 网站侧 Trusted Publisher 未配置/不匹配的标准报错，待用户在 npmjs.com 配置（仓库外变更：GitHub Release 资产）。③工具目录探针接入 health-check（TOOL_CATALOG_SIZE 单一事实来源 + probe env 沙箱支持），真跑巡检绿，298/298（quality-20260919-022756），F-023 已登记。
   - 改动: src/version.ts, src/doctor.ts, src/probe.ts, scripts/health-check.mts, test/probe.test.ts, test/fixtures/raw-mcp-server.mjs, .github/workflows/publish-npm.yml
-- 2026-09-19 [?] 「全部解决修复」收尾：①用 codex app-server mcpServerStatus/list 实证三宿主均全量暴露 49 工具，更正上轮「23 个不可见」误判（tools.X 子段是 output_token_limit 覆盖非过滤器）；为 Codex config.toml 补齐 23 个缺失工具的 output_token_limit 条目（备份 config.toml.backup-before-tools-49-20260919-095205，tomllib 校验过，名字与服务器 49/49 对齐）。②WorkBuddy/ZCode 配置核对无过滤。③把语义证据特性与 probe 特性分两个提交落账。仓库外变更：E:\\Codex\\.codex\\config.toml。
-  - 改动: src/doctor.ts, test/upgrade-030.test.ts, src/probe.ts, src/cli.ts, test/probe.test.ts, test/fixtures/raw-mcp-server.mjs, README.md
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

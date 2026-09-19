@@ -10,6 +10,7 @@ import { auditSecurity, listFindings, prepareSecurityAudit, resolveFinding, type
 import { budgetLines, toolR, toolW } from "./tool-base.ts";
 import { walkRefresh } from "./index-store.ts";
 import { renderDuplicates } from "./duplicates.ts";
+import { renderOsv, auditOsv } from "./osv.ts";
 
 export function registerAuditTools(server: McpServer, root: string): void {
   toolW(server, root, "snapshot_codebase", "给代码结构拍快照（文件数/行数/目录分布/测试数/skip 标记/依赖清单）。之后 audit_structure 会与上次快照 diff。建议每个会话或每个里程碑结束时拍一次。", {}, () => {
@@ -30,6 +31,15 @@ export function registerAuditTools(server: McpServer, root: string): void {
   }, (args) => {
     requireInitialized(root);
     return renderDuplicates(root, args ?? {}, budgetLines(root));
+  });
+
+  toolR<{ confirm: true; timeout_ms?: number }>(server, root, "audit_osv", "OSV.dev 已知漏洞查询（联网！默认关）：把 manifest 声明的依赖（仅包名/版本/生态）批量发给 api.osv.dev 比对；必须显式 confirm=true 才发起网络请求。", {
+    confirm: z.literal(true).describe("显式确认联网：本工具会把依赖名与版本发送到 api.osv.dev"),
+    timeout_ms: z.number().int().min(5000).max(120000).optional().describe("每批请求超时毫秒数，默认 30000"),
+  }, async (args) => {
+    requireInitialized(root);
+    const scan = await auditOsv(root, { timeoutMs: args.timeout_ms });
+    return renderOsv(scan, budgetLines(root));
   });
 
   toolW<Record<string, never>, PreparedSecurityAudit>(server, root, "audit_security", "安全体检（只扫描本地、不联网，结果写入安全台账）：密钥泄露 / 危险模式（eval、SQL 拼接、禁用证书校验等）/ 依赖风险。修复后重扫自动关闭；接受风险必须留理由。", {}, (_args, prepared) => {

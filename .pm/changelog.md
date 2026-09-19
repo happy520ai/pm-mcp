@@ -2,6 +2,14 @@
 
 ## 2026-09-19 — 未知
 
+完成 T-008/T-058/F-026：audit_osv 联网漏洞查询（confirm=z.literal(true) 显式门控，只发包名/版本/生态，querybatch 100/批，fetcher 注入全 mock 测试），契约 51→52。真网首跑命中本仓 2 条 GHSA（SDK/zod），登记 T-059 处置。全量 313/313（quality-20260919-041919）。仓库外：E:\\Codex\\.codex\\config.toml 增 audit_osv 条目。
+
+改动文件（6）: src/osv.ts, src/audit-tools.ts, src/version.ts, test/osv.test.ts, test/integration.test.ts, README.md
+
+下一步: T-059：升级 @modelcontextprotocol/sdk 与 zod 消除 OSV 命中；T-012 Web UI 仪表盘（backlog 最后一个可实现项）
+
+## 2026-09-19 — 未知
+
 完成 T-011/T-057/F-025：零依赖行指纹重复代码检测（注释剥离/字符串占位/空白归一化，64-bit 指纹滑窗，成对连续对齐合并），find_duplicates 工具 + 契约 50→51。dogfood 检出本仓 audit.ts↔governance-audit.ts 真实 8 行重复。全量 307/307（quality-20260919-032302）。仓库外：E:\\Codex\\.codex\\config.toml 增 find_duplicates 条目。
 
 改动文件（5）: src/duplicates.ts, src/audit-tools.ts, src/version.ts, test/duplicates.test.ts, README.md

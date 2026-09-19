@@ -33,7 +33,7 @@ node dist/cli.js doctor --root .
 
 ## 已有管理流程
 
-用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。51 个工具全部保留，由 AI 组合调用，无需用户记工具名。
+用户仍然直接说“继续这个任务”“保存进度”“完成后帮我验收”。52 个工具全部保留，由 AI 组合调用，无需用户记工具名。
 
 - `update_task` 可同时更新进度、保存 `checkpoint:{note,next_step}` 并记录会话；完成时给 `record_session:true`，返回会话编号后不再另调 `log_session`。省略该参数仍兼容旧的手动记会话流程。同一幂等键重放不会重复落账；跨多个文件的异常仍遵守原有“不确定状态需核对”规则，不宣称事务原子性。
 - `feature/fix` 转 `done` 必须关联实际文件，并先通过 `run_quality_matrix` 执行相应测试。系统自动选择最新报告，核对执行成功、测试前后与当前源码摘要、测试单元目录和项目证据策略。`verification_run` 可明确指向最新报告，文字 `verification` 只作补充说明。报告存于 `.pm/quality-runs/`，任务保存报告与源码 SHA-256。目录范围匹配不等于代码覆盖率证明；第一方报告也不构成防篡改认证。
@@ -235,7 +235,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 也可以直接用内置 prompts：`start-session` / `end-session` / `onboard` / `architecture-review` / `acceptance-review`；其中 `onboard` 会引导客户端读取状态并生成新人/AI 入职简报。
 
-## 工具清单（51 个）
+## 工具清单（52 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
@@ -254,7 +254,7 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 | 注册表 | `list_projects` | 本机所有被管理项目 |
 | 治理模型 | `init_governance` / `get_governance` / `upsert_module` / `upsert_interface` / `upsert_repository` / `set_governance_policies` | 结构化模块根、owner、语言、公开接口、允许/禁止依赖、跨仓版本约束与强制策略 |
 | 语义治理 | `discover_languages` / `audit_governance` / `dependency_graph` / `impact_analysis` / `list_semantic_evidence` / `save_semantic_evidence` / `replace_semantic_evidence_for_file` | 编译器/Tree-sitter AST 关系、hash-bound 原生分析器/运行时证据、模块与文件级循环、依赖邻域/枢纽/unresolved/覆盖率与变更反向闭包 |
-| 质量与组合 | `plan_quality_matrix` / `run_quality_matrix` / `get_portfolio` / `find_duplicates` | plan 与真实执行严格分离；shell=false；跨仓阶段/债务/安全/版本/cycle 聚合；行指纹聚类跨文件重复块 |
+| 质量与组合 | `plan_quality_matrix` / `run_quality_matrix` / `get_portfolio` / `find_duplicates` / `audit_osv` | plan 与真实执行严格分离；shell=false；跨仓阶段/债务/安全/版本/cycle 聚合；行指纹聚类跨文件重复块；OSV 联网漏洞比对（默认关，须显式 confirm=true） |
 | 标准化验收 | `list_acceptance_baselines` / `get_acceptance_baseline` / `save_acceptance_baseline_draft` / `approve_acceptance_baseline` / `evaluate_acceptance` | ISO/SQuaRE 对齐的版本化质量基线、冻结证据指针、需求—风险—测试追踪、机器判定报告与 SHA-256 manifest |
 
 Resources：`pm://dashboard`、`pm://roadmap`、`pm://tasks`、`pm://changelog`、`pm://architecture`、`pm://portfolio`、`pm://acceptance`。
