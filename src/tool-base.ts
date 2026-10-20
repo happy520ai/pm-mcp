@@ -4,8 +4,35 @@ import { loadProject } from "./store.ts";
 import { IdempotencyKeySchema, runCoalescedRead, runIdempotentWrite, runIdempotentWriteSync } from "./idempotency.ts";
 import { drainFoldSavings } from "./budget.ts";
 import { estimateTokens, logRuntime, logUsage, type UsageKind } from "./usage-log.ts";
+import { resolveRequestRoot } from "./caller-workspace.ts";
+import { rootResolution } from "./paths.ts";
 
-type Fn<Args> = (args: Args) => string | Promise<string>;
+/** 工具处理器拿到的是「本次调用」的项目根，不是进程启动时定格的那个 */
+export interface RequestContext {
+  root: string;
+  rootSource: string;
+  rootCandidates?: string[];
+}
+
+type Fn<Args> = (args: Args, ctx: RequestContext) => string | Promise<string>;
+
+/** 客户端共用一个常驻服务进程时，启动根只是默认值；每次调用都要重新认领调用方工作区 */
+export function requestContext(tool: string, args: Record<string, unknown>, startupRoot: string): RequestContext {
+  const resolution = resolveRequestRoot({
+    tool,
+    args,
+    startupRoot,
+    startupSource: rootResolution()?.source ?? "unknown",
+  });
+  return { root: resolution.root, rootSource: resolution.source, ...(resolution.candidates ? { rootCandidates: resolution.candidates } : {}) };
+}
+
+/** 无法自动认领工作区时的显式逃生口：任何工具都可以直接指定项目根 */
+const rootOverride = z.string().optional().describe("项目根绝对路径。仅当服务端报告无法确定调用方工作区（root_source 含「未猜测」）时才需要传。");
+
+function readSchema(schema: Record<string, unknown>): Record<string, unknown> {
+  return { ...schema, root: rootOverride };
+}
 interface ReadPresentation {
   cacheVersion?: string;
   outputSchema: Record<string, unknown>;
@@ -46,7 +73,7 @@ export function recordUsage(root: string, tool: string, kind: UsageKind, started
 /** 只读工具：跨 Agent/进程合并完全相同的并行请求，短窗复用结果。 */
 export function toolR<Args>(
   server: McpServer,
-  root: string,
+  startupRoot: string,
   name: string,
   description: string,
   schema: Record<string, unknown>,
@@ -55,11 +82,13 @@ export function toolR<Args>(
 ): void {
   server.registerTool(
     name,
-    { description, inputSchema: schema as never, ...(presentation ? { outputSchema: presentation.outputSchema as never } : {}), annotations: { readOnlyHint: true } },
+    { description, inputSchema: readSchema(schema) as never, ...(presentation ? { outputSchema: presentation.outputSchema as never } : {}), annotations: { readOnlyHint: true } },
     (async (args: Args) => {
+      const ctx = requestContext(name, (args ?? {}) as Record<string, unknown>, startupRoot);
+      const root = ctx.root;
       const started = Date.now();
       try {
-        const result = await runCoalescedRead(root, presentation ? `${name}:${presentation.cacheVersion ?? "structured-v1"}` : name, args, fn);
+        const result = await runCoalescedRead(root, presentation ? `${name}:${presentation.cacheVersion ?? "structured-v1"}` : name, args, () => fn(args, ctx));
         const decoded = presentation?.decode(result.text);
         const text = decoded?.text ?? result.text;
         recordUsage(root, name, "read", started, {
@@ -85,6 +114,7 @@ const idempotencyDescription = "多 Agent 执行同一业务时传相同 idempot
 function writeSchema(schema: Record<string, unknown>): Record<string, unknown> {
   return {
     ...schema,
+    root: rootOverride,
     idempotency_key: IdempotencyKeySchema.optional().describe("跨 Agent 业务幂等键，建议格式 task-id:operation，如 T-123:add-task"),
   };
 }
@@ -92,20 +122,22 @@ function writeSchema(schema: Record<string, unknown>): Record<string, unknown> {
 /** 同步写工具：业务幂等占位 + 跨进程账本锁覆盖完整读-改-写。 */
 export function toolW<Args, Prepared = void>(
   server: McpServer,
-  root: string,
+  startupRoot: string,
   name: string,
   description: string,
   schema: Record<string, unknown>,
-  fn: (args: Args, prepared: Prepared) => string,
-  prepare?: (args: Args) => Prepared,
+  fn: (args: Args, ctx: RequestContext, prepared: Prepared) => string,
+  prepare?: (args: Args, ctx: RequestContext) => Prepared,
 ): void {
   server.registerTool(
     name,
     { description: `${description} ${idempotencyDescription}`, inputSchema: writeSchema(schema) as never, annotations: { readOnlyHint: false } },
     ((args: Args) => {
+      const ctx = requestContext(name, (args ?? {}) as Record<string, unknown>, startupRoot);
+      const root = ctx.root;
       const started = Date.now();
       try {
-        const result = runIdempotentWriteSync(root, name, args, fn, prepare);
+        const result = runIdempotentWriteSync<Args, Prepared>(root, name, args, (value, prepared) => fn(value, ctx, prepared), prepare ? (value) => prepare(value, ctx) : undefined);
         const prefix = result.replayed ? `↩️ 幂等复用 ${result.key}\n` : result.pending ? `⏳ 幂等占位 ${result.key}\n` : "";
         const text = prefix + result.text;
         recordUsage(root, name, "write", started, {
@@ -129,7 +161,7 @@ export function toolW<Args, Prepared = void>(
 /** 已自带内部锁或异步执行的写工具：先跨进程占位，完成后缓存结果。 */
 export function toolI<Args>(
   server: McpServer,
-  root: string,
+  startupRoot: string,
   name: string,
   description: string,
   schema: Record<string, unknown>,
@@ -139,9 +171,11 @@ export function toolI<Args>(
     name,
     { description: `${description} ${idempotencyDescription}`, inputSchema: writeSchema(schema) as never, annotations: { readOnlyHint: false } },
     (async (args: Args) => {
+      const ctx = requestContext(name, (args ?? {}) as Record<string, unknown>, startupRoot);
+      const root = ctx.root;
       const started = Date.now();
       try {
-        const result = await runIdempotentWrite(root, name, args, fn);
+        const result = await runIdempotentWrite(root, name, args, (value) => fn(value, ctx));
         const prefix = result.replayed ? `↩️ 幂等复用 ${result.key}\n` : result.pending ? `⏳ 幂等占位 ${result.key}\n` : "";
         const text = prefix + result.text;
         recordUsage(root, name, "write-async", started, {

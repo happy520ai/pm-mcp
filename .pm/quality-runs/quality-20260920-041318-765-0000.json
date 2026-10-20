@@ -1,0 +1,150 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-09-20T04:13:18.765Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "evidence_level": "unverified",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "bb46c15539986830b92bea9d87a94dafa79a2806cd828c5329534338afe6b2b6",
+      "files": 145,
+      "bytes": 1416421
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "bb46c15539986830b92bea9d87a94dafa79a2806cd828c5329534338afe6b2b6",
+      "files": 145,
+      "bytes": 1416421
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 69688,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 41818,
+        "stderr_bytes": 0,
+        "output_sha256": "630a7dfa1cc3c4ae84c631620d4dbd5661b01a3d2c7f66830042f1324721aea6",
+        "tests": 351,
+        "passed": 350,
+        "failed": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "coverage",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "error": "Blocked by an earlier failed quality command"
+    }
+  ]
+}

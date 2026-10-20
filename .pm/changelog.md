@@ -1,5 +1,55 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-09-20 — qoder
+
+修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。
+
+改动文件（15）: src/caller-workspace.ts, src/tool-base.ts, src/qoder-launch.ts, src/paths.ts, src/project-tools.ts, src/index.ts, src/governance-tools.ts, src/audit-tools.ts, src/knowledge-tools.ts, src/acceptance-tools.ts, src/task-tools.ts, test/caller-workspace.test.ts, test/qoder-launch.test.ts, .pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md, .pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md
+
+下一步: 用户重启 Qoder 或 /mcp reload 后，在 unified-ai-system 窗口重调 get_status，确认 root 指向该仓库、root_source=qoder-session-log(request-match)、且返回带里程碑/焦点/健康段；T-062：把本次修复随下个版本发到 npm（已发布的 0.5.0 不含按请求认领），并给 install.ps1 补 qoder 分支；评估要不要给非启动根的工作区也预热 watcher/SQLite 索引（目前其他工作区首次 audit/search 走全量走查，正确但慢）；把「跑 npm run quality 期间不要并发写 .pm/」写进贡献者须知：本次第一次跑 gate 就是被并发账本写入弄成 test 失败（重跑即全绿）
+
+## 2026-09-19 — 未知
+
+T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：Qoder 真实派生的新会话已实测通过：新建独立会话调用 mcp__pm_mcp__get_status 返回 root=E:\通用型项目管理、root_source=--root、version 0.5.0，证明用户级一条配置（node .../dist/qoder-launch.js，不带 --root）在 Qoder 里能起服务并把项目根钉到当前工作区。换工作区验证同一条配置：QODER_WORKER_CWD 指向 unified-ai-system 时 root 随之切换，各工作区各归各账本。当前这个会话需 /mcp reload 才会拿到连接。
+
+## 2026-09-19 — qoder
+
+把 pm-mcp 接入 Qoder 做成受支持能力：根解析支持客户端工作区提示与未插值占位符防护，新增 qoder-launch 适配器 + launch 子命令，setup/doctor 支持 --client qoder，并用真命令把用户级配置改写为一条不钉根的适配器条目；配套 11 个用例与 README 章节。
+
+改动文件（12）: src/paths.ts, src/qoder-launch.ts, src/index.ts, src/project-tools.ts, src/setup.ts, src/setup-project.ts, src/doctor.ts, src/cli.ts, test/qoder-launch.test.ts, test/setup.test.ts, test/tooling-coverage.test.ts, README.md
+
+下一步: Qoder 里 /mcp reload 后调用 get_status 复核项目根与依据（预期 E:\通用型项目管理、依据 --root），确认后 T-063 置 done 并补 verification；T-062：发布含 launch/--client qoder 的版本，并给 install.ps1 补 qoder 分支；可选：把 qoder-launch 的解析依据也接进 audit_structure/usage-log 便于跨机诊断
+
+## 2026-09-19 — 未知
+
+T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：代码/测试/文档/真机配置全部落地：coverage 336 通过、doctor --client qoder 返回 ok:true 且 root 正确、用户级配置已由 setup --client qoder --local 写成 dist/qoder-launch.js 一条（其他 server 保留，写前有备份）。
+
+下一步: 在 Qoder 里执行 /mcp reload，调用 get_status 核对项目根与解析依据（预期 root=E:\通用型项目管理、依据 --root）；若依据为 cwd，则说明 Qoder 的 MCP 子进程 ppid 与运行日志目录的 -p<pid> 不对应，据此再改适配器解析顺序。
+
+## 2026-09-19 — zcode
+
+完成 T-055：changedGitFiles/gitAudit 现在尊重项目级 scan_ignore，补充忽略路径、规则清空恢复及普通源码保留的回归测试；typecheck 与 325 项全量测试通过。
+
+改动文件（2）: src/git-state.ts, test/management-upgrade.test.ts
+
+下一步: M2 余下 T-008/T-011/T-012 可继续规划实施；T-055 已闭环。
+
+## 2026-09-19 — 未知
+
+T-055 git 对账应尊重 project.json scan_ignore（客户端运行时目录不再误报）：完成：git 对账现在读取 project.json 的 scan_ignore，并按文件自身及父目录过滤变更；重命名两端同样生效。新增回归验证忽略运行时嵌套文件、保留普通源码、清空规则后恢复检测。
+
+改动文件（2）: src/git-state.ts, test/management-upgrade.test.ts
+
+下一步: 无；T-055 已完成并通过定向及全量验证。
+
+## 2026-09-19 — 未知
+
+T-055 git 对账应尊重 project.json scan_ignore（客户端运行时目录不再误报）：已从工作日志恢复，确认缺口是 gitAudit/changedGitFiles 未消费 scan_ignore；准备实现并补测。
+
+改动文件（2）: src/git-state.ts, test/management-upgrade.test.ts
+
+下一步: 修改 src/git-state.ts 并新增管理升级回归测试。
+
 ## 2026-09-19 — 未知
 
 0.5.0 发布完成：a72240d 版本+pin（sha 5428a7ac）→Release v0.5.0 资产（重打包确定性一致）→validate+publish 双 dispatch 全绿（核验轮询正常）→npm latest=0.5.0→冷安装自探 53 工具含 search_code_public。内容：search_code_public 版权溯源 + OSV lockfile 误报修复。台账 S-0059。

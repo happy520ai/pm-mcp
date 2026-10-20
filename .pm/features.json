@@ -1,5 +1,5 @@
 {
-  "seq": 28,
+  "seq": 31,
   "features": [
     {
       "id": "F-001",
@@ -498,6 +498,63 @@
       "status": "implemented",
       "created": "2026-09-19T05:37:05.941Z",
       "updated": "2026-09-19T05:37:05.941Z"
+    },
+    {
+      "id": "F-029",
+      "name": "Git 对账应用项目级扫描排除",
+      "description": "Git 工作区对账尊重项目级 scan_ignore，避免显式排除的运行时/产物变更进入 unaccounted 或 unverified。",
+      "module": "audit",
+      "entry_files": [
+        "src/git-state.ts",
+        "src/audit.ts"
+      ],
+      "test_files": [
+        "test/management-upgrade.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T07:33:27.019Z",
+      "updated": "2026-09-19T07:33:27.019Z"
+    },
+    {
+      "id": "F-030",
+      "name": "Qoder 客户端接入（工作区解析适配器）",
+      "description": "让 Qoder 用户级一条 MCP 配置服务所有工作区：resolveRoot 支持客户端工作区提示与未插值占位符防护；dist/qoder-launch.js 适配器按 env → 本会话 qodercli 运行日志（按 ppid 精确匹配 -p<pid> 目录）解析工作区后代钉 --root；setup/doctor 支持 --client qoder，cli 提供 launch 子命令，get_status 报告解析依据。",
+      "module": "clients",
+      "entry_files": [
+        "src/qoder-launch.ts",
+        "src/paths.ts",
+        "src/setup.ts",
+        "src/doctor.ts",
+        "src/cli.ts"
+      ],
+      "test_files": [
+        "test/qoder-launch.test.ts",
+        "test/setup.test.ts",
+        "test/tooling-coverage.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-19T15:05:35.569Z",
+      "updated": "2026-09-19T15:05:35.569Z"
+    },
+    {
+      "id": "F-031",
+      "name": "按请求认领项目根（多窗口共用常驻进程）",
+      "description": "客户端（如 Qoder）把一个常驻 MCP 子进程复用给所有窗口时，项目根不再在启动时定格，而是每次工具调用重新认领调用方工作区：显式 root 参数 > 会话日志请求指纹 > 唯一活跃会话 > 启动期提示 > 启动解析；证据不足时不猜，回退启动根并在 root_source 里写明依据与候选。get_status 的 structuredContent 同时带全阶段/里程碑/焦点/健康/最近会话，适配只呈现结构化载荷的客户端。",
+      "module": "MCP 服务端",
+      "entry_files": [
+        "src/caller-workspace.ts",
+        "src/tool-base.ts",
+        "src/qoder-launch.ts",
+        "src/paths.ts",
+        "src/project-tools.ts"
+      ],
+      "test_files": [
+        "test/caller-workspace.test.ts",
+        "test/qoder-launch.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-09-20T04:13:28.948Z",
+      "updated": "2026-09-20T04:13:28.948Z"
     }
   ]
 }

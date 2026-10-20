@@ -173,6 +173,126 @@
       "source": "",
       "license": "",
       "updated": "2026-09-19T01:44:39.522Z"
+    },
+    "src/paths.ts": {
+      "purpose": "项目根解析优先级链（--root/PM_ROOT/提示/已初始化目录/工作区提示/启动 cwd）与 .pm 路径构造",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.036Z"
+    },
+    "src/git-state.ts": {
+      "purpose": "git status 对账（NUL 解析、fallback 解析 git 路径）与会话文件哈希采集",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.133Z"
+    },
+    "src/task-evidence.ts": {
+      "purpose": "update_task 完成门禁：质量报告新鲜度/源码匹配/覆盖范围校验，拦截文字声明完成",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.229Z"
+    },
+    "src/scan.ts": {
+      "purpose": "目录走查与扫描语义：文件清单、skip 标记/空测试启发式、依赖读取",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.319Z"
+    },
+    "src/index-store.ts": {
+      "purpose": "SQLite 索引与 watcher：增量走查、文件集合 diff、单文件内容计算",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.409Z"
+    },
+    "src/quality-evidence.ts": {
+      "purpose": "质量报告输出摘要解析（jest/vitest/pytest 计数）与证据等级判定",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.498Z"
+    },
+    "src/caller-workspace.ts": {
+      "purpose": "按请求认领调用方工作区：工具名+参数+紧时间窗指纹倒扫会话日志（Qoder 多窗口共用子进程）",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.595Z"
+    },
+    "src/qoder-launch.ts": {
+      "purpose": "Qoder 客户端启动适配器：派生 stdio 子进程并注入根解析提示",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.685Z"
+    },
+    "src/task-pagination.ts": {
+      "purpose": "任务分页：游标绑定数据/过滤/项目根，不能静默跨快照翻页",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:49.775Z"
+    },
+    "src/budget.ts": {
+      "purpose": "输出 token 预算与折叠记账：行数预算、路径分隔归一化",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:50.370Z"
+    },
+    "src/idempotency.ts": {
+      "purpose": "多 Agent 读写幂等协调：同键同参数只执行一次、并行读合并复用",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:56.836Z"
+    },
+    "src/usage-log.ts": {
+      "purpose": "使用/运行日志：token 计量、折叠省量、级别过滤与轮转",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:56.967Z"
+    },
+    "src/doctor.ts": {
+      "purpose": "客户端配置体检：真实握手核验版本/根/禁用设置（codex/workbuddy）",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.059Z"
+    },
+    "src/cli.ts": {
+      "purpose": "CLI 子命令入口：probe、launch、health 等命令行分发",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.152Z"
+    },
+    "src/ui.ts": {
+      "purpose": "Web UI 仪表盘服务：只绑 127.0.0.1 的只读 HTTP 端点",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.238Z"
+    },
+    "src/watcher-coordinator.ts": {
+      "purpose": "多进程 watcher leader 协调：同项目单 leader、强杀后有限接管",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.333Z"
+    },
+    "src/audit-tools.ts": {
+      "purpose": "audit_structure/audit_security/audit_license/find_duplicates/impact_analysis 等 MCP 工具注册",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.419Z"
+    },
+    "src/setup.ts": {
+      "purpose": "统一客户端安装器：写 mcp 配置、补 --root、升级命令参数",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.517Z"
+    },
+    "src/public-search.ts": {
+      "purpose": "公开代码反查（GitHub Code Search）：显式 confirm 鉴权、来源登记",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.638Z"
+    },
+    "src/roadmap.ts": {
+      "purpose": "路线图渲染：里程碑进度条与活跃里程碑任务明细",
+      "source": "",
+      "license": "",
+      "updated": "2026-10-20T15:04:57.753Z"
     }
   }
 }

@@ -61,7 +61,8 @@ export function computeEntry(root: string, rel: string, stat: fs.Stats): Compute
     return {
       loc: countLoc(content),
       skip: needsSkipCount(rel, isTest) ? countSkipLines(content) : 0,
-      trivial: isTest && looksTrivialTest(content),
+      // fixtures 是测试的输入而非测试本身，不参与空测试嫌疑
+      trivial: isTest && !/(^|\/)fixtures(\/|$)/.test(rel) && looksTrivialTest(content),
       oversize: false,
       contentOk: true,
     };

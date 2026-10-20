@@ -1,5 +1,5 @@
 {
-  "seq": 19,
+  "seq": 23,
   "entries": [
     {
       "id": "D-0001",
@@ -292,6 +292,68 @@
         "test/exploit.test.ts"
       ],
       "task_id": "T-049"
+    },
+    {
+      "id": "D-0020",
+      "date": "2026-09-19T07:33:27.226Z",
+      "author": "",
+      "symptom": "被项目显式排除的运行时目录变更反复出现在 Git 对账结果中。",
+      "root_cause": "gitAudit 的变更源 changedGitFiles 只排除固定账本路径，没有消费项目级 scan_ignore，导致显式忽略的运行时目录仍被报告。",
+      "fix": "在 changedGitFiles 中读取 projectScanIgnores，使用 ignoreMatcher 对每个变更路径及其父目录逐级过滤，并补充 Git 对账生命周期回归测试。",
+      "verified_how": "npm run typecheck、npm test（325/325）及 management-upgrade.test.ts（8/8）均通过。",
+      "files": [
+        "src/git-state.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "task_id": "T-055"
+    },
+    {
+      "id": "D-0021",
+      "date": "2026-09-19T15:04:10.484Z",
+      "author": "",
+      "symptom": "Qoder 里 pm-mcp 连上后 get_status 报「项目未初始化（在 D:\\Qoder CN 下没有找到 .pm/project.json）」，全部工具读到错误项目。",
+      "root_cause": "Qoder 的 worker cwd shim 把 MCP 子进程 cwd 强制为安装目录（日志行：installed worker cwd shim initial_cwd=<工作区> restore_cwd=D:\\Qoder CN），而 pm-mcp 的 resolveRoot 只有 --root > PM_ROOT > cwd 三级；另外 1.1.57 实测不加载 .qoder/settings.local.json 的 mcpServers，args 里的 ${VAR} 也不能指望被插值。",
+      "fix": "resolveRoot 改为 --root > PM_ROOT > 已初始化的启动目录 > 客户端工作区提示 > 启动目录，并把未插值的 ${...} 字面量判为无效；新增 dist/qoder-launch.js 适配器按 env → 本会话运行日志取工作区后代钉 --root；setup/doctor 增加 --client qoder，isLocalServerEntry 认 qoder-launch 入口。",
+      "verified_how": "npm run coverage：336/336 通过、门槛 exit 0；node dist/cli.js doctor --root . --client qoder → ok:true、54 工具、root=E:\\通用型项目管理；用「安装目录当 cwd + SDK 白名单式环境（无任何 QODER_*）」起真实服务器仍解析到 E:\\通用型项目管理；workspaceFromRunLog({ppid:30056}) 命中本会话日志目录 ...-p30056。",
+      "files": [
+        "src/paths.ts",
+        "src/qoder-launch.ts",
+        "src/setup.ts",
+        "src/setup-project.ts",
+        "src/doctor.ts"
+      ],
+      "task_id": null
+    },
+    {
+      "id": "D-0022",
+      "date": "2026-09-19T15:09:56.191Z",
+      "author": "",
+      "symptom": "配置改好后当前会话仍看不到 pm_mcp 工具，且用 ReadProcessMemory 读已在线 MCP 子进程（ai_gateway, PID 28280）环境块取证失败（ERR env unreadable），无法判断 Qoder 是否把 QODER_WORKER_CWD 传给 MCP 子进程。",
+      "root_cause": "两点：① MCP 工具面在会话启动时快照，配置变更后必须 /mcp reload 或新开会话才生效；② 用 PROCESS_QUERY_INFORMATION|VM_READ 读 PEB→ProcessParameters→Environment(0x88)/EnvironmentSize(0x3F8) 在这台机器上仍取不到内存块，跨进程环境取证不可靠，不该作为验收依据。",
+      "fix": "改用可控的真实环境取证：用 mcp__builtin__create_chat_session 新开一个 Qoder 会话，让它直接调用 get_status 并回传原文，等价于让 Qoder 自己派生一个 MCP 子进程做验收；同时保留适配器「取不到就不猜根」的降级路径。",
+      "verified_how": "新会话返回 root_source=--root 且 root=E:\\通用型项目管理，即 Qoder 派生的子进程内适配器成功解析并钉根。",
+      "files": [
+        "src/qoder-launch.ts"
+      ],
+      "task_id": "T-063"
+    },
+    {
+      "id": "D-0023",
+      "date": "2026-09-20T04:13:28.787Z",
+      "author": "",
+      "symptom": "在 unified-ai-system 窗口调 mcp__pm_mcp__get_status，返回的 root 却是 E:\\通用型项目管理（pm-mcp 自己的仓库），root_source 永远是 --root，且整个返回只有 {\"runtime\":{...}} 一段，看不到阶段/里程碑/进行中任务。",
+      "root_cause": "三层叠加。1) Qoder 只派生一个常驻 stdio 子进程并用本地路由把所有窗口复用到它上面（pid 24452 自 2026-09-19 22:55 存活至今；2026-09-20 三个会话的 run manifest 里 pm_mcp 是三个不同的 /mcp/sessions/<token>/ 但同一个 server uuid 3548ba94），而 root 在 src/index.ts 启动时解析一次、被 registerAllTools 闭包进全部 54 个工具——对共用进程而言启动期定根在架构上就不可能每窗口都对。2) ADR-005 的 ppid 匹配不成立：所有 run 日志目录名都是 -p30056（主进程 pid），「按 ppid 精确匹配」实际退化成「取最新日志」，并发窗口会串项目。3) 适配器把动态解析结果以 --root 传给子进程，而 resolveRootWithSource 看到 --root 就报 --root，真实来历被抹掉；另外 get_status 把完整状态放在 content[0].text、structuredContent 只放 runtime，而 Qoder 的 mcp_call 只呈现 structuredContent。",
+      "fix": "项目根改为按请求认领。新增 src/caller-workspace.ts：Qoder 在派发前会把 tool.requested（含工具名与参数原文）写进本会话 run 日志，用「工具名+参数+紧时间窗（指纹 30s、并列 2s）」做请求指纹，从日志尾部按 256KB 分块倒扫（按字节拼接后解码，避免截断多字节字符；扫到早于时间窗即停，上限 8MB），命中日志头部的 initial_cwd 就是调用方工作区。解析顺序：显式 root 参数 > 请求指纹 > 唯一活跃会话 > 启动期提示（标 spawn-time）> 启动解析；多命中时一律不猜，回退启动根并在 root_source 里写「未猜测」+列出候选。tool-base 的 toolR/toolW/toolI 每次调用构造 RequestContext 作为第二参；把 11 个 registrar 形参 root 改名 startupRoot，漏改的处理器直接编译不过（编译器兜底）。适配器不再传 --root，改传 PM_MCP_CLIENT_ADAPTER/PM_MCP_ROOT_HINT(_SOURCE)；调用方自己钉了 --root 时不标记适配器，固定根受尊重。get_status 的 structuredContent 补齐 project/milestones/focus/health/last_session/since；资源也改为按请求解析根。关键取舍：不加解析结果缓存——两个窗口在几百毫秒内发同一个无参调用时，缓存会把前一个窗口的项目根串给后一个。",
+      "verified_how": "四层证据。(1) 单元：test/caller-workspace.test.ts 14 个用例全过，覆盖惰性 mcp_call 与直连两种日志形态、zod 补默认值、多 MB 日志跨块倒扫、歧义不猜、旧会话不参与、initial_cwd 已删不当真。(2) 端到端：同一测试里用一个常驻进程同时面对 A/B 两个项目（启动定格在 A、指纹只在 B 的日志），get_status 返回 root=B、root_source=qoder-session-log(request-match)、project.name=B项目、milestones 只有 B 的；去掉适配器标记后立即回到 A，证明 CLI/ZCode 行为未变。(3) 真实日志回放：拿 2026-09-20 两条真实调用回放——unified-ai-system 窗口 10:55:21 的 get_status{} 解析出 E:\\AI-Data\\AI网关系统\\unified-ai-system，本窗口 11:04:04 的 get_runtime_log{limit:40} 解析出 E:\\通用型项目管理，均为 request-match，单次 ~30ms。(4) 真实产物：用 npm run build 后的 dist/qoder-launch.js 按 Qoder 的方式派生（cwd=盘符根、QODER_WORKER_CWD=A、假配置目录里两个会话），stdio 跑完整 initialize+tools/call，structuredContent 返回 root=B、root_source=qoder-session-log(request-match) 与六个状态段。全量 351 个测试通过，tsc -p tsconfig.json --noEmit 退出 0。",
+      "files": [
+        "src/caller-workspace.ts",
+        "src/tool-base.ts",
+        "src/qoder-launch.ts",
+        "src/paths.ts",
+        "src/project-tools.ts",
+        "src/index.ts"
+      ],
+      "task_id": "T-064"
     }
   ]
 }

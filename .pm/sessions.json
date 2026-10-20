@@ -1,5 +1,5 @@
 {
-  "seq": 59,
+  "seq": 66,
   "sessions": [
     {
       "id": "S-0001",
@@ -1389,6 +1389,162 @@
       "next_steps": [
         "各宿主可选升级 npx @luckychen1993/pm-mcp@0.5.0 或保持钉根 dist",
         "M2 完成后可规划 M3（或收尾 v2 增强）"
+      ]
+    },
+    {
+      "id": "S-0060",
+      "date": "2026-09-19T07:25:59.503Z",
+      "author": "",
+      "summary": "T-055 git 对账应尊重 project.json scan_ignore（客户端运行时目录不再误报）：已从工作日志恢复，确认缺口是 gitAudit/changedGitFiles 未消费 scan_ignore；准备实现并补测。",
+      "files": [
+        "src/git-state.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "file_hashes": {
+        "src/git-state.ts": "ca43db4a6d8ce9dea6538718093d76e2edc57af22823c0632c4283bf5cf4ff6c",
+        "test/management-upgrade.test.ts": "a04835077893e6f0060f34b82f784fe8a0d5ed48945120e35bd79b9f056d97a3"
+      },
+      "next_steps": [
+        "修改 src/git-state.ts 并新增管理升级回归测试。"
+      ]
+    },
+    {
+      "id": "S-0061",
+      "date": "2026-09-19T07:33:26.788Z",
+      "author": "",
+      "summary": "T-055 git 对账应尊重 project.json scan_ignore（客户端运行时目录不再误报）：完成：git 对账现在读取 project.json 的 scan_ignore，并按文件自身及父目录过滤变更；重命名两端同样生效。新增回归验证忽略运行时嵌套文件、保留普通源码、清空规则后恢复检测。",
+      "files": [
+        "src/git-state.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "file_hashes": {
+        "src/git-state.ts": "14cf44ef8c9e13123204f2159c2871cf62f32d3d614be523aa172d1beff70d43",
+        "test/management-upgrade.test.ts": "3d5d03116ae4f993d999281b3b22d939f82fcdae48350758f35230dd2920cb55"
+      },
+      "next_steps": [
+        "无；T-055 已完成并通过定向及全量验证。"
+      ]
+    },
+    {
+      "id": "S-0062",
+      "date": "2026-09-19T07:42:03.211Z",
+      "author": "zcode",
+      "summary": "完成 T-055：changedGitFiles/gitAudit 现在尊重项目级 scan_ignore，补充忽略路径、规则清空恢复及普通源码保留的回归测试；typecheck 与 325 项全量测试通过。",
+      "files": [
+        "src/git-state.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "file_hashes": {
+        "src/git-state.ts": "14cf44ef8c9e13123204f2159c2871cf62f32d3d614be523aa172d1beff70d43",
+        "test/management-upgrade.test.ts": "3d5d03116ae4f993d999281b3b22d939f82fcdae48350758f35230dd2920cb55"
+      },
+      "next_steps": [
+        "M2 余下 T-008/T-011/T-012 可继续规划实施；T-055 已闭环。"
+      ]
+    },
+    {
+      "id": "S-0063",
+      "date": "2026-09-19T15:05:35.215Z",
+      "author": "",
+      "summary": "T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：代码/测试/文档/真机配置全部落地：coverage 336 通过、doctor --client qoder 返回 ok:true 且 root 正确、用户级配置已由 setup --client qoder --local 写成 dist/qoder-launch.js 一条（其他 server 保留，写前有备份）。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "在 Qoder 里执行 /mcp reload，调用 get_status 核对项目根与解析依据（预期 root=E:\\通用型项目管理、依据 --root）；若依据为 cwd，则说明 Qoder 的 MCP 子进程 ppid 与运行日志目录的 -p<pid> 不对应，据此再改适配器解析顺序。"
+      ]
+    },
+    {
+      "id": "S-0064",
+      "date": "2026-09-19T15:05:36.733Z",
+      "author": "qoder",
+      "summary": "把 pm-mcp 接入 Qoder 做成受支持能力：根解析支持客户端工作区提示与未插值占位符防护，新增 qoder-launch 适配器 + launch 子命令，setup/doctor 支持 --client qoder，并用真命令把用户级配置改写为一条不钉根的适配器条目；配套 11 个用例与 README 章节。",
+      "files": [
+        "src/paths.ts",
+        "src/qoder-launch.ts",
+        "src/index.ts",
+        "src/project-tools.ts",
+        "src/setup.ts",
+        "src/setup-project.ts",
+        "src/doctor.ts",
+        "src/cli.ts",
+        "test/qoder-launch.test.ts",
+        "test/setup.test.ts",
+        "test/tooling-coverage.test.ts",
+        "README.md"
+      ],
+      "file_hashes": {
+        "src/paths.ts": "fb41200f9be27db8daf74f1e1625a4866351be390e069765b9e6b42d2b7d8961",
+        "src/qoder-launch.ts": "73b5ed685b62f2818eb0bb8e28578b84db2a857e4b178c65f4ff5fefb002d2f2",
+        "src/index.ts": "972b0e6ff95054cff0095d04a4a50948fc059856cb6c1eb5e01c21dc0c3df487",
+        "src/project-tools.ts": "4d333e8c2e33e4d5d79a6653a1931650678d5cb7f9396e909623fbd00f4fedf1",
+        "src/setup.ts": "e1f6473360064717dafcfc642d271872f377a74b2f56feb15235aec6d20066df",
+        "src/setup-project.ts": "a72208b2cb9b4f1935212caffba764849b3bb50456f3ff49f74fa0b111d3a147",
+        "src/doctor.ts": "1a8bd0815f40d293879377ef96c7f88700ee9da382d9f1d26e8a5f19123196e4",
+        "src/cli.ts": "5f7edabc248af029da63c527409d0a0c9a931c50459e900bd2c90a11ec15715d",
+        "test/qoder-launch.test.ts": "355b01ef96691cff1f8662a68c476b40be2f92c68a868030316bb08d998612db",
+        "test/setup.test.ts": "de763dbe9dc55829ef6007d95cc60097e7d72eb13b41f32aaaf2b948d29acbf7",
+        "test/tooling-coverage.test.ts": "216a837c1bc08c9b03edeb004963d37ee331fc038e51ada94c8469b11a317d83",
+        "README.md": "618f1e3e145dcf3042716821fe12135f06357ca1cd5671f9a1c237b27f84e669"
+      },
+      "next_steps": [
+        "Qoder 里 /mcp reload 后调用 get_status 复核项目根与依据（预期 E:\\通用型项目管理、依据 --root），确认后 T-063 置 done 并补 verification",
+        "T-062：发布含 launch/--client qoder 的版本，并给 install.ps1 补 qoder 分支",
+        "可选：把 qoder-launch 的解析依据也接进 audit_structure/usage-log 便于跨机诊断"
+      ]
+    },
+    {
+      "id": "S-0065",
+      "date": "2026-09-19T15:18:57.605Z",
+      "author": "",
+      "summary": "T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：Qoder 真实派生的新会话已实测通过：新建独立会话调用 mcp__pm_mcp__get_status 返回 root=E:\\通用型项目管理、root_source=--root、version 0.5.0，证明用户级一条配置（node .../dist/qoder-launch.js，不带 --root）在 Qoder 里能起服务并把项目根钉到当前工作区。换工作区验证同一条配置：QODER_WORKER_CWD 指向 unified-ai-system 时 root 随之切换，各工作区各归各账本。当前这个会话需 /mcp reload 才会拿到连接。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": []
+    },
+    {
+      "id": "S-0066",
+      "date": "2026-09-20T04:19:48.960Z",
+      "author": "qoder",
+      "summary": "修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。",
+      "files": [
+        "src/caller-workspace.ts",
+        "src/tool-base.ts",
+        "src/qoder-launch.ts",
+        "src/paths.ts",
+        "src/project-tools.ts",
+        "src/index.ts",
+        "src/governance-tools.ts",
+        "src/audit-tools.ts",
+        "src/knowledge-tools.ts",
+        "src/acceptance-tools.ts",
+        "src/task-tools.ts",
+        "test/caller-workspace.test.ts",
+        "test/qoder-launch.test.ts",
+        ".pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md",
+        ".pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md"
+      ],
+      "file_hashes": {
+        "src/caller-workspace.ts": "52fa23b8e089be783e563d6748cc4c3560c5b99cbba5abb564e3930143a872ae",
+        "src/tool-base.ts": "8bb0aa6975c086fb161542fa4f0ec443d693590c7281102e55635f7e3c135f13",
+        "src/qoder-launch.ts": "901e65243ffd9e31426c99a7a618c1cda527da37a69337a3a3326179f76656d6",
+        "src/paths.ts": "4cb362e89410c81482e7248f74f2dfdb5711f72ffb2f4a2d050173a0284ea2fb",
+        "src/project-tools.ts": "9ec46cd15ff3ac24e86c99e381d4434d26f609e38c7d214497c74ed6d1929537",
+        "src/index.ts": "99af85af7afd9c073e064d2d4d978bbb833f1e5438a269a33bc221b5e55d9089",
+        "src/governance-tools.ts": "754e2adfb216de7c43e81eb1ce428d6f2040e9221424bca9f21112a666cf7f5a",
+        "src/audit-tools.ts": "fdc98b0e6830fc7d9dd8754173a87e05c24568c24b3a8d4041166bccd7de72bd",
+        "src/knowledge-tools.ts": "25ce574322146d47625d7b45382db54bee2d12b4325e69ed5b99b78a4c286594",
+        "src/acceptance-tools.ts": "602a4125c34fd6864d461d61fdd3ad0c50c289eceb3d8d44a063461ad845db62",
+        "src/task-tools.ts": "e828f60691105801ac529e444e0ff0597d8445bbbb821a5284b7be04a996b934",
+        "test/caller-workspace.test.ts": "7846889b74d7ae39d532dd4e57dabe061ba2f6f6c749fb9ce06c89e442bf040e",
+        "test/qoder-launch.test.ts": "cda319b6b6e209c578875b31ae248fd6fd478082a845ee49e79d855153a234f5",
+        ".pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md": "b8fa90cebb1064b4bec7c7405d18f5340d25a2a80fe6ea60c3dac1a49727a0a4",
+        ".pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md": "d4245cdf54a2efd5f4049f532b9bbbca9de3a24e98dedde0b071aab7dba952d1"
+      },
+      "next_steps": [
+        "用户重启 Qoder 或 /mcp reload 后，在 unified-ai-system 窗口重调 get_status，确认 root 指向该仓库、root_source=qoder-session-log(request-match)、且返回带里程碑/焦点/健康段",
+        "T-062：把本次修复随下个版本发到 npm（已发布的 0.5.0 不含按请求认领），并给 install.ps1 补 qoder 分支",
+        "评估要不要给非启动根的工作区也预热 watcher/SQLite 索引（目前其他工作区首次 audit/search 走全量走查，正确但慢）",
+        "把「跑 npm run quality 期间不要并发写 .pm/」写进贡献者须知：本次第一次跑 gate 就是被并发账本写入弄成 test 失败（重跑即全绿）"
       ]
     }
   ]

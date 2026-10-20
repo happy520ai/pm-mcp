@@ -117,6 +117,9 @@ export function looksTrivialTest(content: string): boolean {
 export function countSkipLines(content: string): number {
   let n = 0;
   for (const line of content.split("\n")) {
+    // 排除两类误报：正则模式定义行（本扫描器源码自身）与夹具字符串模板行（含转义 \n 的内嵌代码）
+    const trimmed = line.trim();
+    if (trimmed.startsWith("/") || line.includes("\\n")) continue;
     if (SKIP_MARKER_PATTERNS.some((re) => re.test(line))) n += 1;
   }
   return n;

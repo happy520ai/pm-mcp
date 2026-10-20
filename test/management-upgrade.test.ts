@@ -13,6 +13,7 @@ import { closeIndex, ensureFresh, freshness, getIndex, iterateFileRows, startWat
 import { loadSessions, loadTasks, saveSessions } from "../src/store.ts";
 import { fingerprintProject } from "../src/project-fingerprint.ts";
 import { changedGitFiles } from "../src/git-state.ts";
+import { pathToFileURL } from "node:url";
 import { verifiedTaskEvidence } from "../src/task-evidence.ts";
 import { runQualityPlan } from "../src/language-adapters.ts";
 import { saveQualityRun } from "../src/quality-store.ts";
@@ -88,6 +89,47 @@ test("扫描排除缓存，并在项目规则改变后刷新已有索引而不�
   await ok("update_project", { scan_ignore: [] });
   ensureFresh(root);
   assert.ok([...iterateFileRows(getIndex(root))].some((row) => row.rel === "release/source.ts"));
+});
+
+test("Git 对账尊重项目级 scan_ignore，并在清空规则后恢复检测", async (t) => {
+  const { root, ok, git } = fixture(t);
+  git("init", "--quiet"); git("config", "user.name", "fixture"); git("config", "user.email", "fixture@example.invalid");
+  git("add", "."); git("commit", "--quiet", "-m", "baseline");
+  await ok("update_project", { scan_ignore: [".workbuddy-ai/**"] });
+  writeRel(root, ".workbuddy-ai/cache/nested/state.json", "runtime state\n");
+  writeRel(root, "src/live.mjs", "export const live = 1;\n");
+  assert.deepEqual(changedGitFiles(root).sort(), ["src/live.mjs"]);
+  const ignoredAudit = gitAudit(root);
+  assert.equal(ignoredAudit.error, null);
+  assert.deepEqual(ignoredAudit.unaccounted, ["src/live.mjs"]);
+  assert.deepEqual(ignoredAudit.unverified, []);
+  await ok("update_project", { scan_ignore: [] });
+  assert.deepEqual(changedGitFiles(root).sort(), [".workbuddy-ai/cache/nested/state.json", "src/live.mjs"]);
+  assert.ok(gitAudit(root).unaccounted.includes(".workbuddy-ai/cache/nested/state.json"));
+});
+
+test("PATH 缺 git 时按常见安装路径兜底解析，git 对账不 fail-closed", (t) => {
+  const { root, git } = fixture(t);
+  git("init", "--quiet"); git("config", "user.name", "fixture"); git("config", "user.email", "fixture@example.invalid");
+  git("add", "."); git("commit", "--quiet", "-m", "baseline");
+  writeRel(root, "src/live.mjs", "export const live = 1;\n");
+  // 子进程隔离 PATH，避免全局 env 突变波及并发测试的 git 调用
+  const script = [
+    `const m = await import(${JSON.stringify(pathToFileURL(path.resolve("src/git-state.ts")).href)});`,
+    "m.resetGitCommandCache();",
+    `const files = m.changedGitFiles(${JSON.stringify(root)});`,
+    "console.log(JSON.stringify({ resolved: m.resolveGitCommand(), files }));",
+  ].join("\n");
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
+    cwd: root,
+    env: { ...process.env, PATH: path.dirname(process.execPath) },
+    encoding: "utf8",
+    timeout: 30000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const parsed = JSON.parse(result.stdout);
+  assert.ok(parsed.resolved, "PATH 缺 git 也应解析到常见安装路径");
+  assert.deepEqual(parsed.files, ["src/live.mjs"]);
 });
 
 test("旧会话只说明路径未验证，删除与重命名核对两端的实际状态", async (t) => {

@@ -305,49 +305,54 @@ export function evaluateAcceptanceFile(
   return { report, ...files };
 }
 
-export function registerAcceptanceTools(server: McpServer, root: string): void {
-  toolR(server, root, "list_acceptance_baselines", "列出版本化验收基线、审批状态、当前 fingerprint 和规模。", {}, () => {
+export function registerAcceptanceTools(server: McpServer, startupRoot: string): void {
+  toolR(server, startupRoot, "list_acceptance_baselines", "列出版本化验收基线、审批状态、当前 fingerprint 和规模。", {}, (_args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     return JSON.stringify(listAcceptanceBaselines(root), null, 2);
   });
 
-  toolR<{ baseline_id: string; baseline_version: string; full?: boolean }>(server, root, "get_acceptance_baseline", "读取一个验收基线；默认返回摘要，full=true 返回严格 JSON。", {
+  toolR<{ baseline_id: string; baseline_version: string; full?: boolean }>(server, startupRoot, "get_acceptance_baseline", "读取一个验收基线；默认返回摘要，full=true 返回严格 JSON。", {
     baseline_id: IdSchema,
     baseline_version: SemVerSchema,
     full: z.boolean().optional(),
-  }, (args) => {
+  }, (args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     const baseline = loadAcceptanceBaseline(root, args.baseline_id, args.baseline_version);
     if (args.full) return JSON.stringify(baseline, null, 2);
     return JSON.stringify(listAcceptanceBaselines(root).find((item) => item.id === args.baseline_id && item.version === args.baseline_version), null, 2);
   });
 
-  toolI<{ baseline_file: string }>(server, root, "save_acceptance_baseline_draft", "从项目内 .pm/acceptance 下的严格 JSON 保存 draft 基线；批准后的同版本不可覆盖。", {
+  toolI<{ baseline_file: string }>(server, startupRoot, "save_acceptance_baseline_draft", "从项目内 .pm/acceptance 下的严格 JSON 保存 draft 基线；批准后的同版本不可覆盖。", {
     baseline_file: JsonPathSchema,
-  }, (args) => {
+  }, (args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     const baseline = saveDraftAcceptanceBaselineFile(root, args.baseline_file);
     return `✅ draft ${baseline.baseline_id}@${baseline.baseline_version} 已保存；fingerprint=${acceptanceBaselineFingerprint(baseline)}`;
   });
 
-  toolI<ApproveAcceptanceBaselineInput>(server, root, "approve_acceptance_baseline", "按当前 SHA-256 fingerprint 原子批准基线；fingerprint 变化即拒绝，批准后修改必须升版。", {
+  toolI<ApproveAcceptanceBaselineInput>(server, startupRoot, "approve_acceptance_baseline", "按当前 SHA-256 fingerprint 原子批准基线；fingerprint 变化即拒绝，批准后修改必须升版。", {
     baseline_id: IdSchema,
     baseline_version: SemVerSchema,
     expected_fingerprint_sha256: Sha256Schema,
     approved_by: z.string().trim().min(1),
     approval_rationale: z.string().trim().min(8),
     approved_at: z.string().datetime({ offset: true }).optional(),
-  }, (args) => {
+  }, (args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     const approved = approveAcceptanceBaseline(root, args);
     return `✅ baseline ${approved.baseline_id}@${approved.baseline_version} 已批准；approved fingerprint=${acceptanceBaselineFingerprint(approved)}`;
   });
 
-  toolI<EvaluateAcceptanceFileInput>(server, root, "evaluate_acceptance", "读取项目内 .pm/acceptance evaluation JSON，逐项复算证据 SHA-256，再生成不可手填、不可覆盖的正式报告。", {
+  toolI<EvaluateAcceptanceFileInput>(server, startupRoot, "evaluate_acceptance", "读取项目内 .pm/acceptance evaluation JSON，逐项复算证据 SHA-256，再生成不可手填、不可覆盖的正式报告。", {
     baseline_id: IdSchema,
     baseline_version: SemVerSchema,
     evaluation_file: JsonPathSchema,
-  }, (args) => {
+  }, (args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     const result = evaluateAcceptanceFile(root, args);
     const relativeJson = path.relative(path.resolve(root), result.json_file).replace(/\\/g, "/");

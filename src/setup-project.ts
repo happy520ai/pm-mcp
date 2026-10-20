@@ -80,7 +80,7 @@ export function isPackageLaunch(entry: ProjectLaunch): boolean {
 export function isLocalServerEntry(entry: ProjectLaunch): boolean {
   if (!/^node(?:\.exe)?$/i.test(path.basename(entry.command)) || entry.args.length < 1 || !path.isAbsolute(entry.args[0])) return false;
   const file = path.resolve(entry.args[0]);
-  if (!/^(?:index|cli)\.(?:js|ts)$/.test(path.basename(file))) return false;
+  if (!/^(?:index|cli|qoder-launch)\.(?:js|ts)$/.test(path.basename(file))) return false;
   try { const stat = fs.lstatSync(file); return stat.isFile() && !stat.isSymbolicLink() && JSON.parse(fs.readFileSync(path.join(path.dirname(file), "..", "package.json"), "utf8")).name === "@luckychen1993/pm-mcp"; }
   catch { return false; }
 }

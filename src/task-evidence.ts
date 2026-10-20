@@ -24,13 +24,13 @@ const reportSchema = z.object({
 export function verifiedTaskEvidence(root: string, requested?: string, files: string[] = []): string {
   const absolute = fs.realpathSync.native(path.resolve(root));
   const anchors = files.map(projectFilePath);
-  if (anchors.length === 0) throw new Error("完成开发/修复任务需要通过 files 关联实际实现或测试文件。");
+  if (anchors.length === 0) throw new Error("完成开发/修复任务需要通过 files 关联实际实现或测试文件。请在 update_task 里传 files: [\"src/…\", \"test/…\"]（相对路径）；未验证的功能/杂项任务请改用 type=chore 或 checkpoint 存档。");
   const excluded = ignoreMatcher(projectScanIgnores(root));
   for (const rel of anchors) {
     const parts = rel.split("/");
     if (rel === "PROJECT.md" || parts.some((part, index) =>
       (index < parts.length - 1 && SCAN_IGNORE_DIRS.has(part)) || excluded(parts.slice(0, index + 1).join("/"), index < parts.length - 1))) {
-      throw new Error(`任务文件不在源码验证范围内: ${rel}`);
+      throw new Error(`任务文件不在源码验证范围内: ${rel}。请改用 src/ 或 test/ 内的相对路径；.pm/、PROJECT.md、文档与 scan_ignore 排除项不能作为任务文件。`);
     }
     for (let index = 0; index < parts.length; index++) {
       const target = path.join(absolute, ...parts.slice(0, index + 1));
@@ -38,7 +38,7 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
       try { stat = fs.lstatSync(target); }
       catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-        if (!changedGitFiles(absolute).includes(rel)) throw new Error(`任务关联文件不存在，也没有 Git 删除记录: ${rel}`);
+        if (!changedGitFiles(absolute).includes(rel)) throw new Error(`任务关联文件不存在，也没有 Git 删除记录: ${rel}。请核对路径拼写（相对路径、/ 分隔），确认文件真实存在于本仓库。`);
         break;
       }
       if (stat.isSymbolicLink() || (index === parts.length - 1 ? !stat.isFile() : !stat.isDirectory())) {
@@ -48,7 +48,7 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
   }
   const directory = path.join(absolute, ".pm", "quality-runs");
   for (const part of [path.join(absolute, ".pm"), directory]) {
-    if (!fs.existsSync(part)) throw new Error("完成开发/修复任务前请执行 run_quality_matrix，缺少质量验证报告。");
+    if (!fs.existsSync(part)) throw new Error("完成开发/修复任务前请执行 run_quality_matrix，缺少质量验证报告。先调用 run_quality_matrix(confirm_execute: true) 生成报告，全绿后再 update_task(done)。");
     const stat = fs.lstatSync(part);
     if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("质量证据目录必须是项目内的普通目录。");
   }
@@ -63,15 +63,15 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
     return { relative: `.pm/quality-runs/${name}`, raw, value, runAt: header.data.run_at };
   }).sort((a, b) => b.runAt.localeCompare(a.runAt) || b.relative.localeCompare(a.relative));
   const latest = reports[0];
-  if (!latest) throw new Error("缺少质量验证报告，请先执行 run_quality_matrix。");
-  if (requested !== undefined && projectFilePath(requested) !== latest.relative) throw new Error("必须使用最新质量报告，不能绕过后来出现的验证结果。");
+  if (!latest) throw new Error("缺少质量验证报告，请先执行 run_quality_matrix（confirm_execute: true），全绿后再 update_task(done)。");
+  if (requested !== undefined && projectFilePath(requested) !== latest.relative) throw new Error("必须使用最新质量报告，不能绕过后来出现的验证结果。请省略 verification_run 参数（自动选最新），或用最新报告的路径重试。");
   const parsed = reportSchema.safeParse(latest.value);
   if (!parsed.success) throw new Error("最新质量报告无效或格式过旧，请重新执行验证。");
   const report = parsed.data;
   if (!report.ok || !report.execute || !report.source?.stable || report.source.before.sha256 !== report.source.after.sha256 ||
     report.results.some((item) => item.status !== "passed" || item.exit_code !== 0 || item.signal !== null || item.output_truncated ||
       [item.output_summary.failed, item.output_summary.skipped, item.output_summary.cancelled, item.output_summary.todo].some((n) => n !== null && n > 0))) {
-    throw new Error("最新质量验证失败、未执行、输出不完整或存在跳过项，不能标记完成。");
+    throw new Error("最新质量验证失败、未执行、输出不完整或存在跳过项，不能标记完成。请先修复失败原因，重跑 run_quality_matrix 直到全绿，再 update_task(done)。");
   }
   const tests = report.results.filter((item) => item.kind === "test" || item.kind === "coverage");
   if (tests.length === 0 || tests.some((item) => item.output_summary.tests === 0)) throw new Error("完成开发/修复任务需要实际测试或覆盖率执行证据。");
@@ -88,10 +88,10 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
   const unitRoots = tests.map((item) => fs.realpathSync.native(item.unit_root));
   if (unitRoots.some((unit) => !within(absolute, unit))) throw new Error("质量报告的执行目录不属于当前项目。");
   if (anchors.some((file) => !unitRoots.some((unit) => within(unit, path.join(absolute, file))))) {
-    throw new Error("质量报告的测试单元未覆盖任务关联文件所在目录。");
+    throw new Error("质量报告的测试单元未覆盖任务关联文件所在目录。请把关联文件纳入测试覆盖，或将 files 改为质量报告已覆盖目录内的文件后重试。");
   }
   const current = fingerprintProject(absolute);
-  if (current.sha256 !== report.source.after.sha256) throw new Error("质量验证对应的源码已变化，证据过期，请重新验证。");
+  if (current.sha256 !== report.source.after.sha256) throw new Error("质量验证对应的源码已变化，证据过期，请重新验证。重新执行 run_quality_matrix 刷新证据，全绿后再 update_task(done)。");
   const digest = createHash("sha256").update(latest.raw).digest("hex");
   return `质量报告: ${latest.relative}\n报告 SHA-256: ${digest}\n源码 SHA-256: ${current.sha256}\n执行时间: ${report.run_at}\n证据等级: ${level}${policy ? `\n项目策略: ${policy.minimum}；${policy.reason}` : "\n项目策略: tests_observed（默认）"}`;
 }

@@ -30,9 +30,9 @@ function taskLine(t: Task, withNext = false): string {
   return parts.join(" ");
 }
 
-export function registerProjectTools(server: McpServer, root: string): void {
+export function registerProjectTools(server: McpServer, startupRoot: string): void {
   toolW<{ name: string; description?: string; stack?: string[]; goals?: string[]; license?: string; exposure?: "local" | "network" | "public"; modules?: string[]; agents_md?: boolean }>(
-    server, root,
+    server, startupRoot,
     "init_project",
     "初始化当前项目的 .pm/ 状态目录（单一事实来源），并自动写入 AGENTS.md 工作规矩（已存在则增量合并，不覆盖你的内容）。每个新项目只调用一次；已初始化请用 update_project。",
     {
@@ -45,7 +45,8 @@ export function registerProjectTools(server: McpServer, root: string): void {
       modules: z.array(z.string()).optional().describe("初始模块登记"),
       agents_md: z.boolean().optional().describe("默认 true：自动写入/合并 AGENTS.md 工作规矩（false 关闭）"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       const project = initProject(root, { ...args, agentsMd: args.agents_md });
       refreshDerived(root);
       return [
@@ -59,11 +60,12 @@ export function registerProjectTools(server: McpServer, root: string): void {
   );
 
   toolR<{ since?: string }>(
-    server, root,
+    server, startupRoot,
     "get_status",
     "一站式「我在哪」：项目阶段 + 里程碑进度 + 进行中任务（含断点下一步）+ 健康摘要 + 最近变更。会话开工第一件事。since 可只看某日期以来的任务/会话变化。",
     { since: z.string().optional().describe("ISO 日期，如 2026-09-01：只看该日期以来的任务/会话变化") },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const project = loadProject(root);
       const { milestones } = loadRoadmap(root);
@@ -73,7 +75,8 @@ export function registerProjectTools(server: McpServer, root: string): void {
       const L: string[] = [];
 
       L.push(`# ${project.name}${project.phase ? ` — ${project.phase}` : ""}`);
-      L.push(`运行版本: pm-mcp ${VERSION} · 项目根: ${root}`);
+      L.push(`运行版本: pm-mcp ${VERSION} · 项目根: ${root}（依据 ${ctx.rootSource}）`);
+      if (ctx.rootCandidates?.length) L.push(`⚠️ 未能确定调用方工作区，候选: ${ctx.rootCandidates.join(" | ")}——需要精确时给本次调用传 root。`);
       if (project.description) L.push(project.description);
 
       L.push("");
@@ -97,8 +100,15 @@ export function registerProjectTools(server: McpServer, root: string): void {
       const openDebt = tasks.filter((t) => t.type === "debt" && t.status !== "done" && t.status !== "cancelled").length;
       const openFindings = security.findings.filter((f) => f.status === "open");
       L.push(`债务未清 ${openDebt} 条 · 安全未处理 ${openFindings.length} 个（高危 ${openFindings.filter((f) => f.severity === "high").length}）· 会话 ${sessions.length} 次。详细对账用 audit_structure / audit_security。`);
+      let governanceSummary = { modules: 0, interfaces: 0, repositories: 0, initialized: false };
       try {
         const governance = loadGovernance(root);
+        governanceSummary = {
+          modules: governance.modules.length,
+          interfaces: governance.interfaces.length,
+          repositories: governance.repositories.length,
+          initialized: true,
+        };
         L.push(`治理模型 ${governance.modules.length} 模块 / ${governance.interfaces.length} 接口 / ${governance.repositories.length} 仓库；实时语义门禁用 audit_governance。`);
       } catch {
         L.push("⚠️ 治理模型未初始化；跨模块/语言边界尚未启用。");
@@ -112,6 +122,7 @@ export function registerProjectTools(server: McpServer, root: string): void {
         if (last.next_steps.length > 0) L.push(`上次留下的下一步: ${last.next_steps.join("；")}`);
       }
 
+      let sinceSummary: { since: string; tasks: number; sessions: number; items: string[] } | undefined;
       if (args.since) {
         const parsed = Date.parse(args.since);
         const since = Number.isNaN(parsed) ? args.since : new Date(parsed).toISOString();
@@ -120,19 +131,78 @@ export function registerProjectTools(server: McpServer, root: string): void {
         L.push("");
         L.push(`## 自 ${since.slice(0, 10)} 以来`);
         L.push(`新增/更新任务 ${newTasks.length} 个，会话 ${newSessions.length} 次。`);
-        for (const t of newTasks.slice(-8).reverse()) L.push(`- ${taskLine(t)}`);
+        const items = newTasks.slice(-8).reverse().map((t) => taskLine(t));
+        for (const line of items) L.push(`- ${line}`);
+        sinceSummary = { since, tasks: newTasks.length, sessions: newSessions.length, items };
       }
 
       L.push("");
       L.push("> 三段式定位：本状态 → search_code 精确到行 → 才读具体文件。别全量读代码。");
-      return JSON.stringify({ text: foldLines(L, { maxLines: budgetLines(root) }), runtime: { version: VERSION, root, contract: RUNTIME_CONTRACT } });
+      // 结构化载荷必须自带全部状态：部分客户端（如 Qoder 的 mcp_call）只呈现 structuredContent，
+      // 只放 runtime 会让调用方看不到阶段/里程碑/进行中任务。
+      return JSON.stringify({
+        text: foldLines(L, { maxLines: budgetLines(root) }),
+        runtime: {
+          version: VERSION,
+          root,
+          contract: RUNTIME_CONTRACT,
+          root_source: ctx.rootSource,
+          ...(ctx.rootCandidates?.length ? { root_candidates: ctx.rootCandidates } : {}),
+        },
+        project: { name: project.name, phase: project.phase || null, description: project.description || null },
+        milestones: milestones.map((m) => ({ id: m.id, title: m.title, status: m.status, ...milestoneStats(tasks, m.id) })),
+        focus: active.slice(0, 10).map((t) => ({
+          id: t.id,
+          status: t.status,
+          title: t.title,
+          type: t.type,
+          milestone: t.milestone || null,
+          next_step: t.checkpoint?.next_step ?? null,
+          steps_done: t.steps.filter((s) => s.done).length,
+          steps_total: t.steps.length,
+        })),
+        health: {
+          open_debt: openDebt,
+          open_findings: openFindings.length,
+          high_findings: openFindings.filter((f) => f.severity === "high").length,
+          sessions: sessions.length,
+          governance: governanceSummary,
+        },
+        last_session: last ? { date: last.date, author: last.author || null, summary: last.summary, next_steps: last.next_steps } : null,
+        ...(sinceSummary ? { since: sinceSummary } : {}),
+      });
     },
-    { cacheVersion: `runtime:${VERSION}`, outputSchema: { runtime: z.object({ version: z.string(), root: z.string(), contract: z.string() }) },
-      decode: (value) => { const result = JSON.parse(value); return { text: result.text, data: { runtime: result.runtime } }; } },
+    { cacheVersion: `runtime:${VERSION}`,
+      outputSchema: {
+        runtime: z.object({
+          version: z.string(),
+          root: z.string(),
+          contract: z.string(),
+          root_source: z.string(),
+          root_candidates: z.array(z.string()).optional(),
+        }),
+        project: z.object({ name: z.string(), phase: z.string().nullable(), description: z.string().nullable() }),
+        milestones: z.array(z.object({ id: z.string(), title: z.string(), status: z.string(), total: z.number(), done: z.number(), pct: z.number(), refactorish: z.number(), refactorPct: z.number() })),
+        focus: z.array(z.object({ id: z.string(), status: z.string(), title: z.string(), type: z.string(), milestone: z.string().nullable(), next_step: z.string().nullable(), steps_done: z.number(), steps_total: z.number() })),
+        health: z.object({
+          open_debt: z.number(),
+          open_findings: z.number(),
+          high_findings: z.number(),
+          sessions: z.number(),
+          governance: z.object({ modules: z.number(), interfaces: z.number(), repositories: z.number(), initialized: z.boolean() }),
+        }),
+        last_session: z.object({ date: z.string(), author: z.string().nullable(), summary: z.string(), next_steps: z.array(z.string()) }).nullable(),
+        since: z.object({ since: z.string(), tasks: z.number(), sessions: z.number(), items: z.array(z.string()) }).optional(),
+      },
+      decode: (value) => {
+        const result = JSON.parse(value) as Record<string, unknown> & { text: string };
+        const { text, ...data } = result;
+        return { text, data };
+      } },
   );
 
   toolR<{ last?: number; tool?: string; ok?: boolean; since?: string }>(
-    server, root,
+    server, startupRoot,
     "get_usage_log",
     "使用日志：pm-mcp 被用了哪些工具、成败、耗时，以及输出 token 估算与「折叠省下的 token」——回答“用它到底省不省 token”。只记工具名与计量，不记参数内容。日志滚动保留约 2MB。",
     {
@@ -141,14 +211,15 @@ export function registerProjectTools(server: McpServer, root: string): void {
       ok: z.boolean().optional().describe("true 只看成，false 只看败"),
       since: z.string().optional().describe("ISO 日期/时间，只看该时间之后的明细"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       return foldLines(renderUsageLogLines(root, args), { maxLines: budgetLines(root) });
     },
   );
 
   toolR<{ last?: number; level?: "info" | "warn" | "error"; event?: string; since?: string }>(
-    server, root,
+    server, startupRoot,
     "get_runtime_log",
     "运行日志：server 就绪、watcher 状态、工具报错等服务级事件（info/warn/error），判断 pm-mcp 运行是否健康、哪里在反复出错。",
     {
@@ -157,14 +228,15 @@ export function registerProjectTools(server: McpServer, root: string): void {
       event: z.string().optional().describe("只看某事件，如 tool.error / server.ready"),
       since: z.string().optional().describe("ISO 日期/时间，只看该时间之后的明细"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       return foldLines(renderRuntimeLogLines(root, args), { maxLines: budgetLines(root) });
     },
   );
 
   toolW<{ description?: string; stack?: string[]; goals?: string[]; phase?: string; license?: string; exposure?: "local" | "network" | "public"; modules?: string[]; scan_ignore?: string[]; completion_evidence?: z.infer<typeof CompletionEvidenceSchema>; max_file_loc?: number; refactor_quota_pct?: number; session_blast_radius?: number; output_budget_lines?: number }>(
-    server, root,
+    server, startupRoot,
     "update_project",
     "更新项目元信息/预算（描述、技术栈、目标、阶段、模块登记、许可证、暴露面、复杂度与输出预算）。",
     {
@@ -182,7 +254,8 @@ export function registerProjectTools(server: McpServer, root: string): void {
       session_blast_radius: z.number().int().min(1).optional().describe("单会话波及文件阈值"),
       output_budget_lines: z.number().int().min(20).optional().describe("读类工具输出行数预算"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const project = loadProject(root);
       if (args.description !== undefined) project.description = args.description;
@@ -204,20 +277,22 @@ export function registerProjectTools(server: McpServer, root: string): void {
     },
   );
 
-  toolI(server, root, "regenerate_dashboard", "手动重新生成 PROJECT.md 仪表盘与 changelog.md（正常情况下每次写操作已自动刷新）。", {}, () => {
+  toolI(server, startupRoot, "regenerate_dashboard", "手动重新生成 PROJECT.md 仪表盘与 changelog.md（正常情况下每次写操作已自动刷新）。", {}, (_args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     refreshDerived(root);
     return "✅ PROJECT.md 与 changelog.md 已重新生成。";
   });
 }
 
-export function registerRoadmapTools(server: McpServer, root: string): void {
+export function registerRoadmapTools(server: McpServer, startupRoot: string): void {
   toolW<{ title: string; goal?: string }>(
-    server, root,
+    server, startupRoot,
     "add_milestone",
     "添加里程碑（M1/M2…，按顺序自动编号）。路线图的骨架；任务挂到里程碑上。",
     { title: z.string().min(1), goal: z.string().optional().describe("这个里程碑要达成什么") },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const data = loadRoadmap(root);
       const id = `M${data.seq + 1}`;
@@ -239,7 +314,7 @@ export function registerRoadmapTools(server: McpServer, root: string): void {
   );
 
   toolW<{ id: string; status?: "planned" | "active" | "done" | "paused"; title?: string; goal?: string; order?: number }>(
-    server, root,
+    server, startupRoot,
     "update_milestone",
     "更新里程碑（状态流转 planned/active/done/paused、标题、目标、顺序）。",
     {
@@ -249,7 +324,8 @@ export function registerRoadmapTools(server: McpServer, root: string): void {
       goal: z.string().optional(),
       order: z.number().int().optional(),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const data = loadRoadmap(root);
       const m = data.milestones.find((x) => x.id === args.id);
@@ -277,11 +353,12 @@ export function registerRoadmapTools(server: McpServer, root: string): void {
   );
 
   toolR<{ depth?: number }>(
-    server, root,
+    server, startupRoot,
     "get_roadmap",
     "查看路线图。depth=1 每个里程碑一行摘要（功能再多也不乱）；depth=2 额外展开活跃里程碑的任务明细与断点。",
     { depth: z.number().int().min(1).max(2).optional().describe("默认 1") },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const { milestones } = loadRoadmap(root);
       const { tasks } = loadTasks(root);

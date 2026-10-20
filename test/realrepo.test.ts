@@ -33,7 +33,9 @@ test("真实 .pm 全账本通过 schema 校验（自家数据先合规）", () =
   assert.equal(p.license, "MIT");
   assert.ok(p.modules.includes("src"));
   const roadmap = loadRoadmap(REPO);
-  assert.deepEqual(roadmap.milestones.map((m) => m.id), ["M1", "M2"]);
+  const mids = roadmap.milestones.map((m) => m.id);
+  mids.forEach((id, i) => assert.equal(id, `M${i + 1}`, `里程碑应从 M1 起按序编号，实际 ${id}@${i}`));
+  assert.ok(mids.includes("M2"), "M2 应在账");
   const tasks = loadTasks(REPO);
   assert.ok(tasks.tasks.length >= 12, `真实任务数 ${tasks.tasks.length}`);
   const features = loadFeatures(REPO).features;

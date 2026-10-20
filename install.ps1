@@ -1,12 +1,12 @@
 [CmdletBinding()]
 param(
-  [ValidateSet("zcode", "cursor", "codex", "claude", "vscode", "workbuddy", "print")]
+  [ValidateSet("zcode", "cursor", "codex", "claude", "vscode", "workbuddy", "qoder", "print")]
   [string]$Client = "zcode",
   [string]$ConfigPath
 )
 
 $ErrorActionPreference = "Stop"
-$packageSpec = "@luckychen1993/pm-mcp@0.3.0"
+$packageSpec = "@luckychen1993/pm-mcp@0.6.0"
 $serverName = "pm-mcp"
 
 function Assert-NodeVersion {
@@ -31,7 +31,7 @@ function Add-PropertyIfMissing {
 }
 
 function Set-JsonServer {
-  param([string]$Path, [ValidateSet("zcode", "standard")][string]$Shape)
+  param([string]$Path, [ValidateSet("zcode", "standard")][string]$Shape, [string[]]$ExtraArgs = @())
 
   $fullPath = [IO.Path]::GetFullPath($Path)
   $directory = Split-Path -Parent $fullPath
@@ -57,7 +57,7 @@ function Set-JsonServer {
 
   $definition = [pscustomobject]@{
     command = "npx"
-    args = @("-y", $packageSpec)
+    args = @("-y", $packageSpec) + $ExtraArgs
     env = [pscustomobject]@{}
   }
   if ($servers.PSObject.Properties[$serverName]) {
@@ -119,6 +119,20 @@ switch ($Client) {
       & codex mcp add $serverName -- npx -y $packageSpec
       if ($LASTEXITCODE -ne 0) { throw "codex mcp add failed with exit code $LASTEXITCODE." }
     }
+  }
+  "qoder" {
+    # Config path priority: QODER_CONFIG_DIR -> ~/.qoder-cn (China) -> ~/.qoder (international)
+    if (-not $ConfigPath) {
+      $qoderDir = if ($env:QODER_CONFIG_DIR) { $env:QODER_CONFIG_DIR }
+        elseif (Test-Path -LiteralPath (Join-Path $HOME ".qoder-cn")) { Join-Path $HOME ".qoder-cn" }
+        elseif (Test-Path -LiteralPath (Join-Path $HOME ".qoder")) { Join-Path $HOME ".qoder" }
+        else { Join-Path $HOME ".qoder-cn" }
+      $ConfigPath = Join-Path $qoderDir "settings.json"
+    }
+    # Intentionally omits --root: Qoder spawns one resident child process shared by all
+    # windows, so the launch adapter claims the caller's workspace per request.
+    Set-JsonServer $ConfigPath "standard" -ExtraArgs @("launch")
+    Write-Host "Note: restart Qoder or /mcp reload, then call pm-mcp get_status to confirm the project root."
   }
   "claude" {
     Assert-Command "claude"

@@ -1,5 +1,5 @@
 {
-  "seq": 61,
+  "seq": 68,
   "tasks": [
     {
       "id": "T-001",
@@ -1803,23 +1803,45 @@
       "title": "git 对账应尊重 project.json scan_ignore（客户端运行时目录不再误报）",
       "detail": "gitAudit 的变更清单目前只排除 .pm/PROJECT.md/.gitignore，不消费 scan_ignore——导致被项目显式排除的运行时目录（如 .workbuddy-ai/）的变更反复被点名。修法：git-state.ts 的 changedGitFiles 或 gitAudit 过滤时应用 ignoreMatcher(projectScanIgnores(root))",
       "type": "fix",
-      "status": "backlog",
+      "status": "done",
       "priority": "P2",
       "milestone": null,
-      "steps": [],
-      "checkpoint": null,
+      "steps": [
+        {
+          "text": "在 changedGitFiles 应用 projectScanIgnores/ignoreMatcher",
+          "done": false
+        },
+        {
+          "text": "补充 scan_ignore Git 对账回归测试",
+          "done": false
+        },
+        {
+          "text": "运行定向与全量质量验证",
+          "done": false
+        },
+        {
+          "text": "完成任务台账与会话收尾",
+          "done": false
+        }
+      ],
+      "checkpoint": {
+        "note": "changedGitFiles 现按文件及父目录应用 project scan_ignore；新增 Git 对账回归覆盖忽略、恢复和普通源码保留。",
+        "next_step": "无；T-055 已完成并通过定向及全量验证。",
+        "at": "2026-09-19T07:33:26.771Z"
+      },
       "files": [
-        "src/git-state.ts"
+        "src/git-state.ts",
+        "test/management-upgrade.test.ts"
       ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "完成：git 对账现在读取 project.json 的 scan_ignore，并按文件自身及父目录过滤变更；重命名两端同样生效。新增回归验证忽略运行时嵌套文件、保留普通源码、清空规则后恢复检测。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-073230-774-0000.json\n报告 SHA-256: f30a25da723d9a83a667e3753a8ce6d0d1542d02a99fb98373d07144ad4da870\n源码 SHA-256: 8e4b696cec3ccf9ad10d8ff4b7c71b0d5952891711c6feda3430db08fd0ddf40\n执行时间: 2026-09-19T07:32:30.774Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: npm run typecheck；npm test（325/325 passed）；定向 management-upgrade.test.ts（8/8 passed）",
       "tags": [],
       "author": "",
       "created": "2026-09-19T02:09:30.147Z",
-      "updated": "2026-09-19T02:09:30.147Z",
-      "started_at": null,
-      "completed_at": null
+      "updated": "2026-09-19T07:33:26.771Z",
+      "started_at": "2026-09-19T07:25:59.496Z",
+      "completed_at": "2026-09-19T07:33:26.771Z"
     },
     {
       "id": "T-056",
@@ -2064,6 +2086,298 @@
       "updated": "2026-09-19T05:37:05.780Z",
       "started_at": null,
       "completed_at": "2026-09-19T05:37:05.780Z"
+    },
+    {
+      "id": "T-062",
+      "title": "发布 launch 子命令与 --client qoder 到 npm，并给 install.ps1 补 qoder 分支",
+      "detail": "npm 上的 0.5.0 还不含 pm-mcp launch 与 --client qoder，README 里发布版 npx 写法要等下一次 release 才真正可用；install.ps1 的 ValidateSet 与分支也尚未加 qoder（其 packageSpec 还钉在 0.3.0）。",
+      "type": "debt",
+      "status": "backlog",
+      "priority": "P2",
+      "milestone": null,
+      "steps": [],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [
+        "release",
+        "clients"
+      ],
+      "author": "",
+      "created": "2026-09-19T15:04:10.142Z",
+      "updated": "2026-09-19T15:04:10.142Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-063",
+      "title": "Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器",
+      "detail": "目标：一条用户级 MCP 配置就能在 Qoder 的每个工作区会话里解析到正确的项目根。resolveRoot 增加客户端工作区提示（QODER_WORKER_CWD）与未插值 ${VAR} 占位符防护；新增 dist/qoder-launch.js 适配器，按 env → 本会话 qodercli 运行日志（-p<父进程号> 目录里的 initial_cwd）解析后钉 --root，取不到就拒绝猜根；setup/doctor 支持 --client qoder，cli 增加 launch 子命令；get_status 与启动横幅报告解析依据。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "resolveRoot 增加工作区提示与未插值占位符防护，并报告解析依据",
+          "done": true
+        },
+        {
+          "text": "新增 qoder-launch 适配器（env → 会话运行日志 initial_cwd，按 ppid 精确匹配）",
+          "done": true
+        },
+        {
+          "text": "cli 增加 launch 子命令；setup/doctor 支持 --client qoder；isLocalServerEntry 认适配器入口",
+          "done": true
+        },
+        {
+          "text": "补 11 个用例并过 coverage 门槛（336/336，exit 0）",
+          "done": true
+        },
+        {
+          "text": "README 写清 Qoder 接入、核验方式与未发布依赖",
+          "done": true
+        },
+        {
+          "text": "Qoder 真机 /mcp reload 后用 get_status 复核项目根与依据",
+          "done": true
+        }
+      ],
+      "checkpoint": {
+        "note": "代码/测试/文档/真机配置全部落地：coverage 336 通过、doctor --client qoder 返回 ok:true 且 root 正确、用户级配置已由 setup --client qoder --local 写成 dist/qoder-launch.js 一条（其他 server 保留，写前有备份）。",
+        "next_step": "在 Qoder 里执行 /mcp reload，调用 get_status 核对项目根与解析依据（预期 root=E:\\通用型项目管理、依据 --root）；若依据为 cwd，则说明 Qoder 的 MCP 子进程 ppid 与运行日志目录的 -p<pid> 不对应，据此再改适配器解析顺序。",
+        "at": "2026-09-19T15:05:35.206Z"
+      },
+      "files": [
+        "src/paths.ts",
+        "src/qoder-launch.ts",
+        "src/index.ts",
+        "src/project-tools.ts",
+        "src/setup.ts",
+        "src/setup-project.ts",
+        "src/doctor.ts",
+        "src/cli.ts",
+        "test/qoder-launch.test.ts",
+        "test/setup.test.ts",
+        "test/tooling-coverage.test.ts",
+        "README.md"
+      ],
+      "acceptance": "npm run coverage 全绿且门槛通过；node dist/cli.js doctor --root . --client qoder 返回 ok:true 且 runtime.root 为目标项目；Qoder 重连后 get_status 报告项目根与解析依据。",
+      "result_note": "Qoder 真实派生的新会话已实测通过：新建独立会话调用 mcp__pm_mcp__get_status 返回 root=E:\\通用型项目管理、root_source=--root、version 0.5.0，证明用户级一条配置（node .../dist/qoder-launch.js，不带 --root）在 Qoder 里能起服务并把项目根钉到当前工作区。换工作区验证同一条配置：QODER_WORKER_CWD 指向 unified-ai-system 时 root 随之切换，各工作区各归各账本。当前这个会话需 /mcp reload 才会拿到连接。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260919-151701-225-0000.json\n报告 SHA-256: bd12d73d487c12b418bec3bc15a56b0f1b3c83bd5c174fe267bebecfd602ca97\n源码 SHA-256: a7eb41b8276cf37db117537e96677892284cf48bd71f4b58589fb0f5a3562d06\n执行时间: 2026-09-19T15:17:01.225Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: quality-gate PASS（test/build/typecheck/coverage 全过，336/336）；node dist/cli.js doctor --root . --client qoder → ok:true/54 工具；新 Qoder 会话 get_status → root_source=--root；跨工作区 spawn 验证 root 随工作区切换。",
+      "tags": [],
+      "author": "",
+      "created": "2026-09-19T15:04:57.169Z",
+      "updated": "2026-09-19T15:18:57.598Z",
+      "started_at": "2026-09-19T15:05:35.206Z",
+      "completed_at": "2026-09-19T15:18:57.598Z"
+    },
+    {
+      "id": "T-064",
+      "title": "修复 Qoder 多窗口共用常驻进程时项目根被启动期定格（改为按请求认领）",
+      "detail": "症状：用户在 unified-ai-system 窗口调 get_status，拿到的却是 root=E:\\通用型项目管理 且 root_source=--root，返回里只有 runtime 段。真因：Qoder 只派生一个常驻 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，当天三个不同 session token 共用同一 server uuid），而 root 在启动时解析一次并被闭包进全部 54 个工具；ADR-005 靠的 ppid 匹配也不成立（所有 run 日志都是 -p30056）。另：适配器把动态解析结果以 --root 传下去，把真实来历抹成了「--root」；structuredContent 只放 runtime，而 Qoder 的 mcp_call 只呈现 structuredContent。",
+      "type": "fix",
+      "status": "done",
+      "priority": "P0",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "取证：活进程表 + run manifest + 日志，确认单常驻进程、ppid 不可用、structuredContent 只放 runtime",
+          "done": true
+        },
+        {
+          "text": "新增 src/caller-workspace.ts：请求指纹倒扫日志认领调用方工作区，歧义不猜",
+          "done": true
+        },
+        {
+          "text": "tool-base 改为每次调用构造 RequestContext；11 个 registrar 形参改名 startupRoot 让编译器兜底",
+          "done": true
+        },
+        {
+          "text": "适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)；显式钉根时不标记适配器",
+          "done": true
+        },
+        {
+          "text": "get_status structuredContent 补全状态；资源也改为按请求解析根",
+          "done": true
+        },
+        {
+          "text": "新增/改写测试，包含一个常驻进程服务两个项目的端到端用例；全量测试 + tsc 干净",
+          "done": true
+        },
+        {
+          "text": "用 dist 真实派生跑通两工作区场景，采集真实证据",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/caller-workspace.ts",
+        "src/tool-base.ts",
+        "src/qoder-launch.ts",
+        "src/paths.ts",
+        "src/project-tools.ts",
+        "src/index.ts",
+        "src/governance-tools.ts",
+        "src/audit-tools.ts",
+        "src/knowledge-tools.ts",
+        "src/acceptance-tools.ts",
+        "src/task-tools.ts",
+        "test/caller-workspace.test.ts",
+        "test/qoder-launch.test.ts",
+        "README.md"
+      ],
+      "acceptance": "1) 用 dist/qoder-launch.js 真实派生、QODER_WORKER_CWD 指向 A、会话指纹写在 B 的日志里时，get_status 返回 root=B、root_source=qoder-session-log(request-match)；2) structuredContent 包含 project/milestones/focus/health/last_session；3) 未标记适配器时（CLI/ZCode）行为不变；4) 歧义时不猜、列出候选；5) tsc 干净、全量测试通过。",
+      "result_note": "补充：README 里那段描述 ppid 精确匹配、并声称「取到就以 --root 钉给服务器」的说明已被实测推翻，正是它误导了上一轮修复，已重写为「常驻子进程被所有窗口共用 + 按请求认领」的真实机制，并补全 root 工具参数、PM_MCP_CLIENT_ADAPTER、PM_MCP_ROOT_HINT(_SOURCE) 与新的认领顺序；同时标注了「跳过适配器直接钉 --root」在多窗口下会读到错项目。因为 README 在项目指纹范围内，改完重跑了 quality gate 以确保证据与当前源码一致。其余结论与修法不变。",
+      "verification": "质量报告: .pm/quality-runs/quality-20260920-042415-850-0000.json\n报告 SHA-256: ca9c63f5ec3c37ebb0a8f4cc864e8129eebd82a9e2e9aa9ea97f9b93806ab5ec\n源码 SHA-256: 659ff0015921c6467bad5904901b67e23b152da08a51d029b1b4d7de2862a7c4\n执行时间: 2026-09-20T04:24:15.850Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: npm run quality → PASS（最新报告 .pm/quality-runs/quality-20260920-042415-850-0000.json，test/build/typecheck/coverage 四项全过，351 个测试）；test/caller-workspace.test.ts 14 例全过，含一个常驻进程同时面对 A/B 两项目的端到端用例；用 npm run build 后的 dist/qoder-launch.js 按 Qoder 方式真实派生跑完整 initialize+tools/call，结构化返回 root=B、root_source=qoder-session-log(request-match)；并用 2026-09-20 两条真实调用回放真实日志，分别解析出 unified-ai-system 与 E:\\通用型项目管理。",
+      "tags": [],
+      "author": "qoder",
+      "created": "2026-09-20T04:12:55.089Z",
+      "updated": "2026-09-20T04:24:27.236Z",
+      "started_at": null,
+      "completed_at": "2026-09-20T04:19:22.284Z"
+    },
+    {
+      "id": "T-065",
+      "title": "git 对账健壮性：spawnSync git ENOENT 时 fallback 解析 git 路径",
+      "detail": "audit_structure 显示 git status 对账 spawnSync git ENOENT fail-closed，某些宿主进程 PATH 无 git 时该对账恒红。给 git-state.ts 加 git 可执行文件 fallback（常见安装路径探测 / where git win32 优先），保证对账可用。",
+      "type": "fix",
+      "status": "backlog",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "定位 git-state.ts 中 spawnSync git 的调用点",
+          "done": false
+        },
+        {
+          "text": "实现 git 可执行文件解析（PATH → where git → 常见安装路径）并缓存",
+          "done": false
+        },
+        {
+          "text": "补测试覆盖 PATH 缺 git 的场景",
+          "done": false
+        },
+        {
+          "text": "跑测试验证对账不再 fail-closed",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-20T14:45:01.212Z",
+      "updated": "2026-10-20T14:45:01.212Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-066",
+      "title": "update_task 验证拦截报错附下一步指引",
+      "detail": "使用日志显示 update_task 8 次失败，几乎都是\"源码已变化，证据过期\"/\"必须使用最新质量报告\"类验证拦截。拦截正确，但报错应附下一步指引（先跑 run_quality_matrix 刷新证据，再 update_task(done)），减少 AI 重试碰壁。",
+      "type": "fix",
+      "status": "backlog",
+      "priority": "P2",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "定位 task-tools.ts 中证据过期/绕过验证的报错点",
+          "done": false
+        },
+        {
+          "text": "报错文本追加可执行的下一步指引",
+          "done": false
+        },
+        {
+          "text": "补/改断言覆盖报错文案",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-20T14:45:01.777Z",
+      "updated": "2026-10-20T14:45:01.777Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-067",
+      "title": "重构 index.ts：工具注册按域拆模块，消除散弹式修改热点",
+      "detail": "index.ts 被 16 个会话波及，是散弹式修改热点。把工具注册按域拆成注册模块（knowledge/task/audit/governance/acceptance 等），index.ts 只保留装配与启动。同时补齐 M2 重构配额（当前 17% 低于 20%）。",
+      "type": "refactor",
+      "status": "backlog",
+      "priority": "P1",
+      "milestone": "M2",
+      "steps": [
+        {
+          "text": "盘点 index.ts 各域注册代码块边界",
+          "done": false
+        },
+        {
+          "text": "按域拆出注册模块并在 index.ts 装配",
+          "done": false
+        },
+        {
+          "text": "跑测试确认 49 工具契约不变",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-20T14:45:02.302Z",
+      "updated": "2026-10-20T14:45:02.302Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "T-068",
+      "title": "测试账本小项：skip/only 标记复查 + 空测试 fixtures 误报排除",
+      "detail": "audit_structure 报 skip/only 标记 4 处需复查是否仍有效；test/fixtures/raw-mcp-server.mjs 是 fixture 被空测试检测误报，给 audit-tools.ts 空测试检测排除 fixtures 目录。",
+      "type": "chore",
+      "status": "backlog",
+      "priority": "P3",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "复查 4 处 skip/only 标记",
+          "done": false
+        },
+        {
+          "text": "空测试检测排除 test/fixtures",
+          "done": false
+        },
+        {
+          "text": "跑测试与 audit_structure 验证告警消除",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [],
+      "acceptance": "",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-20T14:45:02.425Z",
+      "updated": "2026-10-20T14:45:02.425Z",
+      "started_at": null,
+      "completed_at": null
     }
   ]
 }

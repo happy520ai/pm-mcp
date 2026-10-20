@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { normSep } from "./budget.ts";
 import { hashRegularFile } from "./project-fingerprint.ts";
+import { ignoreMatcher, projectScanIgnores } from "./scan-policy.ts";
 
 export function projectFilePath(relative: string): string {
   const rel = path.posix.normalize(normSep(relative));
@@ -13,15 +14,55 @@ export function projectFilePath(relative: string): string {
   return rel;
 }
 
+let gitCommandCache: string | null | undefined;
+
+/** PATH 缺 git 的宿主进程（对账 fail-closed 恒红）按常见安装路径兜底解析并缓存。 */
+export function resolveGitCommand(): string | null {
+  if (gitCommandCache !== undefined) return gitCommandCache;
+  const probe = (command: string): boolean =>
+    spawnSync(command, ["--version"], { encoding: "utf8", timeout: 5000, windowsHide: true }).status === 0;
+  if (probe("git")) {
+    gitCommandCache = "git";
+  } else if (process.platform === "win32") {
+    const where = spawnSync("where", ["git"], { encoding: "utf8", timeout: 5000, windowsHide: true });
+    const located = where.status === 0 ? where.stdout.split(/\r?\n/).find(Boolean)?.trim() : undefined;
+    const programFiles = process.env["ProgramFiles"] ?? "C:\\Program Files";
+    const candidates = [
+      ...(located ? [located] : []),
+      path.join(programFiles, "Git", "cmd", "git.exe"),
+      "C:\\Program Files (x86)\\Git\\cmd\\git.exe",
+      path.join(process.env["LOCALAPPDATA"] ?? "", "Programs", "Git", "cmd", "git.exe"),
+    ];
+    gitCommandCache = candidates.find((candidate) => candidate && fs.existsSync(candidate) && probe(candidate)) ?? null;
+  } else {
+    gitCommandCache = ["/usr/bin/git", "/usr/local/bin/git", "/opt/homebrew/bin/git"].find((candidate) => probe(candidate)) ?? null;
+  }
+  return gitCommandCache;
+}
+
+/** 仅测试用：清空解析缓存，模拟不同 PATH 环境。 */
+export function resetGitCommandCache(): void {
+  gitCommandCache = undefined;
+}
+
 /** 使用 NUL 分隔，避免中文转义、空格及文件名中的箭头被误解析。 */
 export function changedGitFiles(root: string): string[] {
-  const result = spawnSync("git", ["status", "--porcelain=v1", "-z", "-uall"], { cwd: root, encoding: "utf8", timeout: 10000, maxBuffer: 16 * 1024 * 1024 });
+  const excluded = ignoreMatcher(projectScanIgnores(root));
+  const git = resolveGitCommand();
+  if (!git) throw new Error("找不到 git 可执行文件（PATH 与常见安装路径均未命中），git 对账不可用");
+  const result = spawnSync(git, ["status", "--porcelain=v1", "-z", "-uall"], { cwd: root, encoding: "utf8", timeout: 10000, maxBuffer: 16 * 1024 * 1024 });
   if (result.error || result.status !== 0) throw new Error(result.error?.message ?? `git status 退出码 ${result.status}`);
   const records = result.stdout.split("\0");
   const changed = new Set<string>();
   const add = (file: string) => {
     const rel = projectFilePath(file);
-    if (!rel.startsWith(".pm/") && rel !== "PROJECT.md" && rel !== ".gitignore") changed.add(rel);
+    const parts = rel.split("/");
+    if (
+      !rel.startsWith(".pm/") &&
+      rel !== "PROJECT.md" &&
+      rel !== ".gitignore" &&
+      !parts.some((_, index) => excluded(parts.slice(0, index + 1).join("/"), index < parts.length - 1))
+    ) changed.add(rel);
   };
   for (let i = 0; i < records.length; i++) {
     const row = records[i];

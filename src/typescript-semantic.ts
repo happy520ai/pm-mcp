@@ -32,6 +32,18 @@ function stringValue(node: ts.Node | undefined): string | null {
   return node && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) ? node.text : null;
 }
 
+function insideEvidenceProperty(node: ts.StringLiteralLike): boolean {
+  let current: ts.Node = node;
+  while (current.parent && (ts.isArrayLiteralExpression(current.parent) || ts.isSpreadElement(current.parent))) {
+    current = current.parent;
+  }
+  const parent = current.parent;
+  if (!parent || !ts.isPropertyAssignment(parent)) return false;
+  const name = parent.name;
+  const text = ts.isIdentifier(name) || ts.isStringLiteral(name) ? name.text : undefined;
+  return text !== undefined && /evidence/i.test(text);
+}
+
 function bindingNames(name: ts.BindingName): string[] {
   if (ts.isIdentifier(name)) return [name.text];
   return name.elements.flatMap((element) => ts.isOmittedExpression(element) ? [] : bindingNames(element.name));
@@ -237,14 +249,20 @@ export function analyzeTypeScriptSource(rel: string, content: string): TypeScrip
       const firstArgument = stringValue(node.arguments?.[0]);
       if (firstArgument && /(?:Client|Stub)$/.test(expressionPath(node.expression))) addReference(node, "grpc", firstArgument, 0.86);
     } else if (ts.isStringLiteralLike(node)) {
-      const value = node.text;
-      const pathPart = value.split("#", 1)[0].replace(/\\/g, "/");
-      const basename = pathPart.split("/").at(-1) ?? "";
-      // Extension constants such as ".proto" are metadata, not contract links.
-      // Requiring a real basename keeps AST evidence precise while still
-      // accepting both nearby files (service.proto) and relative paths.
-      if (/^[^.\s][^/\s]*\.(?:proto|graphql|gql)$/i.test(basename)) addReference(node, "contract", value, 0.98, true);
-      else if (/^[^.\s][^/\s]*(?:openapi|swagger|asyncapi|contracts?|schemas?)[^/\s]*\.(?:ya?ml|json)$/i.test(basename)) addReference(node, "contract", value, 0.95, true);
+      // Structured evidence fields (evidenceRef / lastEvidenceRef / evidence: [...]) carry
+      // data payloads pointing at evidence artifacts, not module specifiers; a path value
+      // like "apps/<pkg>/evidence/...-schema.json" must not become a contract link
+      // (upstream report T-095: phantom taiji-beidou-engine -> ai-gateway-service edge).
+      if (!insideEvidenceProperty(node)) {
+        const value = node.text;
+        const pathPart = value.split("#", 1)[0].replace(/\\/g, "/");
+        const basename = pathPart.split("/").at(-1) ?? "";
+        // Extension constants such as ".proto" are metadata, not contract links.
+        // Requiring a real basename keeps AST evidence precise while still
+        // accepting both nearby files (service.proto) and relative paths.
+        if (/^[^.\s][^/\s]*\.(?:proto|graphql|gql)$/i.test(basename)) addReference(node, "contract", value, 0.98, true);
+        else if (/^[^.\s][^/\s]*(?:openapi|swagger|asyncapi|contracts?|schemas?)[^/\s]*\.(?:ya?ml|json)$/i.test(basename)) addReference(node, "contract", value, 0.95, true);
+      }
     } else if (ts.isTaggedTemplateExpression(node) && /^(?:gql|graphql)$/.test(expressionPath(node.tag))) {
       addReference(node, "contract", "inline GraphQL", 0.96);
     }

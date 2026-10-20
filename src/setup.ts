@@ -13,7 +13,7 @@ export { PACKAGE_SPEC, SERVER_NAME } from "./version.ts";
 import { appendCodexProjectConfig } from "./setup-project.ts";
 export { appendCodexProjectConfig, codexProjectServerKey } from "./setup-project.ts";
 
-export type SetupClient = "auto" | "all" | "codex" | "claude" | "zcode" | "cursor" | "vscode" | "workbuddy" | "print";
+export type SetupClient = "auto" | "all" | "codex" | "claude" | "zcode" | "cursor" | "vscode" | "workbuddy" | "qoder" | "print";
 type ConcreteClient = Exclude<SetupClient, "auto" | "all" | "print">;
 
 export interface SetupOptions {
@@ -35,7 +35,7 @@ export interface DetectionContext {
   exists: (target: string) => boolean;
 }
 
-const CLIENTS: ConcreteClient[] = ["codex", "claude", "zcode", "cursor", "vscode", "workbuddy"];
+const CLIENTS: ConcreteClient[] = ["codex", "claude", "zcode", "cursor", "vscode", "workbuddy", "qoder"];
 
 export function parseSetupArgs(argv: string[]): SetupOptions {
   const options: SetupOptions = { client: "auto", force: false, dryRun: false, help: false, project: false };
@@ -43,8 +43,8 @@ export function parseSetupArgs(argv: string[]): SetupOptions {
     const arg = argv[index];
     if (arg === "--client") {
       const value = argv[index + 1] as SetupClient | undefined;
-      if (!value || !["auto", "all", "codex", "claude", "zcode", "cursor", "vscode", "workbuddy", "print"].includes(value)) {
-        throw new Error("--client must be auto, all, codex, claude, zcode, cursor, vscode, workbuddy, or print");
+      if (!value || !["auto", "all", "codex", "claude", "zcode", "cursor", "vscode", "workbuddy", "qoder", "print"].includes(value)) {
+        throw new Error("--client must be auto, all, codex, claude, zcode, cursor, vscode, workbuddy, qoder, or print");
       }
       options.client = value;
       index += 1;
@@ -67,7 +67,7 @@ export function parseSetupArgs(argv: string[]): SetupOptions {
       throw new Error(`unknown setup argument: ${arg}`);
     }
   }
-  if (options.local && options.client !== "codex" && options.client !== "workbuddy" && options.client !== "print") throw new Error("--local 目前只支持 --client codex、workbuddy 或 print");
+  if (options.local && !["codex", "workbuddy", "qoder", "print"].includes(options.client)) throw new Error("--local 目前只支持 --client codex、workbuddy、qoder 或 print");
   if (options.local && options.client === "codex" && !options.project) throw new Error("Codex --local 需要 --project 明确项目根");
   return options;
 }
@@ -114,6 +114,8 @@ export function detectClients(context: DetectionContext): ConcreteClient[] {
   if (context.commandExists("code")) found.push("vscode");
   // WorkBuddy 桌面版：`codebuddy`/`workbuddy` 命令、WORKBUDDY_CONFIG_DIR，或既有配置目录任一命中即视为已安装。
   if (context.commandExists("workbuddy") || context.commandExists("codebuddy") || Boolean(env.WORKBUDDY_CONFIG_DIR) || exists(path.join(home, ".workbuddy-ai")) || exists(path.join(home, ".workbuddy"))) found.push("workbuddy");
+  // Qoder：CLI 命令、QODER_CONFIG_DIR，或既有数据目录任一命中即视为已安装。
+  if (context.commandExists("qoder") || context.commandExists("qoderclicn") || Boolean(env.QODER_CONFIG_DIR) || exists(path.join(home, ".qoder-cn")) || exists(path.join(home, ".qoder"))) found.push("qoder");
   return found;
 }
 
@@ -213,6 +215,28 @@ export function workbuddyConfigPath(env: NodeJS.ProcessEnv, home: string, exists
   return path.join(current, "mcp.json");
 }
 
+/**
+ * Qoder 用户级 MCP 配置路径：`QODER_CONFIG_DIR` → `~/.qoder-cn` → `~/.qoder`。
+ *
+ * Qoder 拉起 MCP 子进程时 cwd 是安装目录，所以条目指向 `dist/qoder-launch.js` 适配器，
+ * 由它按会话解析工作区后再钉 `--root`；配置本身同样不钉根，一条服务所有工作区。
+ */
+export function qoderConfigPath(env: NodeJS.ProcessEnv, home: string, exists: (target: string) => boolean): string {
+  if (env.QODER_CONFIG_DIR) return path.join(env.QODER_CONFIG_DIR, "settings.json");
+  const cn = path.join(home, ".qoder-cn");
+  if (exists(cn)) return path.join(cn, "settings.json");
+  const intl = path.join(home, ".qoder");
+  if (exists(intl)) return path.join(intl, "settings.json");
+  return path.join(cn, "settings.json");
+}
+
+/** 本包已构建的 Qoder 适配器入口 */
+export function localQoderLaunch(): JsonServerLaunch {
+  const entry = fileURLToPath(new URL("../dist/qoder-launch.js", import.meta.url));
+  if (!fs.existsSync(entry) || !fs.lstatSync(entry).isFile()) throw new Error("本地入口未构建，请先 npm run build。");
+  return { command: process.execPath, args: [entry] };
+}
+
 function hasCodexServer(text: string): boolean {
   return /^\s*\[mcp_servers\.(?:pm-mcp|"pm-mcp")\]\s*$/m.test(text);
 }
@@ -302,6 +326,15 @@ function configureClient(
     if (backup) log(`[backup] ${backup}`);
     return;
   }
+  if (client === "qoder") {
+    const file = qoderConfigPath(context.env, context.home, context.exists);
+    log(`[${options.dryRun ? "plan" : "write"}] qoder: ${file}`);
+    // 发布版走 `pm-mcp launch` 适配器入口；--local 绑定本包已构建的 dist/qoder-launch.js。
+    const launch = options.local ? localQoderLaunch() : { command: "npx", args: ["-y", PACKAGE_SPEC, "launch"] };
+    const backup = writeJsonClientConfig(file, "standard", options.dryRun, launch);
+    if (backup) log(`[backup] ${backup}`);
+    return;
+  }
   if (!context.commandExists("code")) throw new Error("code was not found in PATH");
   const definition = JSON.stringify({ name: SERVER_NAME, command: "npx", args: ["-y", PACKAGE_SPEC] });
   log(`[${options.dryRun ? "plan" : "run"}] code --add-mcp ${definition}`);
@@ -311,11 +344,12 @@ function configureClient(
 function printHelp(log: (message: string) => void): void {
   log("pm-mcp setup — configure local AI coding clients");
   log("");
-  log(`Usage: npx -y ${PACKAGE_SPEC} setup [--client auto|all|codex|claude|zcode|cursor|vscode|workbuddy|print] [--project [dir]] [--force] [--dry-run] [--local]`);
+  log(`Usage: npx -y ${PACKAGE_SPEC} setup [--client auto|all|codex|claude|zcode|cursor|vscode|workbuddy|qoder|print] [--project [dir]] [--force] [--dry-run] [--local]`);
   log("Default auto mode configures every detected supported client.");
   log("--project [dir]: 在 Codex 把该目录注册为钉定项目并初始化 .pm（新项目一条命令上手；默认当前目录）");
   log("--local: 使用本包已构建的本地入口，适合未发布候选；--force 仅升级已确认项目的 command/args。");
   log("workbuddy: 写入 <WorkBuddy 数据目录>/mcp.json（标准 mcpServers），不钉根——服务端按会话工作区解析项目根。");
+  log("qoder: 写入 <QODER_CONFIG_DIR|~/.qoder-cn>/settings.json，条目指向 qoder-launch 适配器；它按会话取工作区，一条配置服务所有项目。");
   log("升级后运行 pm-mcp doctor --root <项目目录> 核验；现有客户端仍需重新连接。");
 }
 
@@ -382,10 +416,13 @@ export function runSetup(
     log("完成。请完全退出并重启 Codex，开新会话即可使用（工具名前缀 pm-mcp-<项目名>）。");
   } else if (selected.length === 1 && selected[0] === "workbuddy") {
     log("完成。请在 WorkBuddy 的「连接器管理 → 自定义连接器」中确认信任 pm-mcp，再重开会话调用 get_status 核验。");
+  } else if (selected.length === 1 && selected[0] === "qoder") {
+    log("完成。请在 Qoder 里执行 /mcp reload（或重开会话）并确认信任提示，再调用 get_status 核验项目根与解析依据。");
   } else {
     // 多客户端时逐条给出各自的重连/授权要求，避免只提其中一个造成误导。
     const notes: string[] = [];
     if (selected.includes("workbuddy")) notes.push("WorkBuddy 需在「连接器管理 → 自定义连接器」确认信任 pm-mcp");
+    if (selected.includes("qoder")) notes.push("Qoder 需 /mcp reload 并确认信任");
     if (selected.includes("codex")) notes.push("Codex 需完全退出并重启");
     log(notes.length > 0
       ? `完成。重启已配置的客户端后调用 get_status 核验；${notes.join("；")}。`

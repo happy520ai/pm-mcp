@@ -10,7 +10,7 @@
       "status": "accepted",
       "note": "扫描器源码中内置规则的正则样例文本（有意为之），非真实危险调用",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-09-19T03:01:30.375Z"
+      "last_seen": "2026-09-19T07:32:18.619Z"
     },
     {
       "id": "SEC-002",
@@ -22,7 +22,7 @@
       "status": "accepted",
       "note": "扫描器源码中内置规则的正则样例文本（有意为之），非真实危险调用",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-09-19T03:01:30.375Z"
+      "last_seen": "2026-09-19T07:32:18.619Z"
     },
     {
       "id": "SEC-003",
@@ -70,7 +70,7 @@
       "status": "accepted",
       "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-09-19T03:01:30.375Z"
+      "last_seen": "2026-09-19T07:32:18.619Z"
     },
     {
       "id": "SEC-007",
@@ -82,7 +82,7 @@
       "status": "accepted",
       "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-09-19T03:01:30.375Z"
+      "last_seen": "2026-09-19T07:32:18.619Z"
     },
     {
       "id": "SEC-008",
@@ -92,7 +92,7 @@
       "line": 34,
       "fingerprint": "505b98057391464d",
       "status": "accepted",
-      "note": "测试 fixture 中的伪造样本值（AWS 官方文档公开示例 key，见测试文件内注释），用于验证扫描器检出能力，非真实凭据",
+      "note": "测试用例中的固定占位 token 仅用于验证 public search 的显式鉴权参数传递，不是真实凭据；不进入生产代码。",
       "first_seen": "2026-09-02T03:30:50.344Z",
       "last_seen": "2026-09-03T01:03:55.757Z"
     },
@@ -191,7 +191,19 @@
       "note": "疑似硬编码凭据赋值（自动：最近一次扫描未再检出）",
       "first_seen": "2026-09-03T09:06:21.644Z",
       "last_seen": "2026-09-03T09:06:21.644Z"
+    },
+    {
+      "id": "SEC-017",
+      "rule": "secret.generic-assignment",
+      "severity": "medium",
+      "file": "test/public-search.test.ts",
+      "line": 55,
+      "fingerprint": "9c89c7ab5434f7bb",
+      "status": "accepted",
+      "note": "测试用例中的固定占位 token 仅用于验证 public search 的显式鉴权参数传递，不是真实凭据；不进入生产代码。",
+      "first_seen": "2026-09-19T07:32:18.619Z",
+      "last_seen": "2026-09-19T07:32:18.619Z"
     }
   ],
-  "last_scan": "2026-09-19T03:01:30.375Z"
+  "last_scan": "2026-09-19T07:32:18.619Z"
 }

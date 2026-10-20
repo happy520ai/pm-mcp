@@ -5,9 +5,9 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { PACKAGE_SPEC, RUNTIME_CONTRACT, SERVER_NAME, TOOL_CATALOG_SIZE, VERSION } from "./version.ts";
 import { canonicalProjectRoot, findCodexProjectEntry, isLocalLaunch, isLocalServerEntry, isPackageLaunch, readCodexConfig, type ProjectLaunch } from "./setup-project.ts";
-import { localProjectLaunch, workbuddyConfigPath } from "./setup.ts";
+import { localProjectLaunch, qoderConfigPath, workbuddyConfigPath } from "./setup.ts";
 
-export interface DoctorOptions { root: string; entry?: string; config?: string; client?: "codex" | "workbuddy"; }
+export interface DoctorOptions { root: string; entry?: string; config?: string; client?: "codex" | "workbuddy" | "qoder"; }
 export function parseDoctorArgs(argv: string[]): DoctorOptions {
   const options: DoctorOptions = { root: process.cwd() };
   for (let index = 0; index < argv.length; index++) {
@@ -17,7 +17,7 @@ export function parseDoctorArgs(argv: string[]): DoctorOptions {
     if (arg === "--entry") options.entry = path.resolve(value);
     if (arg === "--config") options.config = path.resolve(value);
     if (arg === "--client") {
-      if (value !== "codex" && value !== "workbuddy") throw new Error("doctor 支持 --client codex|workbuddy，其他客户端可用 --entry 验证本地入口。");
+      if (value !== "codex" && value !== "workbuddy" && value !== "qoder") throw new Error("doctor 支持 --client codex|workbuddy|qoder，其他客户端可用 --entry 验证本地入口。");
       options.client = value;
     }
     index++;
@@ -27,25 +27,25 @@ export function parseDoctorArgs(argv: string[]): DoctorOptions {
 }
 
 /**
- * 从 WorkBuddy 的 `mcp.json` 中取出 pm-mcp 条目。
+ * 从标准 `{ "mcpServers": { ... } }` 配置文件（WorkBuddy 的 mcp.json、Qoder 的 settings.json）中取出 pm-mcp 条目。
  *
  * 只读取启动定义（command/args），不复制也不输出任何自定义 env / 凭据。
  * 文件必须是**有界普通文件**：链接、目录、超 2MB 一律拒绝。
  */
-function readWorkbuddyEntry(file: string): ProjectLaunch | undefined {
+function readJsonMcpEntry(file: string, label: string): ProjectLaunch | undefined {
   if (!fs.existsSync(file)) return undefined;
   const stat = fs.lstatSync(file);
-  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 2 * 1024 * 1024) throw new Error("WorkBuddy 配置必须为有界普通文件，禁止链接。");
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 2 * 1024 * 1024) throw new Error(`${label} 配置必须为有界普通文件，禁止链接。`);
   let parsed: unknown;
   try { parsed = JSON.parse(fs.readFileSync(file, "utf8")); }
-  catch (error) { throw new Error(`WorkBuddy 配置不是合法 JSON：${(error as Error).message}`); }
+  catch (error) { throw new Error(`${label} 配置不是合法 JSON：${(error as Error).message}`); }
   const servers = (parsed as { mcpServers?: Record<string, { command?: unknown; args?: unknown; disabled?: unknown }> } | null)?.mcpServers;
   const entry = servers?.[SERVER_NAME];
   if (!entry) return undefined;
-  if (entry.disabled === true) throw new Error("WorkBuddy 中 pm-mcp 条目被禁用，现有客户端不会启动它。");
-  if (typeof entry.command !== "string" || entry.command.length === 0) throw new Error("WorkBuddy 中 pm-mcp 条目缺少可识别的 command。");
+  if (entry.disabled === true) throw new Error(`${label} 中 pm-mcp 条目被禁用，现有客户端不会启动它。`);
+  if (typeof entry.command !== "string" || entry.command.length === 0) throw new Error(`${label} 中 pm-mcp 条目缺少可识别的 command。`);
   const args = entry.args === undefined ? [] : entry.args;
-  if (!Array.isArray(args) || !args.every((value) => typeof value === "string")) throw new Error("WorkBuddy 中 pm-mcp 条目的 args 不是字符串数组。");
+  if (!Array.isArray(args) || !args.every((value) => typeof value === "string")) throw new Error(`${label} 中 pm-mcp 条目的 args 不是字符串数组。`);
   return { command: entry.command, args: args as string[] };
 }
 
@@ -59,15 +59,18 @@ export async function runDoctor(options: DoctorOptions) {
   let launch: ProjectLaunch;
   try {
     if (options.entry) launch = { command: process.execPath, args: [options.entry, "--root", root] };
-    else if (options.client === "workbuddy") {
-      const file = options.config ?? workbuddyConfigPath(process.env, os.homedir(), fs.existsSync);
-      const entry = readWorkbuddyEntry(file);
-      if (!entry) throw new Error("未在 WorkBuddy 的 mcp.json 中找到 pm-mcp 条目。");
+    else if (options.client === "workbuddy" || options.client === "qoder") {
+      const label = options.client === "qoder" ? "Qoder" : "WorkBuddy";
+      const file = options.config ?? (options.client === "qoder"
+        ? qoderConfigPath(process.env, os.homedir(), fs.existsSync)
+        : workbuddyConfigPath(process.env, os.homedir(), fs.existsSync));
+      const entry = readJsonMcpEntry(file, label);
+      if (!entry) throw new Error(`未在 ${label} 的 ${path.basename(file)} 中找到 pm-mcp 条目。`);
       report.configured_server = SERVER_NAME;
-      if (!isLocalServerEntry(entry)) throw new Error("WorkBuddy 中的 pm-mcp 不是可识别的本地 pm-mcp 启动项；未执行未知启动命令。");
+      if (!isLocalServerEntry(entry)) throw new Error(`${label} 中的 pm-mcp 不是可识别的本地 pm-mcp 启动项；未执行未知启动命令。`);
       // 配置通常不钉根（由会话工作区决定）；探测需要明确目标根，故补上 --root。
       launch = entry.args.includes("--root") ? entry : { command: entry.command, args: [...entry.args, "--root", root] };
-      report.configuration = "workbuddy_local_probe";
+      report.configuration = `${options.client}_local_probe`;
     } else {
       if (!options.config && fs.existsSync(path.join(root, ".codex", "config.toml"))) throw new Error("存在项目级 Codex 配置，可能覆盖全局设置；请用 --config 明确核验的配置文件并检查实际客户端。");
       const file = options.config ?? path.join(process.env.CODEX_HOME || path.join(os.homedir(), ".codex"), "config.toml");

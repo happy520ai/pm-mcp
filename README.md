@@ -8,7 +8,16 @@
 
 > 核心理念：**把恶化从「无声发生」变成「显式记账」，把上下文从「模型记忆」搬到「仓库文件」。**
 
-当前源码为 **0.3.0 本地候选版本，尚未由本轮工作发布**。下方公共安装示例仍使用已发布的 0.1.5。候选版可用 `setup --local` 绑定已构建的本地入口；未发布前不要配置依赖注册表中 0.3.0 的 npx 启动项。
+当前源码与 npm 最新发布为 **0.6.0**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+
+## 0.6.0：Qoder 接入发布、git 对账兜底与完成门禁指路
+
+- **发布 `launch` 子命令与 `--client qoder`**：npm 版可直接 `setup --client qoder`（条目写 `<QODER_CONFIG_DIR|~/.qoder-cn>/settings.json`，走 `pm-mcp launch` 适配器）；`install.ps1` 新增 `-Client qoder` 分支，修复其硬编码版本号。
+- **Qoder 多窗口按请求认领工作区**：Qoder 只派生一个常驻子进程复用所有窗口，项目根不再于启动期钉死——服务端用「工具名 + 参数 + 紧时间窗」指纹倒扫会话运行日志，命中调用方工作区（`root_source=qoder-session-log(request-match)`）。
+- **git 对账健壮性**：宿主进程 PATH 缺 git 时按 `where git` 与常见安装路径兜底解析并缓存，`git status` 对账不再恒红 fail-closed。
+- **完成门禁报错带下一步指引**：`update_task` 的证据过期/最新报告/范围校验拦截都附可执行的重试路径（先跑 `run_quality_matrix` 全绿再置 done），减少 AI 重试碰壁。
+- **审计误报修复**：skip/only 标记计数不再统计扫描器自身的正则模式定义与夹具字符串模板；fixtures 目录不参与空测试嫌疑。
+- **入口拆分**：`index.ts` 只留装配与启动，resources/prompts 注册拆到 `src/resources.ts`、`src/prompts.ts`。
 
 ## 0.3.0：升级生效、任务取全与证据分级
 
@@ -68,7 +77,7 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 
 ## 一个命令自动添加到 AI 编程助手
 
-本页安装示例使用 npm 上最新的**已发布**版本（当前为 **0.1.5**）。0.1.4 不支持 `setup --project`；验证这些能力时请确认实际运行版本为 0.1.5 或更新版本。仓库源码当前为 **0.3.0**（新增任务游标分页、完成证据分级、受控升级与 WorkBuddy 客户端等），**尚未发布到 npm**——需要这些能力时请从源码构建，或见下方各客户端的本地入口用法。
+本页安装示例使用 npm 上最新的**已发布**版本（当前为 **0.6.0**）。仓库源码与发布版本同步；需要本地验证时可用 `setup --local` 从源码构建后接入。
 
 要求：Node.js ≥ 22.18。Windows、macOS 和 Linux 使用同一条命令：
 
@@ -82,7 +91,7 @@ npx -y @luckychen1993/pm-mcp@latest setup
 npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 ```
 
-非标准安装路径无法自动发现时，可在同一命令末尾指定 `--client codex|claude|zcode|cursor|vscode|workbuddy`；`--client print` 输出通用 MCP JSON。首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
+非标准安装路径无法自动发现时，可在同一命令末尾指定 `--client codex|claude|zcode|cursor|vscode|workbuddy|qoder`；`--client print` 输出通用 MCP JSON。首次启动由 `npx` 下载并在本机运行，pm-mcp 本身不需要 API Key，也不会调用远程模型。
 
 ### 新项目一条命令上手（Codex 必用）
 
@@ -134,19 +143,10 @@ $u='https://raw.githubusercontent.com/happy520ai/pm-mcp/v0.1.5/install.ps1'; $f=
 
 #### WorkBuddy 桌面版
 
-> **要求 pm-mcp ≥ 0.3.0**：`--client workbuddy` 是 0.3.0 新增的客户端；npm 上当前的 0.1.5 **不支持**该参数，直接跑会报 `--client must be auto, all, codex, claude, zcode, cursor, vscode, or print`。
-
-0.3.0 发布后：
+要求 pm-mcp ≥ 0.3.0（`--client workbuddy` 为 0.3.0 新增）。一条命令接入：
 
 ```bash
 npx -y @luckychen1993/pm-mcp@latest setup --client workbuddy
-```
-
-0.3.0 发布前，从源码构建后用本地入口接入（`--local` 绑定本包已构建的 `dist/index.js`）：
-
-```bash
-npm ci && npm run build
-node dist/cli.js setup --client workbuddy --local
 ```
 
 写入 `<WorkBuddy 数据目录>/mcp.json`，结构与下方通用 JSON 一致。数据目录按 `WORKBUDDY_CONFIG_DIR` → `~/.workbuddy-ai`（当前版本）→ `~/.workbuddy`（旧版）顺序解析，写入前会生成带时间戳的备份，未知顶层字段与既有 server 全部保留。
@@ -179,13 +179,52 @@ node dist/cli.js doctor --root . --client workbuddy           # 核验 48 工具
 
 服务默认以客户端启动它时的工作目录作为项目根。若客户端不从项目目录启动，可在 `args` 末尾增加 `"--root", "项目绝对路径"`，或设置 `PM_ROOT`。第一次使用未初始化的项目时，让 AI 调用 `init_project`；MCP 工具可能读写目标项目的 `.pm/`，请按客户端提示确认信任。
 
+#### Qoder CLI / Qoder CN
+
+```bash
+npx -y @luckychen1993/pm-mcp setup --client qoder          # 发布版：条目写 ~/.qoder-cn/settings.json，走 `pm-mcp launch`
+node dist/cli.js setup --client qoder --local              # 本仓库：绑定已构建的 dist/qoder-launch.js
+node dist/cli.js doctor --root . --client qoder            # 真实握手核验（配置改完先跑这个）
+```
+
+Qoder 拉起 MCP 子进程时 cwd 是它的安装目录（worker cwd shim），且 1.1.57 实测不加载 `.qoder/settings.local.json` 的 `mcpServers`。**更关键的是：Qoder 只派生一个常驻 stdio 子进程，再用本地路由把所有窗口/会话复用到它上面**（实测同一 server uuid 被多个不同 session token 共用，进程可存活数天）。因此任何「启动时解析一次项目根」的做法对其它窗口必然是错的——运行日志目录名结尾的 `-p<pid>` 也是主进程 pid，`process.ppid` 无法区分会话。
+
+所以项目根是**每次调用重新认领**的：Qoder 在派发前会把 `tool.requested`（含工具名与参数原文）写进本会话运行日志，服务端用「工具名 + 参数 + 紧时间窗」做请求指纹倒扫最近日志，命中那份日志头部的 `initial_cwd` 就是调用方工作区。适配器 `dist/qoder-launch.js` 只负责打标记与给出启动期默认值：继承到的 `QODER_WORKER_CWD`，否则取最近在写的那份运行日志的 `initial_cwd`，通过 `PM_MCP_ROOT_HINT(_SOURCE)` 交给服务端，并**不再伪造 `--root`**，所以 `get_status` 报出的依据是真实来历而不是清一色的 `--root`。认领顺序：调用时显式传的 `root` 参数 > 请求指纹命中 > 唯一活跃会话 > 启动期提示（标 `spawn-time`）> 启动解析。指纹命中多个会话、或多个会话同时活跃又无指纹时**一律不猜**：退回启动根，在 `root_source` 里写明「未猜测」并列出候选，此时给本次调用传 `root` 即可确定。
+
+你在 `args` 里显式写 `--root` 时适配器完全尊重它：不打适配器标记，服务端也就不会按请求改根（适合「一个固定账本」的用法）。
+
+等价的手写配置（`setup --client qoder --local` 写的就是这个形状）：
+
+```json
+{
+  "mcpServers": {
+    "pm-mcp": {
+      "command": "node",
+      "args": ["<本仓库绝对路径>/dist/qoder-launch.js"]
+    }
+  }
+}
+```
+
+也可以跳过适配器直接指服务器：`["<绝对路径>/dist/index.js", "--root", "${QODER_WORKER_CWD}"]`。客户端支持 args 插值时直接生效；不支持时留在 `args` 里的字面量会被 pm-mcp 判为无效值忽略，转而采用继承到的 `QODER_WORKER_CWD` 本身。**但这条写法把项目根钉在派生那一刻**：进程被所有窗口共用时，后开的窗口会读到先开窗口的项目，只适合单工作区或你确实想要一个固定账本的场景。
+
+推荐用适配器写法：一条配置服务所有工作区，且每个窗口各归各的账本。核验：重连（`/mcp reload` 或重开会话）后调用 `get_status`，「项目根」后面会标出本次认领依据（正常应是 `qoder-session-log(request-match)`）；`structuredContent` 里同时带 `project`/`milestones`/`focus`/`health`/`last_session`，只呈现结构化载荷的客户端也能看到完整状态。
+
+> `launch` 子命令与 `--client qoder` 自 **0.6.0** 起随 npm 发布；旧版本请升级，或用 `setup --client qoder --local` 从源码构建后的入口接入。
+
 ### 环境变量与参数
 
 | 变量/参数 | 作用 |
 |---|---|
-| `--root <path>` | 项目根（最高优先级） |
-| `PM_ROOT` | 项目根（次优先级） |
+| `root`（工具参数） | 本次调用的项目根，优先级最高；仅在服务端报告「未猜测」时才需要传 |
+| `--root <path>` | 启动期项目根（未插值的 `${...}` 字面量视为未提供）。显式给出时**关闭按请求认领**，全程固定该根 |
+| `PM_ROOT` | 启动期项目根（次优先级） |
+| `PM_MCP_CLIENT_ADAPTER` | 由适配器设为 `qoder`：开启按请求认领调用方工作区；未设置时行为与从前完全一致（CLI/ZCode/直接 stdio 不受影响） |
+| `PM_MCP_ROOT_HINT` / `PM_MCP_ROOT_HINT_SOURCE` | 适配器给出的启动期默认根及其真实来历，`get_status` 会标成 `<来历>(spawn-time)` |
+| `QODER_WORKER_CWD` | 客户端工作区提示：仅当启动目录不是已初始化项目时采用，优先取已初始化的提示目录，其次取存在的目录 |
 | `PM_MCP_HOME` | 全局注册表重定向（默认 `~`；多环境/测试隔离用） |
+
+启动期解析顺序：`--root` > `PM_ROOT` > 适配器提示 > 已初始化的启动目录 > 客户端工作区提示 > 启动目录。**每次调用**再按「`root` 参数 > 请求指纹 > 唯一活跃会话 > 启动期提示 > 启动解析」重新认领（仅在 `PM_MCP_CLIENT_ADAPTER=qoder` 时生效）。`get_status` 与启动横幅都会回报本次采用的依据，依据里出现「未猜测」就说明证据不足、需要显式传 `root`。
 
 ### pm-mcp probe：标准 raw tools/list 直连探针
 

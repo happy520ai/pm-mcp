@@ -13,9 +13,9 @@ import { taskPage, taskPageText, TaskPageSchema, type TaskListQuery } from "./ta
 
 const stepSchema = z.object({ text: z.string(), done: z.boolean().optional() });
 
-export function registerTaskTools(server: McpServer, root: string): void {
+export function registerTaskTools(server: McpServer, startupRoot: string): void {
   toolW<{ title: string; detail?: string; type?: TaskType; priority?: "P0" | "P1" | "P2" | "P3"; milestone?: string; tags?: string[]; files?: string[]; acceptance?: string; steps?: { text: string; done?: boolean }[] }>(
-    server, root,
+    server, startupRoot,
     "add_task",
     "添加任务。长任务务必给 steps（显式步骤清单，断点续做的载体）；走了捷径 type=debt 登记（债务账）；修 bug type=fix。",
     {
@@ -29,7 +29,8 @@ export function registerTaskTools(server: McpServer, root: string): void {
       acceptance: z.string().optional().describe("验收标准"),
       steps: z.array(stepSchema).optional().describe("步骤清单（长任务必填）"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const roadmap = loadRoadmap(root);
       if (args.milestone && !roadmap.milestones.some((m) => m.id === args.milestone)) {
@@ -71,7 +72,7 @@ export function registerTaskTools(server: McpServer, root: string): void {
   );
 
   toolR<TaskListQuery>(
-    server, root,
+    server, startupRoot,
     "list_tasks",
     "分页列出任务（默认不含 done/cancelled，每页25）。按原过滤条件传 next_cursor 可取下一页；数据变化会使游标失效。文字摘要与结构化分页结果同时返回，不漏掉折叠的中间任务。",
     {
@@ -83,7 +84,8 @@ export function registerTaskTools(server: McpServer, root: string): void {
       page_size: z.number().int().min(1).max(100).optional().describe("默认25，受项目输出预算限制"),
       cursor: z.string().min(1).max(1024).optional().describe("上页返回的 next_cursor；保留相同过滤条件"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       return JSON.stringify(taskPage(root, args, budgetLines(root) - 4));
     },
@@ -110,7 +112,7 @@ export function registerTaskTools(server: McpServer, root: string): void {
     step_done?: number;
     author?: string;
   }, { evidence?: string; taskSnapshot: string; hashes: Record<string, string> }>(
-    server, root,
+    server, startupRoot,
     "update_task",
     "一次更新任务、checkpoint 与会话。checkpoint 默认记会话；完成时用 record_session:true 一并记录，不再另调 log_session；files 给实际关联文件。feature/fix 转 done 必须有最新成功且源码匹配的测试报告，verification_run 可指明报告。文字 verification 不能代替执行证据。",
     {
@@ -132,7 +134,8 @@ export function registerTaskTools(server: McpServer, root: string): void {
       step_done: z.number().int().min(1).optional().describe("勾选完成第 N 步"),
       author: z.string().optional(),
     },
-    (args, prepared) => {
+    (args, ctx, prepared) => {
+      const root = ctx.root;
       requireInitialized(root);
       const data = loadTasks(root);
       const t = data.tasks.find((x) => x.id === args.id);
@@ -203,7 +206,8 @@ export function registerTaskTools(server: McpServer, root: string): void {
       const stepsInfo = t.steps.length > 0 ? `，步骤 ${t.steps.filter((s) => s.done).length}/${t.steps.length}` : "";
       return [`✅ ${t.id} 已更新（${t.status}${stepsInfo}）。`, ...notes].join("\n");
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const task = loadTasks(root).tasks.find((item) => item.id === args.id);
       if (!task) throw new Error(`找不到任务 ${args.id}。`);
@@ -218,7 +222,7 @@ export function registerTaskTools(server: McpServer, root: string): void {
   );
 
   toolW<{ task_id: string; note: string; next_step: string }>(
-    server, root,
+    server, startupRoot,
     "checkpoint",
     "断点存档：长任务做到一半（或上下文快满）时随手保存「当前进度 + 下一步动作」。新会话 get_status 会直接给出恢复点，不用靠回忆。",
     {
@@ -226,7 +230,8 @@ export function registerTaskTools(server: McpServer, root: string): void {
       note: z.string().describe("当前进展到哪了"),
       next_step: z.string().describe("下一个具体动作（新会话从这里续做）"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const data = loadTasks(root);
       const t = data.tasks.find((x) => x.id === args.task_id);

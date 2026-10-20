@@ -32,9 +32,12 @@ import {
 import {
   decisionsDir,
   ensurePmDirs,
+  recordRootResolution,
   registryFile,
   requireInitialized,
   resolveRoot,
+  resolveRootWithSource,
+  rootResolution,
   snapshotsDir,
 } from "../src/paths.ts";
 import { listRegistry, loadRegistry, saveRegistry, touchRegistry } from "../src/registry.ts";
@@ -202,18 +205,63 @@ test("domain MCP handlers exercise success, rejection, filtering and warning bra
   await ok("audit_license");
 });
 
+test("resolveRoot uses client workspace hints only when cwd is not the project", (t) => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "pm-hint-cwd-"));
+  const hintProject = fs.mkdtempSync(path.join(os.tmpdir(), "pm-hint-proj-"));
+  const hintPlain = fs.mkdtempSync(path.join(os.tmpdir(), "pm-hint-plain-"));
+  initTestProject(hintProject);
+  const oldCwd = process.cwd();
+  const oldRoot = process.env.PM_ROOT;
+  const oldHint = process.env.QODER_WORKER_CWD;
+  t.after(() => {
+    process.chdir(oldCwd);
+    if (oldRoot === undefined) delete process.env.PM_ROOT; else process.env.PM_ROOT = oldRoot;
+    if (oldHint === undefined) delete process.env.QODER_WORKER_CWD; else process.env.QODER_WORKER_CWD = oldHint;
+    for (const dir of [scratch, hintProject, hintPlain]) fs.rmSync(dir, { recursive: true, force: true });
+  });
+  process.chdir(scratch);
+  delete process.env.PM_ROOT;
+  process.env.QODER_WORKER_CWD = hintProject;
+
+  // 客户端没插值的 ${VAR} 字面量不能当路径，须回落到提示
+  assert.deepEqual(resolveRootWithSource("${QODER_WORKER_CWD}"), { root: path.resolve(hintProject), source: "QODER_WORKER_CWD" });
+  assert.deepEqual(resolveRootWithSource(), { root: path.resolve(hintProject), source: "QODER_WORKER_CWD" });
+  assert.equal(resolveRoot(path.join(scratch, "explicit")), path.resolve(scratch, "explicit"));
+  process.env.PM_ROOT = hintPlain;
+  assert.equal(resolveRootWithSource().source, "PM_ROOT");
+  delete process.env.PM_ROOT;
+
+  // 已初始化的 cwd 优先于提示：终端里 cd 到别处不该被会话环境变量带跑
+  process.chdir(hintProject);
+  assert.deepEqual(resolveRootWithSource(), { root: path.resolve(hintProject), source: "cwd" });
+  process.chdir(scratch);
+
+  // 提示目录存在但未初始化时仍优于 cwd，新工作区的 init_project 才不会写进客户端安装目录
+  process.env.QODER_WORKER_CWD = hintPlain;
+  assert.deepEqual(resolveRootWithSource(), { root: path.resolve(hintPlain), source: "QODER_WORKER_CWD" });
+  process.env.QODER_WORKER_CWD = path.join(scratch, "missing");
+  assert.deepEqual(resolveRootWithSource(), { root: path.resolve(scratch), source: "cwd" });
+  delete process.env.QODER_WORKER_CWD;
+
+  recordRootResolution({ root: path.resolve(hintPlain), source: "QODER_WORKER_CWD" });
+  assert.equal(rootResolution()?.source, "QODER_WORKER_CWD");
+});
+
 test("paths and registry cover fallback, corruption, replacement and ordering", (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "pm-tooling-paths-"));
   const home = `${root}-home`;
   const oldHome = process.env.PM_MCP_HOME;
   const oldRoot = process.env.PM_ROOT;
+  const oldHint = process.env.QODER_WORKER_CWD;
   process.env.PM_MCP_HOME = home;
   t.after(() => {
     if (oldHome === undefined) delete process.env.PM_MCP_HOME; else process.env.PM_MCP_HOME = oldHome;
     if (oldRoot === undefined) delete process.env.PM_ROOT; else process.env.PM_ROOT = oldRoot;
+    if (oldHint === undefined) delete process.env.QODER_WORKER_CWD; else process.env.QODER_WORKER_CWD = oldHint;
     fs.rmSync(root, { recursive: true, force: true });
     fs.rmSync(home, { recursive: true, force: true });
   });
+  delete process.env.QODER_WORKER_CWD;
   process.env.PM_ROOT = root;
   assert.equal(resolveRoot(), path.resolve(root));
   assert.equal(resolveRoot(` ${path.join(root, "explicit")} `), path.resolve(root, "explicit"));

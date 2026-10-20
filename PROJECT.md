@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-09-19T05:52:20.295Z
+> 生成时间: 2026-10-20T15:10:20.787Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -10,7 +10,9 @@
 flowchart LR
   M1["M1 v1 核心能力"]:::done
   M2["M2 v2 增强"]:::active
+  M3["M3 v3 体验增强（Web UI 仪表盘等，暂不排期）"]:::planned
   M1 --> M2
+  M2 --> M3
   classDef done fill:#9ca3af,stroke:#6b7280
   classDef active fill:#86efac,stroke:#16a34a
   classDef planned fill:#e5e7eb,stroke:#9ca3af
@@ -18,8 +20,9 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [█████████░] 90% M2 v2 增强（27/30）
-- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 17% < 配额 20%
+▶ [█████████░] 87% M2 v2 增强（27/31）
+○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/0）
+- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 19% < 配额 20%
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
@@ -29,13 +32,13 @@ flowchart LR
 | 账本 | 状态 |
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
-| 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(29), package.json(18), src/index.ts(14) |
+| 债务（反挤出） | ⚠️ 1 条，最老 31 天 |
+| churn（变更率） | ⚠️ 热点 README.md(30), package.json(18), src/index.ts(16) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 19 条记录 |
-| 测试背书 | 28/28 个功能带测试 |
+| 调试知识 | 23 条记录 |
+| 测试背书 | 31/31 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-09-19 05:35（命令 2/2；证据 tests_observed） |
+| 质量矩阵 | ✅ 2026-10-20 15:10（命令 1/1；证据 tests_observed） |
 | 标准化验收 | ✅ 2026-09-17 15:22（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
@@ -44,7 +47,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 57 · backlog 4
+- 总览: done 60 · backlog 8
 
 ## 🧩 功能清单
 ### src
@@ -85,24 +88,29 @@ flowchart LR
 - ✅ F-027 pm-mcp ui 本地只读 Web 仪表盘 — 本地只读 Web 仪表盘：`pm-mcp ui [--root <项目>] [--port <端口>]`（端口 0 自动分配），仅绑定 127.0.0.1，GE
 ### 安全
 - ✅ F-028 search_code_public 公开代码反查（ 版权溯源初版） — 公开代码反查（GitHub Code Search，联网默认关）：把一段本仓源码行作为词项 AND 查询发给 GitHub，列出包含相同代码的公开仓库；conf
+### audit
+- ✅ F-029 Git 对账应用项目级扫描排除 — Git 工作区对账尊重项目级 scan_ignore，避免显式排除的运行时/产物变更进入 unaccounted 或 unverified。
+### clients
+- ✅ F-030 Qoder 客户端接入（工作区解析适配器） — 让 Qoder 用户级一条 MCP 配置服务所有工作区：resolveRoot 支持客户端工作区提示与未插值占位符防护；dist/qoder-launch.js
+### MCP 服务端
+- ✅ F-031 按请求认领项目根（多窗口共用常驻进程） — 客户端（如 Qoder）把一个常驻 MCP 子进程复用给所有窗口时，项目根不再在启动时定格，而是每次工具调用重新认领调用方工作区：显式 root 参数 > 会话
 
 ## 🏛️ 架构决策（最近）
+- [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
+- [ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root](.pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md)
 - [ADR-004-语义治理采用AST保证分层与运行时证据扩展](.pm/decisions/ADR-004-语义治理采用AST保证分层与运行时证据扩展.md)
 - [ADR-003-标准化验收采用冻结基线与机器证据指针](.pm/decisions/ADR-003-标准化验收采用冻结基线与机器证据指针.md)
 - [ADR-002-v1-全部离线，不联网](.pm/decisions/ADR-002-v1-全部离线，不联网.md)
-- [ADR-001-状态存储用-git-友好的文件而非-SQLite](.pm/decisions/ADR-001-状态存储用-git-友好的文件而非-SQLite.md)
 
 ## 📜 最近会话
-- 2026-09-19 [?] 0.5.0 发布完成：a72240d 版本+pin（sha 5428a7ac）→Release v0.5.0 资产（重打包确定性一致）→validate+publish 双 dispatch 全绿（核验轮询正常）→npm latest=0.5.0→冷安装自探 53 工具含 search_code_public。内容：search_code_public 版权溯源 + OSV lockfile 误报修复。台账 S-0059。
-  - 改动: .github/workflows/publish-npm.yml, package.json, package-lock.json
-- 2026-09-19 [?] 完成 T-009/T-061/F-028：search_code_public 公开代码反查（GitHub Code Search 词项 AND；grep.app 因 Vercel 反机器人弃用并记录；confirm=z.literal(true)+片段参数内可见的双重门控；凭据链 env→gh auth token；401/403/422 可行动错误）。契约 52→53。真网两连验证（独特行 0 命中/公开行 8 命中，跨项目同名常量碰撞实证）。全量 323/323（quality-20260919-053505）。仓库外：E:\\Codex\\.codex\\config.toml 增 search_code_public 条目。至此 M2 backlog 全部清零。
-  - 改动: src/public-search.ts, src/audit-tools.ts, src/version.ts, test/public-search.test.ts, test/integration.test.ts, README.md
-- 2026-09-19 [?] T-059 收口（结论反转：两条 GHSA 均为误报，实装版本已过修复线；根因=范围串发给 OSV 被解析到边界下；修复=npm 按 lockfile 实装版本查询，复扫 11/11 归零，fe83493）。0.4.0 发布全链路成功：21fb107 版本+pin→Release v0.4.0 资产 sha 一致（0bca3ece）→validate+publish 双 dispatch 全绿→npm latest=0.4.0→冷安装自探 52 工具齐。T-009 立项并完成选型调研（推荐 grep.app confirm 门控起步，代码片段外发边界需用户确认）。
-  - 改动: src/osv.ts, test/osv.test.ts, .github/workflows/publish-npm.yml, package.json, package-lock.json
-- 2026-09-19 [?] 完成 T-012/T-060/F-027：pm-mcp ui 本地只读 Web 仪表盘（零依赖 node:http，127.0.0.1 only，SSR + /api/state + /healthz，全插值 HTML 转义 + CSP 禁脚本，未纳管 fail-closed，SIGINT 优雅关闭）；CLI 冒烟通过；317/317（quality-20260919-043548）。不新增 MCP 工具（目录保持 52）。至此 M2 backlog 可实现项全部完成，仅剩 T-009 待用户选型。
-  - 改动: src/ui.ts, src/cli.ts, test/ui.test.ts, README.md
-- 2026-09-19 [?] 完成 T-008/T-058/F-026：audit_osv 联网漏洞查询（confirm=z.literal(true) 显式门控，只发包名/版本/生态，querybatch 100/批，fetcher 注入全 mock 测试），契约 51→52。真网首跑命中本仓 2 条 GHSA（SDK/zod），登记 T-059 处置。全量 313/313（quality-20260919-041919）。仓库外：E:\\Codex\\.codex\\config.toml 增 audit_osv 条目。
-  - 改动: src/osv.ts, src/audit-tools.ts, src/version.ts, test/osv.test.ts, test/integration.test.ts, README.md
+- 2026-09-20 [qoder] 修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。
+  - 改动: src/caller-workspace.ts, src/tool-base.ts, src/qoder-launch.ts, src/paths.ts, src/project-tools.ts, src/index.ts, src/governance-tools.ts, src/audit-tools.ts 等 15 个
+- 2026-09-19 [?] T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：Qoder 真实派生的新会话已实测通过：新建独立会话调用 mcp__pm_mcp__get_status 返回 root=E:\通用型项目管理、root_source=--root、version 0.5.0，证明用户级一条配置（node .../dist/qoder-launch.js，不带 --root）在 Qoder 里能起服务并把项目根钉到当前工作区。换工作区验证同一条配置：QODER_WORKER_CWD 指向 unified-ai-system 时 root 随之切换，各工作区各归各账本。当前这个会话需 /mcp reload 才会拿到连接。
+- 2026-09-19 [qoder] 把 pm-mcp 接入 Qoder 做成受支持能力：根解析支持客户端工作区提示与未插值占位符防护，新增 qoder-launch 适配器 + launch 子命令，setup/doctor 支持 --client qoder，并用真命令把用户级配置改写为一条不钉根的适配器条目；配套 11 个用例与 README 章节。
+  - 改动: src/paths.ts, src/qoder-launch.ts, src/index.ts, src/project-tools.ts, src/setup.ts, src/setup-project.ts, src/doctor.ts, src/cli.ts 等 12 个
+- 2026-09-19 [?] T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：代码/测试/文档/真机配置全部落地：coverage 336 通过、doctor --client qoder 返回 ok:true 且 root 正确、用户级配置已由 setup --client qoder --local 写成 dist/qoder-launch.js 一条（其他 server 保留，写前有备份）。
+- 2026-09-19 [zcode] 完成 T-055：changedGitFiles/gitAudit 现在尊重项目级 scan_ignore，补充忽略路径、规则清空恢复及普通源码保留的回归测试；typecheck 与 325 项全量测试通过。
+  - 改动: src/git-state.ts, test/management-upgrade.test.ts
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

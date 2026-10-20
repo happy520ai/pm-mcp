@@ -10,9 +10,11 @@ import {
   codexProjectServerKey,
   detectClients,
   localProjectLaunch,
+  localQoderLaunch,
   localServerLaunch,
   mergeJsonServer,
   parseSetupArgs,
+  qoderConfigPath,
   runSetup,
   workbuddyConfigPath,
   writeJsonClientConfig,
@@ -370,4 +372,73 @@ test("--project 非 ASCII 目录名支持稳定服务键；dry-run 不写任何�
   assert.equal(fs.existsSync(path.join(codexHome, "config.toml")), false, "dry-run 不写 config");
   assert.equal(fs.existsSync(path.join(proj, ".pm")), false, "dry-run 不初始化");
   assert.ok(logs.some((l) => l.includes("[plan]")));
+});
+
+test("Qoder 路径解析：QODER_CONFIG_DIR → .qoder-cn → .qoder → 默认 .qoder-cn", () => {
+  const home = path.join(os.tmpdir(), "pm-setup-qoder-path");
+  const intlOnly = new Set([path.join(home, ".qoder")]);
+  assert.equal(qoderConfigPath({}, home, (target) => intlOnly.has(target)), path.join(home, ".qoder", "settings.json"));
+  const both = new Set([path.join(home, ".qoder"), path.join(home, ".qoder-cn")]);
+  assert.equal(qoderConfigPath({}, home, (target) => both.has(target)), path.join(home, ".qoder-cn", "settings.json"));
+  assert.equal(qoderConfigPath({}, home, () => false), path.join(home, ".qoder-cn", "settings.json"));
+  assert.equal(qoderConfigPath({ QODER_CONFIG_DIR: path.join(home, "custom") }, home, () => true), path.join(home, "custom", "settings.json"));
+});
+
+test("Qoder 由既有数据目录或环境变量被检测到，且 --client qoder 接受 --local", () => {
+  const home = path.join(os.tmpdir(), "pm-setup-qoder-detect");
+  const detect = (commands: string[], env: Record<string, string>, existing: string[]) => detectClients({
+    env, home, commandExists: (command) => commands.includes(command), exists: (target) => existing.includes(target),
+  });
+  assert.deepEqual(detect(["qoder"], {}, []), ["qoder"]);
+  assert.deepEqual(detect(["qoderclicn"], {}, []), ["qoder"]);
+  assert.deepEqual(detect([], { QODER_CONFIG_DIR: path.join(home, "custom") }, []), ["qoder"]);
+  assert.deepEqual(detect([], {}, [path.join(home, ".qoder-cn")]), ["qoder"]);
+  assert.deepEqual(detect([], {}, []), []);
+  assert.equal(parseSetupArgs(["--client", "qoder"]).client, "qoder");
+  assert.equal(parseSetupArgs(["--client", "qoder", "--local"]).local, true);
+});
+
+test("Qoder 本地入口写 settings.json：指向 qoder-launch 且不钉根，保留未知字段与既有 server", (t) => {
+  const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), "pm-setup-qoder-"));
+  t.after(() => fs.rmSync(sandbox, { recursive: true, force: true }));
+  const configDir = path.join(sandbox, ".qoder-cn");
+  fs.mkdirSync(configDir, { recursive: true });
+  const file = path.join(configDir, "settings.json");
+  fs.writeFileSync(file, JSON.stringify({ enabledPlugins: { keep: true }, mcpServers: { other: { command: "x" } } }), "utf8");
+
+  const logs: string[] = [];
+  assert.equal(runSetup(["--client", "qoder", "--local"], {
+    env: { QODER_CONFIG_DIR: configDir }, home: sandbox,
+    commandExists: () => false, exists: (target) => fs.existsSync(target), log: (message) => logs.push(message),
+  }), 0);
+
+  const saved = JSON.parse(fs.readFileSync(file, "utf8")) as {
+    enabledPlugins: Record<string, boolean>;
+    mcpServers: Record<string, { command: string; args: string[] }>;
+  };
+  assert.equal(saved.enabledPlugins.keep, true, "未知顶层字段应保留");
+  assert.equal(saved.mcpServers.other.command, "x", "既有 server 应保留");
+  const pm = saved.mcpServers["pm-mcp"];
+  assert.deepEqual(pm, { ...localQoderLaunch(), env: {} }, "本地条目应与适配器入口一致");
+  assert.ok(pm.args[0].replace(/\\/g, "/").endsWith("dist/qoder-launch.js"));
+  assert.ok(!pm.args.includes("--root"), "条目不钉根，工作区由适配器按会话解析");
+  assert.equal(fs.readdirSync(configDir).filter((name) => name.startsWith("settings.json.backup-")).length, 1, "写前应有一次备份");
+  assert.ok(logs.some((line) => line.includes("/mcp reload")), "应提示 Qoder 重连方式");
+});
+
+test("Qoder 默认写入发布版 npx 的 launch 入口，dry-run 不落盘", (t) => {
+  const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), "pm-setup-qoder2-"));
+  t.after(() => fs.rmSync(sandbox, { recursive: true, force: true }));
+  const configDir = path.join(sandbox, ".qoder-cn");
+  fs.mkdirSync(configDir, { recursive: true });
+  const file = path.join(configDir, "settings.json");
+  const context = {
+    env: { QODER_CONFIG_DIR: configDir }, home: sandbox,
+    commandExists: () => false, exists: (target: string) => fs.existsSync(target), log: (_message: string) => {},
+  };
+  assert.equal(runSetup(["--client", "qoder", "--dry-run"], context), 0);
+  assert.equal(fs.existsSync(file), false, "dry-run 不应创建配置");
+  assert.equal(runSetup(["--client", "qoder"], context), 0);
+  const saved = JSON.parse(fs.readFileSync(file, "utf8")) as { mcpServers: Record<string, { command: string; args: string[] }> };
+  assert.deepEqual(saved.mcpServers["pm-mcp"].args, ["-y", PACKAGE_SPEC, "launch"], "发布版走 pm-mcp launch 适配器");
 });

@@ -23,9 +23,9 @@ import { now } from "./types.ts";
 import { appendSession } from "./session-log.ts";
 import { captureFileHashes } from "./git-state.ts";
 
-export function registerFeatureTools(server: McpServer, root: string): void {
+export function registerFeatureTools(server: McpServer, startupRoot: string): void {
   toolW<{ name: string; description?: string; entry_files?: string[]; module?: string; test_files?: string[]; status?: "planned" | "implemented" | "deprecated" }>(
-    server, root,
+    server, startupRoot,
     "register_feature",
     "登记功能（回答「这个项目有哪些功能」）。entry_files=入口文件（漂移对账锚点），test_files=测试文件（测试背书）。",
     {
@@ -36,7 +36,8 @@ export function registerFeatureTools(server: McpServer, root: string): void {
       test_files: z.array(z.string()).optional().describe("对应测试文件"),
       status: z.enum(["planned", "implemented", "deprecated"]).optional().describe("默认 implemented"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const data = loadFeatures(root);
       const id = nextId("F", data.seq);
@@ -64,11 +65,12 @@ export function registerFeatureTools(server: McpServer, root: string): void {
   );
 
   toolR<{ module?: string; status?: "planned" | "implemented" | "deprecated" }>(
-    server, root,
+    server, startupRoot,
     "list_features",
     "列出功能清单（可按模块/状态过滤）。",
     { module: z.string().optional(), status: z.enum(["planned", "implemented", "deprecated"]).optional() },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       let list = loadFeatures(root).features;
       if (args.module) list = list.filter((f) => f.module === args.module);
@@ -83,9 +85,9 @@ export function registerFeatureTools(server: McpServer, root: string): void {
   );
 }
 
-export function registerDecisionTools(server: McpServer, root: string): void {
+export function registerDecisionTools(server: McpServer, startupRoot: string): void {
   toolW<{ title: string; context: string; decision: string; consequences?: string }>(
-    server, root,
+    server, startupRoot,
     "record_decision",
     "记录架构决策（ADR）：为什么这么选、决定了什么、有什么后果。认知债务的解药——半年后还能回答「当时为什么」。",
     {
@@ -94,7 +96,8 @@ export function registerDecisionTools(server: McpServer, root: string): void {
       decision: z.string().describe("决定与理由"),
       consequences: z.string().optional().describe("后果/代价/被放弃的方案"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       ensureDecisionDir(root);
       const existing = fs.readdirSync(decisionsDir(root)).filter((n) => n.endsWith(".md"));
@@ -129,7 +132,8 @@ export function registerDecisionTools(server: McpServer, root: string): void {
     },
   );
 
-  toolR(server, root, "list_decisions", "列出全部架构决策（ADR）。", {}, () => {
+  toolR(server, startupRoot, "list_decisions", "列出全部架构决策（ADR）。", {}, (_args, ctx) => {
+    const root = ctx.root;
     requireInitialized(root);
     const dir = decisionsDir(root);
     const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".md")).sort() : [];
@@ -142,9 +146,9 @@ function ensureDecisionDir(root: string): void {
   fs.mkdirSync(decisionsDir(root), { recursive: true });
 }
 
-export function registerSessionTools(server: McpServer, root: string): void {
+export function registerSessionTools(server: McpServer, startupRoot: string): void {
   toolW<{ summary: string; files?: string[]; next_steps?: string[]; author?: string }, Record<string, string>>(
-    server, root,
+    server, startupRoot,
     "log_session",
     "收工仪式：记录本次会话（做了什么、改了哪些文件、下一步）。files 是变更足迹（churn 账与波及面告警的数据源），务必如实列出。",
     {
@@ -153,7 +157,8 @@ export function registerSessionTools(server: McpServer, root: string): void {
       next_steps: z.array(z.string()).optional().describe("留给下次的下一步"),
       author: z.string().optional().describe("署名：zcode / codex / human:名字"),
     },
-    (args, hashes) => {
+    (args, ctx, hashes) => {
+      const root = ctx.root;
       requireInitialized(root);
       const project = loadProject(root);
       const id = appendSession(root, args, hashes);
@@ -164,11 +169,11 @@ export function registerSessionTools(server: McpServer, root: string): void {
       }
       return L.join("\n");
     },
-    (args) => { requireInitialized(root); return captureFileHashes(root, args.files ?? []); },
+    (args, ctx) => { const root = ctx.root; requireInitialized(root); return captureFileHashes(root, args.files ?? []); },
   );
 
   toolW<{ symptom: string; root_cause: string; fix: string; verified_how?: string; files?: string[]; task_id?: string }>(
-    server, root,
+    server, startupRoot,
     "log_debug",
     "记录调试过程：症状 / 根因 / 修法 / 怎么验证的。调试知识账——下次同样的错不用从零猜，search_knowledge 可查。",
     {
@@ -179,7 +184,8 @@ export function registerSessionTools(server: McpServer, root: string): void {
       files: z.array(z.string()).optional(),
       task_id: z.string().optional().describe("关联任务 id"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const data = loadDebugLog(root);
       const id = nextId("D", data.seq, 4);
@@ -202,9 +208,9 @@ export function registerSessionTools(server: McpServer, root: string): void {
   );
 }
 
-export function registerSearchTools(server: McpServer, root: string): void {
+export function registerSearchTools(server: McpServer, startupRoot: string): void {
   toolR<{ query: string; glob?: string; max_results?: number; regex?: boolean }>(
-    server, root,
+    server, startupRoot,
     "search_code",
     "在真实代码里检索（防幻觉事中防线）：谈某个功能/文件之前先搜实码。返回 file:line 片段而非整文件（token 经济）。默认按字面量匹配；regex=true 时按 JavaScript 正则（仅在你确需时开启）。",
     {
@@ -213,7 +219,8 @@ export function registerSearchTools(server: McpServer, root: string): void {
       max_results: z.number().int().min(1).max(100).optional().describe("默认 30"),
       regex: z.boolean().optional().describe("默认 false；true 时 query 按正则解释"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const res = searchCode(root, args.query, args.glob, args.max_results ?? 30, args.regex ?? false);
       return formatCodeSearch(res, args.query);
@@ -221,18 +228,19 @@ export function registerSearchTools(server: McpServer, root: string): void {
   );
 
   toolR<{ query: string }>(
-    server, root,
+    server, startupRoot,
     "search_knowledge",
     "检索六类项目知识源（ADR/任务/功能/会话/调试记录/文件索引）——回答「之前为什么这么做」「上次这个错怎么解的」，用历史结论代替重新推理。代码内容请用 search_code。",
     { query: z.string().min(1) },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       return searchKnowledge(root, args.query);
     },
   );
 
   toolW<{ path: string; purpose: string; source?: string; license?: string }>(
-    server, root,
+    server, startupRoot,
     "annotate_file",
     "给文件登记一行用途（文件用途索引）：之后任何会话靠索引定位，不用打开文件。引用外部代码时可登记 source/license（provenance）。",
     {
@@ -241,7 +249,8 @@ export function registerSearchTools(server: McpServer, root: string): void {
       source: z.string().optional().describe("代码来源（URL/仓库），如引用自外部"),
       license: z.string().optional().describe("该文件引用代码的许可证"),
     },
-    (args) => {
+    (args, ctx) => {
+      const root = ctx.root;
       requireInitialized(root);
       const rel = normSep(args.path);
       if (!fs.existsSync(path.join(root, rel))) {

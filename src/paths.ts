@@ -3,11 +3,77 @@ import fs from "node:fs";
 import os from "node:os";
 import { randomUUID } from "node:crypto";
 
-/** 项目根解析顺序：--root 参数 > PM_ROOT 环境变量 > 当前工作目录 */
-export function resolveRoot(explicit?: string): string {
-  const raw = explicit?.trim() || process.env.PM_ROOT?.trim() || process.cwd();
-  return path.resolve(raw);
+/** 客户端注入的工作区提示：部分客户端（如 Qoder）拉起 MCP 子进程时 cwd 是安装目录，工作区只存在于环境变量 */
+export const WORKSPACE_HINT_ENV_VARS = ["QODER_WORKER_CWD"] as const;
+
+/** 启动期适配器交下来的工作区提示与它的真实来历（适配器自己解析的，不能再报成 --root） */
+export const ROOT_HINT_ENV_VAR = "PM_MCP_ROOT_HINT";
+export const ROOT_HINT_SOURCE_ENV_VAR = "PM_MCP_ROOT_HINT_SOURCE";
+
+/** 解析依据是给人核验用的自由文本：既包含固定来源，也包含「哪个会话日志/是否启动期定格」这类动态说明 */
+export type RootSource = "--root" | "PM_ROOT" | "cwd" | (typeof WORKSPACE_HINT_ENV_VARS)[number] | (string & {});
+
+/** 配置里写了 ${VAR} 但客户端没有插值时，这种字面量不能当路径用 */
+function unexpanded(value: string): boolean {
+  return value.includes("${") || value.includes("}");
 }
+
+function isDir(p: string): boolean {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function usable(value: string | undefined): value is string {
+  return !!value && value.trim().length > 0 && !unexpanded(value.trim());
+}
+
+function workspaceHints(): Array<{ name: RootSource; value: string }> {
+  const out: Array<{ name: RootSource; value: string }> = [];
+  for (const name of WORKSPACE_HINT_ENV_VARS) {
+    const value = process.env[name]?.trim();
+    if (value && !unexpanded(value)) out.push({ name, value });
+  }
+  return out;
+}
+
+/** 解析项目根并报告依据，供启动横幅与 get_status 核验 */
+export function resolveRootWithSource(explicit?: string): { root: string; source: RootSource } {
+  const flag = explicit?.trim();
+  if (usable(flag)) return { root: path.resolve(flag), source: "--root" };
+  const pmRoot = process.env.PM_ROOT?.trim();
+  if (usable(pmRoot)) return { root: path.resolve(pmRoot), source: "PM_ROOT" };
+  const hint = process.env[ROOT_HINT_ENV_VAR]?.trim();
+  if (usable(hint) && isDir(hint)) {
+    const basis = process.env[ROOT_HINT_SOURCE_ENV_VAR]?.trim() || ROOT_HINT_ENV_VAR;
+    return { root: path.resolve(hint), source: `${basis}(spawn-time)` };
+  }
+  const cwd = process.cwd();
+  if (isInitialized(cwd)) return { root: path.resolve(cwd), source: "cwd" };
+  const hints = workspaceHints();
+  const chosen = hints.find((h) => isInitialized(h.value)) ?? hints.find((h) => isDir(h.value));
+  if (chosen) return { root: path.resolve(chosen.value), source: chosen.name };
+  return { root: path.resolve(cwd), source: "cwd" };
+}
+
+/** 服务端启动时定格的一次解析；get_status 用它自证项目根从哪来 */
+let startupResolution: { root: string; source: RootSource } | null = null;
+
+export function recordRootResolution(resolution: { root: string; source: RootSource }): void {
+  startupResolution = resolution;
+}
+
+export function rootResolution(): { root: string; source: RootSource } | null {
+  return startupResolution;
+}
+
+/** 项目根解析顺序：--root 参数 > PM_ROOT > 已初始化的启动目录 > 客户端工作区提示 > 当前工作目录 */
+export function resolveRoot(explicit?: string): string {
+  return resolveRootWithSource(explicit).root;
+}
+
 
 export const PM_DIR = ".pm";
 
