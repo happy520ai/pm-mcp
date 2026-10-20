@@ -1,5 +1,5 @@
 {
-  "seq": 66,
+  "seq": 67,
   "sessions": [
     {
       "id": "S-0001",
@@ -1545,6 +1545,64 @@
         "T-062：把本次修复随下个版本发到 npm（已发布的 0.5.0 不含按请求认领），并给 install.ps1 补 qoder 分支",
         "评估要不要给非启动根的工作区也预热 watcher/SQLite 索引（目前其他工作区首次 audit/search 走全量走查，正确但慢）",
         "把「跑 npm run quality 期间不要并发写 .pm/」写进贡献者须知：本次第一次跑 gate 就是被并发账本写入弄成 test 失败（重跑即全绿）"
+      ]
+    },
+    {
+      "id": "S-0067",
+      "date": "2026-10-20T15:18:40.013Z",
+      "author": "zcode",
+      "summary": "0.6.0 发布闭环完成：git ENOENT fallback（T-065）、update_task 报错带指引（T-066）、index.ts 拆分 52 行（T-067）、审计误报修复（T-068）、install.ps1 qoder 分支与版本修复（T-062）；npm 0.6.0 经 CI trusted publishing 上线（运行 39446179769），GitHub Release v0.6.0；M2 收口 30/30，功能 F-032/F-033、ADR-007 登记。",
+      "files": [
+        "package.json",
+        "install.ps1",
+        "README.md",
+        ".github/workflows/publish-npm.yml",
+        "src/git-state.ts",
+        "src/task-evidence.ts",
+        "src/index.ts",
+        "src/resources.ts",
+        "src/prompts.ts",
+        "src/scan.ts",
+        "src/index-store.ts",
+        "test/realrepo.test.ts",
+        "test/management-upgrade.test.ts",
+        "PROJECT.md",
+        ".pm/tasks.json",
+        ".pm/roadmap.json",
+        ".pm/features.json",
+        ".pm/file-notes.json",
+        ".pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md",
+        ".pm/quality-runs/quality-20261020-151706-277-0000.json",
+        ".pm/snapshots/snap-20261020-151745.json"
+      ],
+      "file_hashes": {
+        "package.json": "b1268305fcf7c33e8ec0b7eb75416f86dc5f60a8391e67e7b5ed480e8595331d",
+        "install.ps1": "98191c890e80fe9181df4797fe96f88adda7f6ec5d07b4d3d443184fd6f0b5f1",
+        "README.md": "35e9aed47cb3620954d88c269d4a16ccb932083c748e07cbea31da4d30e2920b",
+        ".github/workflows/publish-npm.yml": "ab1731967f186bd9ec699d0d913edf8f1f61c2c251192a53664dd358af57de34",
+        "src/git-state.ts": "fc80bbb6acd2c58430a37e6f44c616520c662bad8d49f4ced3ee23da29fd9157",
+        "src/task-evidence.ts": "8239c52d126da5ace5bd2c637909d0e330aecdca41593b7a266a071b67662baa",
+        "src/index.ts": "1454884a95e40cbdebfccd471da17e0163f6a2b5d09b9900ffc1b605177030ad",
+        "src/resources.ts": "1eeed26451dcb45a0f06e417ce67a3c86ab3ad96dfa88ee71e83143c5a02ac3a",
+        "src/prompts.ts": "85f80fbd1e6168c127dfb0503066326d26a873b21f5aa7e8cea8274b59c03668",
+        "src/scan.ts": "38d161de925827f0fd1916e9b58f0d2267c700c0447de17c20fcb24b82ad16a1",
+        "src/index-store.ts": "02700e0f6ed3716dea1658cb235a1ae65b93cb1462eaea768e3e2bfbe5973b8a",
+        "test/realrepo.test.ts": "16592b049878db2dba2de42c039cc4b9de619c46c4d3b7854ba8062d5c09d8ca",
+        "test/management-upgrade.test.ts": "c86802ed6852fe5310c2104be78e544fa6313055a5f85e6a262b0c9914a1456c",
+        "PROJECT.md": "f51d8ca3241c3fbe1702580891763944ce0b21d88a49f08c197f18f9804074a8",
+        ".pm/tasks.json": "5115dc154a35ff2604fdb49ae1797eb2c63e1d8ab28ffc1169732878ec90af05",
+        ".pm/roadmap.json": "7dcd36b6f0aae2526984d1ff4f8f6c3cf7ececd9bfb4a81fb42aff6ec5d0c186",
+        ".pm/features.json": "2621e808650eb6edfe0edc2ba3a551051b56044cc864e0d3b7d47993a978004a",
+        ".pm/file-notes.json": "ed48614d6740f85efc96aef6246007b354aeac7e22b9d2f2e73df27fe1708e14",
+        ".pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md": "7f4ef57b346c6a16613940f2d79bd09edc766b1bd96ef006e047424dbd5e63cd",
+        ".pm/quality-runs/quality-20261020-151706-277-0000.json": "96dfd491c1b5e4417ee9c56e0184f60465dad7709c4d476c58a796e88f820e6f",
+        ".pm/snapshots/snap-20261020-151745.json": "a1d57de6cc99e76279de7303462e25aea0b0c0d99c3913087a32c2dca6f9a2f8"
+      },
+      "next_steps": [
+        "重启客户端（/mcp reload）后重调 audit_structure：确认 skip/only 与空测试嫌疑清零、git 对账不再 ENOENT（当前残留来自运行中旧版服务进程，watcher 用旧逻辑刷新过索引）",
+        "观察 test/quality 子进程在 gate 环境的偶发抖动（矩阵/gate 偶报 6 失败但单跑全过，疑并发 .pm 状态争用），值得立任务排查",
+        "M3：Web UI 仪表盘（T-012）暂不排期；文件用途索引 33% 可继续提升",
+        "README 的 churn 热点（README 30 次/package.json 18 次）随会话自然衰减，不必立任务"
       ]
     }
   ]

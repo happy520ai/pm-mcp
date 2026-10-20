@@ -1,5 +1,5 @@
 {
-  "seq": 23,
+  "seq": 24,
   "entries": [
     {
       "id": "D-0001",
@@ -354,6 +354,24 @@
         "src/index.ts"
       ],
       "task_id": "T-064"
+    },
+    {
+      "id": "D-0024",
+      "date": "2026-10-20T16:32:03.142Z",
+      "author": "",
+      "symptom": "质量矩阵/gate 的测试子进程偶发（从服务端发起时必现）报 6-7 个失败，同命令单跑 352 全过；失败的报告只有 exit 码，没有任何测试输出，无法定位用例。",
+      "root_cause": "质量矩阵/gate 的测试子进程继承发起方进程的环境：从 MCP 服务端发起时继承 ZCode 的 Windows 原生 PATH（不含 Git），从 Git Bash 发起时 PATH 含 git。3 个测试文件（exploit/management-upgrade/usage-log）共 5 处直接 spawnSync(\"git\") 的 fixture（git init/gitignore/check-ignore）在 PATH 缺 git 时全部失败——恒定 6-7 个失败但单跑（Bash）全过，与\"共享 .pm 状态\"无关。与 audit 报 git status ENOENT 是同一个根。",
+      "fix": "测试侧：3 个测试文件里全部 5 处裸 spawnSync(\"git\") 改用共享 resolveGitCommand()（PATH 探测→where git→常见安装路径+缓存，T-065 已建），git 缺失时报错明确。可诊断性：quality-gate.mts 失败时打印 \"failing tests\" 摘录（此前只有 exit 码无从定位）；saveQualityRun 给失败报告持久化 output_excerpt（只取失败用例名与位置，不带断言正文，fixture 假密钥不进账本）。",
+      "verified_how": "最小 Windows PATH 复刻服务端环境跑 gate 复现 7 失败（诊断摘录抓到全部用例名）；修复后最小 PATH gate 连跑 3 次 PASS、真实矩阵（服务端发起）PASS 352/352、全量 npm test 352 全绿。",
+      "files": [
+        "src/git-state.ts",
+        "src/quality-store.ts",
+        "scripts/quality-gate.mts",
+        "test/exploit.test.ts",
+        "test/management-upgrade.test.ts",
+        "test/usage-log.test.ts"
+      ],
+      "task_id": "T-069"
     }
   ]
 }

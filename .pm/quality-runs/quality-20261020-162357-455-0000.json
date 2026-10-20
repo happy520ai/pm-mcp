@@ -1,0 +1,61 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-10-20T16:23:57.455Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "5bd97542ccf144421094bd238b9daa5503e26c2a6a36cc5a6e7c0fff332e4bbb",
+      "files": 147,
+      "bytes": 1427656
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "5bd97542ccf144421094bd238b9daa5503e26c2a6a36cc5a6e7c0fff332e4bbb",
+      "files": 147,
+      "bytes": 1427656
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 65220,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 47344,
+        "stderr_bytes": 0,
+        "output_sha256": "bb67d41acb18abf0eb3be87e9c1cc32147880b45fcdbd33177e888455eebe6a3",
+        "tests": 352,
+        "passed": 345,
+        "failed": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "output_excerpt": "✖ 钻空：把 .pm 塞进 .gitignore 让团队共享静默失效 (42.4845ms)\n✖ 钻空：log_session 漏报改动文件（git 对账抓漏） (41.0937ms)\n✖ Git 对账保留多会话的真实内容证据，后续改动仍会报出 (29.5667ms)\n✖ Git 对账尊重项目级 scan_ignore，并在清空规则后恢复检测 (15.0777ms)\n✖ PATH 缺 git 时按常见安装路径兜底解析，git 对账不 fail-closed (14.9918ms)\n✖ 旧会话只说明路径未验证，删除与重命名核对两端的实际状态 (14.9194ms)\n✖ 当前和轮转后的运行日志都被 Git 忽略 (22.4848ms)\n✖ failing tests:\ntest at test\\exploit.test.ts:215:1\n✖ 钻空：把 .pm 塞进 .gitignore 让团队共享静默失效 (42.4845ms)\ntest at test\\exploit.test.ts:223:1\n✖ 钻空：log_session 漏报改动文件（git 对账抓漏） (41.0937ms)\ntest at test\\management-upgrade.test.ts:55:1\n✖ Git 对账保留多会话的真实内容证据，后续改动仍会报出 (29.5667ms)\ntest at test\\management-upgrade.test.ts:94:1\n✖ Git 对账尊重项目级 scan_ignore，并在清空规则后恢复检测 (15.0777ms)\ntest at test\\management-upgrade.test.ts:111:1\n✖ PATH 缺 git 时按常见安装路径兜底解析，git 对账不 fail-closed (14.9918ms)\ntest at test\\management-upgrade.test.ts:135:1\n✖ 旧会话只说明路径未验证，删除与重命名核对两端的实际状态 (14.9194ms)\ntest at test\\usage-log.test.ts:27:1\n✖ 当前和轮转后的运行日志都被 Git 忽略 (22.4848ms)",
+      "error": ""
+    }
+  ]
+}

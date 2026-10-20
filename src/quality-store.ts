@@ -11,6 +11,13 @@ export interface QualityRunProvenance {
   source_after: ProjectFingerprint;
 }
 
+/** 失败报告附带的密钥最小化摘录：只取失败用例名与位置，不带断言正文（fixture 假密钥不得进账本）。 */
+function failingExcerpt(stdout: string, stderr: string): string {
+  const output = `${stdout}\n${stderr}`.replace(/\u001b\[[0-9;]*m/g, "");
+  const lines = output.split("\n").filter((l) => /^\s*✖\s/.test(l) || /^test at /.test(l));
+  return lines.slice(0, 80).join("\n").slice(0, 4000);
+}
+
 /** Persist a secret-minimised quality summary; raw stdout/stderr never enter the ledger. */
 export function saveQualityRun(root: string, result: QualityPlanResult, provenance?: QualityRunProvenance): string {
   const runAt = new Date();
@@ -42,6 +49,7 @@ export function saveQualityRun(root: string, result: QualityPlanResult, provenan
       duration_ms: item.durationMs,
       output_truncated: item.truncated,
       output_summary: summaries[index],
+      ...(item.status !== "passed" ? { output_excerpt: failingExcerpt(item.stdout ?? "", item.stderr ?? "") } : {}),
       error: item.error ?? "",
     })),
   }, null, 2) + "\n";

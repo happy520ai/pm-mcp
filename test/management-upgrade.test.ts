@@ -12,7 +12,7 @@ import { listFiles } from "../src/scan.ts";
 import { closeIndex, ensureFresh, freshness, getIndex, iterateFileRows, startWatcher, walkRefresh } from "../src/index-store.ts";
 import { loadSessions, loadTasks, saveSessions } from "../src/store.ts";
 import { fingerprintProject } from "../src/project-fingerprint.ts";
-import { changedGitFiles } from "../src/git-state.ts";
+import { changedGitFiles, resolveGitCommand } from "../src/git-state.ts";
 import { pathToFileURL } from "node:url";
 import { verifiedTaskEvidence } from "../src/task-evidence.ts";
 import { runQualityPlan } from "../src/language-adapters.ts";
@@ -36,7 +36,10 @@ function fixture(t: { after: (fn: () => void) => void }) {
     return result;
   };
   const git = (...args: string[]) => {
-    const result = spawnSync("git", ["-c", "commit.gpgSign=false", "-c", `core.hooksPath=${path.join(root, "no-hooks")}`, ...args], { cwd: root, encoding: "utf8" });
+    // 宿主进程 PATH 可能缺 git（质量矩阵子进程继承服务端环境），用共享 fallback 解析
+    const gitCommand = resolveGitCommand();
+    assert.ok(gitCommand, "git 可执行文件必须可解析（PATH 或常见安装路径）");
+    const result = spawnSync(gitCommand, ["-c", "commit.gpgSign=false", "-c", `core.hooksPath=${path.join(root, "no-hooks")}`, ...args], { cwd: root, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
   };
   return { root, call, ok, git };

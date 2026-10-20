@@ -23,15 +23,19 @@ import { drainFoldSavings, foldLines } from "../src/budget.ts";
 import { toolR, toolW } from "../src/tool-base.ts";
 import { registerProjectTools, registerRoadmapTools } from "../src/project-tools.ts";
 import { initTestProject, mkProj } from "./helpers.ts";
+import { resolveGitCommand } from "../src/git-state.ts";
 
 test("当前和轮转后的运行日志都被 Git 忽略", (t) => {
   const root = mkProj();
   initTestProject(root);
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const init = spawnSync("git", ["init", "--quiet"], { cwd: root, encoding: "utf8" });
+  // 宿主进程 PATH 可能缺 git（质量矩阵子进程继承服务端环境），用共享 fallback 解析
+  const git = resolveGitCommand();
+  assert.ok(git, "git 可执行文件必须可解析（PATH 或常见安装路径）");
+  const init = spawnSync(git, ["init", "--quiet"], { cwd: root, encoding: "utf8" });
   assert.equal(init.status, 0, init.stderr);
   const files = [".pm/usage-log.jsonl", ".pm/usage-log.1.jsonl", ".pm/runtime-log.jsonl", ".pm/runtime-log.1.jsonl"];
-  const checked = spawnSync("git", ["check-ignore", "--no-index", "--stdin"], { cwd: root, input: files.join("\n") + "\n", encoding: "utf8" });
+  const checked = spawnSync(git, ["check-ignore", "--no-index", "--stdin"], { cwd: root, input: files.join("\n") + "\n", encoding: "utf8" });
   assert.equal(checked.status, 0, checked.stderr);
   assert.deepEqual(checked.stdout.trim().split(/\r?\n/).sort(), files.sort());
 });

@@ -74,6 +74,13 @@ async function main(): Promise<number> {
   const summary = saveQualityRun(args.root, result, { source_before: sourceBefore, source_after: sourceAfter });
   for (const item of result.results) {
     console.log(`[${item.status}/${item.command.kind}] ${item.command.cwd} (${item.durationMs}ms${item.exitCode === null ? "" : `, exit=${item.exitCode}`})`);
+    if (item.status !== "passed") {
+      // 失败必须带诊断输出，否则只有 exit 码无从定位是哪几个用例
+      const output = `${item.stdout ?? ""}\n${item.stderr ?? ""}`.replace(/\u001b\[[0-9;]*m/g, "");
+      const failing = output.indexOf("failing tests");
+      const excerpt = failing >= 0 ? output.slice(failing, failing + 8000) : output.slice(-8000);
+      if (excerpt.trim()) console.error(excerpt);
+    }
   }
   if (!sourceStable) console.error(`[quality-gate] 源码在质量执行期间变化：before=${sourceBefore.sha256} after=${sourceAfter.sha256}`);
   console.log(`[quality-gate] ${result.ok ? "PASS" : "FAIL"} · ${summary}`);

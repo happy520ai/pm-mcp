@@ -1,5 +1,5 @@
 {
-  "seq": 68,
+  "seq": 69,
   "tasks": [
     {
       "id": "T-001",
@@ -2403,6 +2403,50 @@
       "updated": "2026-10-20T15:17:27.830Z",
       "started_at": null,
       "completed_at": "2026-10-20T15:17:27.830Z"
+    },
+    {
+      "id": "T-069",
+      "title": "质量矩阵/gate 测试子进程偶发 6 失败（并发共享状态争用）",
+      "detail": "质量矩阵/gate 的测试子进程（npm run test，concurrency=2）偶发报 6 个失败，但同命令单跑 351/352 全过。疑并发时共享 .pm 状态互相撞车（两次测试套件同时跑、或 gate 的 auditGovernance 与测试并发访问 .pm/index.db/PROJECT.md/端口）。需复现抓出具体失败用例，从根上修（跨进程锁或测试隔离）。",
+      "type": "fix",
+      "status": "done",
+      "priority": "P1",
+      "milestone": null,
+      "steps": [
+        {
+          "text": "受控实验复现：两套测试并发跑，抓出具体失败用例",
+          "done": false
+        },
+        {
+          "text": "定位根因（共享状态/端口/SQLite 争用）",
+          "done": false
+        },
+        {
+          "text": "从根上修复并补测试",
+          "done": false
+        },
+        {
+          "text": "连跑多次矩阵/gate 确认不再抖动",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/quality-store.ts",
+        "scripts/quality-gate.mts",
+        "test/exploit.test.ts",
+        "test/management-upgrade.test.ts",
+        "test/usage-log.test.ts"
+      ],
+      "acceptance": "",
+      "result_note": "根因：矩阵/gate 测试子进程继承发起方 PATH——从 MCP 服务端发起时继承 ZCode 原生 PATH（无 git），测试里 5 处裸 spawnSync(\"git\") 的 fixture 全挂（恒 6-7 个失败）。与\"共享 .pm 状态\"无关。修复：测试改用共享 resolveGitCommand；gate 失败时打印 failing tests 摘录；质量报告持久化 output_excerpt（密钥最小化）。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261020-162958-542-0000.json\n报告 SHA-256: 43c3ce1f76f49eff6bbc09757752f5a503c5bbcf4eff227b5af2fbece3f5116e\n源码 SHA-256: f0c0ab14f0ac0c1197694ae7436a4cde4f0a8a27c56523fceb834820c7d28132\n执行时间: 2026-10-20T16:29:58.542Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: 最小 PATH 复刻环境复现 7 失败→修复后 gate 连跑 3 次 PASS；真实矩阵（服务端发起）352/352 ok=true（quality-20261020-162958-542）；全量 npm test 352 全绿；typecheck 通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-20T16:13:09.675Z",
+      "updated": "2026-10-20T16:32:09.294Z",
+      "started_at": null,
+      "completed_at": "2026-10-20T16:32:09.294Z"
     }
   ]
 }

@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-10-20T16:19:54.744Z",
+  "ok": true,
+  "reported_ok": true,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v25.8.1"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "198d9aa16cc5f58d5d2b5d7e526656af49fe8ffebe95d8e377bcd119d5ff648f",
+      "files": 147,
+      "bytes": 1427102
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "198d9aa16cc5f58d5d2b5d7e526656af49fe8ffebe95d8e377bcd119d5ff648f",
+      "files": 147,
+      "bytes": 1427102
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "E:\\通用型项目管理",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 51588,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 40810,
+        "stderr_bytes": 0,
+        "output_sha256": "9d1dc50532ce631f502d9b1d1e55da753a67e8f1e9585af61e7c9730fd4568fb",
+        "tests": 352,
+        "passed": 352,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-10-20 — zcode
+
+0.6.0 发布闭环完成：git ENOENT fallback（T-065）、update_task 报错带指引（T-066）、index.ts 拆分 52 行（T-067）、审计误报修复（T-068）、install.ps1 qoder 分支与版本修复（T-062）；npm 0.6.0 经 CI trusted publishing 上线（运行 39446179769），GitHub Release v0.6.0；M2 收口 30/30，功能 F-032/F-033、ADR-007 登记。
+
+改动文件（21）: package.json, install.ps1, README.md, .github/workflows/publish-npm.yml, src/git-state.ts, src/task-evidence.ts, src/index.ts, src/resources.ts, src/prompts.ts, src/scan.ts, src/index-store.ts, test/realrepo.test.ts, test/management-upgrade.test.ts, PROJECT.md, .pm/tasks.json, .pm/roadmap.json, .pm/features.json, .pm/file-notes.json, .pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md, .pm/quality-runs/quality-20261020-151706-277-0000.json, .pm/snapshots/snap-20261020-151745.json
+
+下一步: 重启客户端（/mcp reload）后重调 audit_structure：确认 skip/only 与空测试嫌疑清零、git 对账不再 ENOENT（当前残留来自运行中旧版服务进程，watcher 用旧逻辑刷新过索引）；观察 test/quality 子进程在 gate 环境的偶发抖动（矩阵/gate 偶报 6 失败但单跑全过，疑并发 .pm 状态争用），值得立任务排查；M3：Web UI 仪表盘（T-012）暂不排期；文件用途索引 33% 可继续提升；README 的 churn 热点（README 30 次/package.json 18 次）随会话自然衰减，不必立任务
+
 ## 2026-09-20 — qoder
 
 修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。
