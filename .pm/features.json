@@ -1,5 +1,5 @@
 {
-  "seq": 31,
+  "seq": 33,
   "features": [
     {
       "id": "F-001",
@@ -555,6 +555,40 @@
       "status": "implemented",
       "created": "2026-09-20T04:13:28.948Z",
       "updated": "2026-09-20T04:13:28.948Z"
+    },
+    {
+      "id": "F-032",
+      "name": "Qoder 按请求认领工作区与 launch 接入",
+      "description": "Qoder 多窗口共用常驻子进程时项目根不再启动期钉死：服务端按「工具名+参数+紧时间窗」指纹倒扫会话运行日志拿调用方 cwd，root_source 如实标注；qoder-launch 适配器与 install.ps1/setup 的 qoder 分支随 0.6.0 发布。",
+      "module": "pm-mcp",
+      "entry_files": [
+        "src/caller-workspace.ts",
+        "src/qoder-launch.ts",
+        "src/setup.ts"
+      ],
+      "test_files": [
+        "test/caller-workspace.test.ts",
+        "test/qoder-launch.test.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-20T15:17:42.002Z",
+      "updated": "2026-10-20T15:17:42.002Z"
+    },
+    {
+      "id": "F-033",
+      "name": "git 对账 fallback 解析",
+      "description": "宿主进程 PATH 缺 git 时 resolveGitCommand 按 PATH → where git → 常见安装路径兜底解析并缓存；changedGitFiles 用解析结果拉起 git，对账不再恒红 fail-closed。",
+      "module": "pm-mcp",
+      "entry_files": [
+        "src/git-state.ts"
+      ],
+      "test_files": [
+        "test/management-upgrade.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-20T15:17:45.243Z",
+      "updated": "2026-10-20T15:17:45.243Z"
     }
   ]
 }

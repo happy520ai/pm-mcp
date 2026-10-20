@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-20T15:10:20.787Z
+> 生成时间: 2026-10-20T15:18:17.226Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -9,7 +9,7 @@
 ```mermaid
 flowchart LR
   M1["M1 v1 核心能力"]:::done
-  M2["M2 v2 增强"]:::active
+  M2["M2 v2 增强"]:::done
   M3["M3 v3 体验增强（Web UI 仪表盘等，暂不排期）"]:::planned
   M1 --> M2
   M2 --> M3
@@ -20,9 +20,8 @@ flowchart LR
 ```
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
-▶ [█████████░] 87% M2 v2 增强（27/31）
-○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/0）
-- ⚠️ 重构被挤出: M2 v2 增强 重构类占比 19% < 配额 20%
+✅ [██████████] 100% M2 v2 增强（30/30）
+○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/1）
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
@@ -32,13 +31,13 @@ flowchart LR
 | 账本 | 状态 |
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
-| 债务（反挤出） | ⚠️ 1 条，最老 31 天 |
+| 债务（反挤出） | ✅ 无未清债务 |
 | churn（变更率） | ⚠️ 热点 README.md(30), package.json(18), src/index.ts(16) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 23 条记录 |
-| 测试背书 | 31/31 个功能带测试 |
+| 测试背书 | 33/33 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-20 15:10（命令 1/1；证据 tests_observed） |
+| 质量矩阵 | ✅ 2026-10-20 15:17（命令 1/1；证据 tests_observed） |
 | 标准化验收 | ✅ 2026-09-17 15:22（需求 33/33，errors 0） |
 
 ## 🧭 模块与语言治理
@@ -47,7 +46,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 60 · backlog 8
+- 总览: done 67 · backlog 1
 
 ## 🧩 功能清单
 ### src
@@ -94,13 +93,16 @@ flowchart LR
 - ✅ F-030 Qoder 客户端接入（工作区解析适配器） — 让 Qoder 用户级一条 MCP 配置服务所有工作区：resolveRoot 支持客户端工作区提示与未插值占位符防护；dist/qoder-launch.js
 ### MCP 服务端
 - ✅ F-031 按请求认领项目根（多窗口共用常驻进程） — 客户端（如 Qoder）把一个常驻 MCP 子进程复用给所有窗口时，项目根不再在启动时定格，而是每次工具调用重新认领调用方工作区：显式 root 参数 > 会话
+### pm-mcp
+- ✅ F-032 Qoder 按请求认领工作区与 launch 接入 — Qoder 多窗口共用常驻子进程时项目根不再启动期钉死：服务端按「工具名+参数+紧时间窗」指纹倒扫会话运行日志拿调用方 cwd，root_source 如实标注
+- ✅ F-033 git 对账 fallback 解析 — 宿主进程 PATH 缺 git 时 resolveGitCommand 按 PATH → where git → 常见安装路径兜底解析并缓存；changedGi
 
 ## 🏛️ 架构决策（最近）
+- [ADR-007-输出行数预算显式设为-100（默认-150）](.pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md)
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 - [ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root](.pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md)
 - [ADR-004-语义治理采用AST保证分层与运行时证据扩展](.pm/decisions/ADR-004-语义治理采用AST保证分层与运行时证据扩展.md)
 - [ADR-003-标准化验收采用冻结基线与机器证据指针](.pm/decisions/ADR-003-标准化验收采用冻结基线与机器证据指针.md)
-- [ADR-002-v1-全部离线，不联网](.pm/decisions/ADR-002-v1-全部离线，不联网.md)
 
 ## 📜 最近会话
 - 2026-09-20 [qoder] 修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。

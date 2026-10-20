@@ -171,21 +171,24 @@
       "title": "OSV 联网漏洞查询（默认关）",
       "detail": "",
       "type": "feature",
-      "status": "backlog",
+      "status": "done",
       "priority": null,
       "milestone": "M2",
       "steps": [],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/audit-tools.ts",
+        "test/tooling-coverage.test.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "audit_osv 已随 0.4.0 发布（提交 21fb107），联网查询默认关、confirm=true 显式鉴权；账本漏关，补记闭环。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261020-151706-277-0000.json\n报告 SHA-256: f4c578b28dc302ce9f3b35b7b2e6be9af15089813218a992459e49d8eb7dff7d\n源码 SHA-256: 52c89e9c1f49548c4cd3f250c0100a553377b96d1fc08216d6783c5dd855c5e0\n执行时间: 2026-10-20T15:17:06.277Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: npm 已发布 audit_osv（0.4.0 起）；src/audit-tools.ts 实现与 test/tooling-coverage.test.ts 用例真实存在；质量报告 quality-20261020-151706-277",
       "tags": [],
       "author": "",
       "created": "2026-09-01T16:30:56.610Z",
-      "updated": "2026-09-01T16:30:56.610Z",
+      "updated": "2026-10-20T15:17:37.908Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:37.908Z"
     },
     {
       "id": "T-009",
@@ -241,21 +244,24 @@
       "title": "重复代码检测",
       "detail": "",
       "type": "feature",
-      "status": "backlog",
+      "status": "done",
       "priority": null,
       "milestone": "M2",
       "steps": [],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/duplicates.ts",
+        "test/duplicates.test.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "find_duplicates 已随 0.4.0 发布（提交 21fb107），行指纹滑动窗口聚类；账本漏关，补记闭环。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261020-151706-277-0000.json\n报告 SHA-256: f4c578b28dc302ce9f3b35b7b2e6be9af15089813218a992459e49d8eb7dff7d\n源码 SHA-256: 52c89e9c1f49548c4cd3f250c0100a553377b96d1fc08216d6783c5dd855c5e0\n执行时间: 2026-10-20T15:17:06.277Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: npm 已发布 find_duplicates（0.4.0 起）；src/duplicates.ts 实现与 test/duplicates.test.ts 用例真实存在；质量报告 quality-20261020-151706-277",
       "tags": [],
       "author": "",
       "created": "2026-09-01T16:30:56.663Z",
-      "updated": "2026-09-01T16:30:56.663Z",
+      "updated": "2026-10-20T15:17:38.070Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:38.070Z"
     },
     {
       "id": "T-012",
@@ -264,7 +270,7 @@
       "type": "feature",
       "status": "backlog",
       "priority": null,
-      "milestone": "M2",
+      "milestone": "M3",
       "steps": [],
       "checkpoint": null,
       "files": [],
@@ -274,7 +280,7 @@
       "tags": [],
       "author": "",
       "created": "2026-09-01T16:30:56.681Z",
-      "updated": "2026-09-01T16:30:56.681Z",
+      "updated": "2026-10-20T15:17:31.906Z",
       "started_at": null,
       "completed_at": null
     },
@@ -2092,24 +2098,29 @@
       "title": "发布 launch 子命令与 --client qoder 到 npm，并给 install.ps1 补 qoder 分支",
       "detail": "npm 上的 0.5.0 还不含 pm-mcp launch 与 --client qoder，README 里发布版 npx 写法要等下一次 release 才真正可用；install.ps1 的 ValidateSet 与分支也尚未加 qoder（其 packageSpec 还钉在 0.3.0）。",
       "type": "debt",
-      "status": "backlog",
+      "status": "done",
       "priority": "P2",
       "milestone": null,
       "steps": [],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "package.json",
+        "install.ps1",
+        "README.md",
+        ".github/workflows/publish-npm.yml"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "0.6.0 已发布到 npm（trusted publishing，CI 运行 39446179769 成功，registry integrity 核验通过）：launch 子命令与 --client qoder 随 npm 上线；install.ps1 补 qoder 分支并修复硬编码版本号；GitHub Release v0.6.0 附已验证 tarball；tag v0.6.0 已推送。",
+      "verification": "npm view @luckychen1993/pm-mcp@0.6.0 version=0.6.0；gh run 39446179769 conclusion=success；质量报告 quality-20261020-151706-277",
       "tags": [
         "release",
         "clients"
       ],
       "author": "",
       "created": "2026-09-19T15:04:10.142Z",
-      "updated": "2026-09-19T15:04:10.142Z",
+      "updated": "2026-10-20T15:17:27.926Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:27.926Z"
     },
     {
       "id": "T-063",
@@ -2244,7 +2255,7 @@
       "title": "git 对账健壮性：spawnSync git ENOENT 时 fallback 解析 git 路径",
       "detail": "audit_structure 显示 git status 对账 spawnSync git ENOENT fail-closed，某些宿主进程 PATH 无 git 时该对账恒红。给 git-state.ts 加 git 可执行文件 fallback（常见安装路径探测 / where git win32 优先），保证对账可用。",
       "type": "fix",
-      "status": "backlog",
+      "status": "done",
       "priority": "P1",
       "milestone": null,
       "steps": [
@@ -2266,23 +2277,26 @@
         }
       ],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/git-state.ts",
+        "test/management-upgrade.test.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "resolveGitCommand：PATH 探测 → where git → 常见安装路径（Program Files/LocalAppData/Unix 路径），带缓存与测试重置函数。changedGitFiles 用解析结果拉起 git，找不到时明确报错。子进程隔离 PATH 的测试覆盖 fallback 全路径。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261020-151706-277-0000.json\n报告 SHA-256: f4c578b28dc302ce9f3b35b7b2e6be9af15089813218a992459e49d8eb7dff7d\n源码 SHA-256: 52c89e9c1f49548c4cd3f250c0100a553377b96d1fc08216d6783c5dd855c5e0\n执行时间: 2026-10-20T15:17:06.277Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: node --test test/management-upgrade.test.ts（9/9）；质量报告 quality-20261020-151706-277（351 测试全绿）",
       "tags": [],
       "author": "",
       "created": "2026-10-20T14:45:01.212Z",
-      "updated": "2026-10-20T14:45:01.212Z",
+      "updated": "2026-10-20T15:17:10.284Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:10.284Z"
     },
     {
       "id": "T-066",
       "title": "update_task 验证拦截报错附下一步指引",
       "detail": "使用日志显示 update_task 8 次失败，几乎都是\"源码已变化，证据过期\"/\"必须使用最新质量报告\"类验证拦截。拦截正确，但报错应附下一步指引（先跑 run_quality_matrix 刷新证据，再 update_task(done)），减少 AI 重试碰壁。",
       "type": "fix",
-      "status": "backlog",
+      "status": "done",
       "priority": "P2",
       "milestone": null,
       "steps": [
@@ -2300,23 +2314,27 @@
         }
       ],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/task-evidence.ts",
+        "test/management-upgrade.test.ts",
+        "test/tooling-coverage.test.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "update_task 全部 8 处验证拦截报错（缺 files、范围外、文件不存在、缺报告、绕过最新、验证失败、弱证据、源码过期、未覆盖目录）都附可执行的下一步指引；保留测试正则断言的关键词。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261020-151706-277-0000.json\n报告 SHA-256: f4c578b28dc302ce9f3b35b7b2e6be9af15089813218a992459e49d8eb7dff7d\n源码 SHA-256: 52c89e9c1f49548c4cd3f250c0100a553377b96d1fc08216d6783c5dd855c5e0\n执行时间: 2026-10-20T15:17:06.277Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: node --test test/management-upgrade.test.ts test/tooling-coverage.test.ts（22/22）；质量报告 quality-20261020-151706-277",
       "tags": [],
       "author": "",
       "created": "2026-10-20T14:45:01.777Z",
-      "updated": "2026-10-20T14:45:01.777Z",
+      "updated": "2026-10-20T15:17:18.209Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:18.209Z"
     },
     {
       "id": "T-067",
       "title": "重构 index.ts：工具注册按域拆模块，消除散弹式修改热点",
       "detail": "index.ts 被 16 个会话波及，是散弹式修改热点。把工具注册按域拆成注册模块（knowledge/task/audit/governance/acceptance 等），index.ts 只保留装配与启动。同时补齐 M2 重构配额（当前 17% 低于 20%）。",
       "type": "refactor",
-      "status": "backlog",
+      "status": "done",
       "priority": "P1",
       "milestone": "M2",
       "steps": [
@@ -2334,23 +2352,27 @@
         }
       ],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/index.ts",
+        "src/resources.ts",
+        "src/prompts.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "index.ts 318→52 行：resources（7 个）拆到 src/resources.ts，prompts（5 个）拆到 src/prompts.ts，入口只留根解析、server 装配与 watcher 启动。49+5 工具契约与所有资源/提示不变。",
+      "verification": "npm run typecheck 通过；全量 352 测试全绿（含 realrepo 工具目录契约断言）；质量报告 quality-20261020-151706-277",
       "tags": [],
       "author": "",
       "created": "2026-10-20T14:45:02.302Z",
-      "updated": "2026-10-20T14:45:02.302Z",
+      "updated": "2026-10-20T15:17:18.303Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:18.303Z"
     },
     {
       "id": "T-068",
       "title": "测试账本小项：skip/only 标记复查 + 空测试 fixtures 误报排除",
       "detail": "audit_structure 报 skip/only 标记 4 处需复查是否仍有效；test/fixtures/raw-mcp-server.mjs 是 fixture 被空测试检测误报，给 audit-tools.ts 空测试检测排除 fixtures 目录。",
       "type": "chore",
-      "status": "backlog",
+      "status": "done",
       "priority": "P3",
       "milestone": null,
       "steps": [
@@ -2368,16 +2390,19 @@
         }
       ],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/scan.ts",
+        "src/index-store.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "复查确认 4 处 skip 标记全是误报（src/scan.ts 自身模式定义 2 处 + 测试 fixture 字符串模板 2 处），countSkipLines 排除正则定义行与含转义 \\n 的模板行；computeEntry 排除 fixtures 目录的空测试嫌疑。误报清零（0 标记 / 空测试 []）。",
+      "verification": "scanProject forceContent 复扫 skipMarkers=0、trivial=[]；test/audit+runner+scenario+integrity 28/28；质量报告 quality-20261020-151706-277",
       "tags": [],
       "author": "",
       "created": "2026-10-20T14:45:02.425Z",
-      "updated": "2026-10-20T14:45:02.425Z",
+      "updated": "2026-10-20T15:17:27.830Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-20T15:17:27.830Z"
     }
   ]
 }
