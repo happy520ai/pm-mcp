@@ -8,7 +8,12 @@
 
 > 核心理念：**把恶化从「无声发生」变成「显式记账」，把上下文从「模型记忆」搬到「仓库文件」。**
 
-当前源码与 npm 最新发布为 **0.6.0**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+当前源码与 npm 最新发布为 **0.6.1**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+
+## 0.6.1：git 依赖测试健壮性与失败报告诊断
+
+- **git 依赖测试健壮性**：测试 fixture 里全部裸 `spawnSync("git")` 改用共享 `resolveGitCommand()` fallback——质量矩阵/gate 的测试子进程继承发起方 PATH（MCP 服务端进程常无 git）时不再误报失败。
+- **失败可诊断**：`quality-gate` 失败时打印 "failing tests" 摘录；质量报告持久化 `output_excerpt`（密钥最小化，只取失败用例名与位置，不带断言正文）。
 
 ## 0.6.0：Qoder 接入发布、git 对账兜底与完成门禁指路
 

@@ -2,6 +2,14 @@
 
 ## 2026-10-20 — zcode
 
+T-069 根治质量矩阵/gate 偶发 6-7 失败：根因是测试子进程继承发起方 PATH（服务端无 git），测试里 5 处裸 spawnSync("git") 全挂，与共享状态无关。测试改用共享 resolveGitCommand；gate 失败时打印摘录；报告持久化 output_excerpt。最小 PATH gate ×3 PASS、真实矩阵 352/352、全量测试全绿。
+
+改动文件（9）: src/quality-store.ts, scripts/quality-gate.mts, test/exploit.test.ts, test/management-upgrade.test.ts, test/usage-log.test.ts, .pm/debuglog.json, .pm/tasks.json, .pm/quality-runs/quality-20261020-162704-148-0000.json, .pm/quality-runs/quality-20261020-162958-542-0000.json
+
+下一步: git fallback 的 0.6.0 修复尚未随包发布（发布在 0.7.0 或下个补丁版：重建 dist→npm pack→更新 publish-npm.yml TARBALL/SHA→gh release→dispatch）；文件用途索引 33% 可继续提升；M3 Web UI 仪表盘（T-012）暂不排期
+
+## 2026-10-20 — zcode
+
 0.6.0 发布闭环完成：git ENOENT fallback（T-065）、update_task 报错带指引（T-066）、index.ts 拆分 52 行（T-067）、审计误报修复（T-068）、install.ps1 qoder 分支与版本修复（T-062）；npm 0.6.0 经 CI trusted publishing 上线（运行 39446179769），GitHub Release v0.6.0；M2 收口 30/30，功能 F-032/F-033、ADR-007 登记。
 
 改动文件（21）: package.json, install.ps1, README.md, .github/workflows/publish-npm.yml, src/git-state.ts, src/task-evidence.ts, src/index.ts, src/resources.ts, src/prompts.ts, src/scan.ts, src/index-store.ts, test/realrepo.test.ts, test/management-upgrade.test.ts, PROJECT.md, .pm/tasks.json, .pm/roadmap.json, .pm/features.json, .pm/file-notes.json, .pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md, .pm/quality-runs/quality-20261020-151706-277-0000.json, .pm/snapshots/snap-20261020-151745.json

@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-20T16:32:09.324Z
+> 生成时间: 2026-10-20T16:32:34.275Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -105,6 +105,8 @@ flowchart LR
 - [ADR-003-标准化验收采用冻结基线与机器证据指针](.pm/decisions/ADR-003-标准化验收采用冻结基线与机器证据指针.md)
 
 ## 📜 最近会话
+- 2026-10-20 [zcode] T-069 根治质量矩阵/gate 偶发 6-7 失败：根因是测试子进程继承发起方 PATH（服务端无 git），测试里 5 处裸 spawnSync("git") 全挂，与共享状态无关。测试改用共享 resolveGitCommand；gate 失败时打印摘录；报告持久化 output_excerpt。最小 PATH gate ×3 PASS、真实矩阵 352/352、全量测试全绿。
+  - 改动: src/quality-store.ts, scripts/quality-gate.mts, test/exploit.test.ts, test/management-upgrade.test.ts, test/usage-log.test.ts, .pm/debuglog.json, .pm/tasks.json, .pm/quality-runs/quality-20261020-162704-148-0000.json 等 9 个
 - 2026-10-20 [zcode] 0.6.0 发布闭环完成：git ENOENT fallback（T-065）、update_task 报错带指引（T-066）、index.ts 拆分 52 行（T-067）、审计误报修复（T-068）、install.ps1 qoder 分支与版本修复（T-062）；npm 0.6.0 经 CI trusted publishing 上线（运行 39446179769），GitHub Release v0.6.0；M2 收口 30/30，功能 F-032/F-033、ADR-007 登记。
   - 改动: package.json, install.ps1, README.md, .github/workflows/publish-npm.yml, src/git-state.ts, src/task-evidence.ts, src/index.ts, src/resources.ts 等 21 个
 - 2026-09-20 [qoder] 修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。
@@ -112,7 +114,6 @@ flowchart LR
 - 2026-09-19 [?] T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：Qoder 真实派生的新会话已实测通过：新建独立会话调用 mcp__pm_mcp__get_status 返回 root=E:\通用型项目管理、root_source=--root、version 0.5.0，证明用户级一条配置（node .../dist/qoder-launch.js，不带 --root）在 Qoder 里能起服务并把项目根钉到当前工作区。换工作区验证同一条配置：QODER_WORKER_CWD 指向 unified-ai-system 时 root 随之切换，各工作区各归各账本。当前这个会话需 /mcp reload 才会拿到连接。
 - 2026-09-19 [qoder] 把 pm-mcp 接入 Qoder 做成受支持能力：根解析支持客户端工作区提示与未插值占位符防护，新增 qoder-launch 适配器 + launch 子命令，setup/doctor 支持 --client qoder，并用真命令把用户级配置改写为一条不钉根的适配器条目；配套 11 个用例与 README 章节。
   - 改动: src/paths.ts, src/qoder-launch.ts, src/index.ts, src/project-tools.ts, src/setup.ts, src/setup-project.ts, src/doctor.ts, src/cli.ts 等 12 个
-- 2026-09-19 [?] T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：代码/测试/文档/真机配置全部落地：coverage 336 通过、doctor --client qoder 返回 ok:true 且 root 正确、用户级配置已由 setup --client qoder --local 写成 dist/qoder-launch.js 一条（其他 server 保留，写前有备份）。
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

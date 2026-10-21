@@ -1,5 +1,5 @@
 {
-  "seq": 67,
+  "seq": 68,
   "sessions": [
     {
       "id": "S-0001",
@@ -1603,6 +1603,38 @@
         "观察 test/quality 子进程在 gate 环境的偶发抖动（矩阵/gate 偶报 6 失败但单跑全过，疑并发 .pm 状态争用），值得立任务排查",
         "M3：Web UI 仪表盘（T-012）暂不排期；文件用途索引 33% 可继续提升",
         "README 的 churn 热点（README 30 次/package.json 18 次）随会话自然衰减，不必立任务"
+      ]
+    },
+    {
+      "id": "S-0068",
+      "date": "2026-10-20T16:32:34.242Z",
+      "author": "zcode",
+      "summary": "T-069 根治质量矩阵/gate 偶发 6-7 失败：根因是测试子进程继承发起方 PATH（服务端无 git），测试里 5 处裸 spawnSync(\"git\") 全挂，与共享状态无关。测试改用共享 resolveGitCommand；gate 失败时打印摘录；报告持久化 output_excerpt。最小 PATH gate ×3 PASS、真实矩阵 352/352、全量测试全绿。",
+      "files": [
+        "src/quality-store.ts",
+        "scripts/quality-gate.mts",
+        "test/exploit.test.ts",
+        "test/management-upgrade.test.ts",
+        "test/usage-log.test.ts",
+        ".pm/debuglog.json",
+        ".pm/tasks.json",
+        ".pm/quality-runs/quality-20261020-162704-148-0000.json",
+        ".pm/quality-runs/quality-20261020-162958-542-0000.json"
+      ],
+      "file_hashes": {
+        "src/quality-store.ts": "0da7c3db5e2800cea7a1af26e4cc362b60ac611ffc988c1676cf49322d23fb73",
+        "scripts/quality-gate.mts": "7452fadba899f05915020d6060df7da06d1e9dbac8f9c78f4a139d6792ad44b2",
+        "test/exploit.test.ts": "eca2f5dff2fd7669a9f7dbd9a33a75af9100ea5e9a03153fc8ed986835927309",
+        "test/management-upgrade.test.ts": "e2459dff807cf3310d5fc9d900477c71c458ed3b7b858ca063f12116eaacbca4",
+        "test/usage-log.test.ts": "f3a5cb0345fe2ae70501ad1911e1b3d6b50e04b1d743cad5a9269b0847a1c85a",
+        ".pm/debuglog.json": "6ed01a2ec78b71a8cc96fba862699a421b148d2542ab57bbe5e89004ba45187c",
+        ".pm/tasks.json": "e873b282f974ce31ff419b8f608dc6df2c5e3da9e4937f9c7b60ad8062e19ac7",
+        ".pm/quality-runs/quality-20261020-162704-148-0000.json": "b6ec93c470c6424b235023fdc61c1f2be2ef37894f0a5f9285e6b2fefda512fe",
+        ".pm/quality-runs/quality-20261020-162958-542-0000.json": "bf3f41ffac962334d82507eaf4f85e16e76b646ac12d016335142b18955f87c8"
+      },
+      "next_steps": [
+        "git fallback 的 0.6.0 修复尚未随包发布（发布在 0.7.0 或下个补丁版：重建 dist→npm pack→更新 publish-npm.yml TARBALL/SHA→gh release→dispatch）",
+        "文件用途索引 33% 可继续提升；M3 Web UI 仪表盘（T-012）暂不排期"
       ]
     }
   ]
