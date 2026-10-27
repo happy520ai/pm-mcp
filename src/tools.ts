@@ -10,11 +10,13 @@ import {
 } from "./knowledge-tools.ts";
 import { registerProjectTools, registerRoadmapTools } from "./project-tools.ts";
 import { registerTaskTools } from "./task-tools.ts";
+import { registerOrchestratorTools } from "./orchestrator-tools.ts";
 
 export {
   registerProjectTools,
   registerRoadmapTools,
   registerTaskTools,
+  registerOrchestratorTools,
   registerFeatureTools,
   registerDecisionTools,
   registerSessionTools,
@@ -36,4 +38,5 @@ export function registerAllTools(server: McpServer, root: string): void {
   registerRegistryTools(server, root);
   registerGovernanceTools(server, root);
   registerAcceptanceTools(server, root);
+  registerOrchestratorTools(server, root);
 }

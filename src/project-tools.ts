@@ -21,6 +21,8 @@ import { renderRuntimeLogLines, renderUsageLogLines } from "./usage-log.ts";
 import { ScanIgnoreSchema } from "./scan-policy.ts";
 import { VERSION, RUNTIME_CONTRACT } from "./version.ts";
 import { CompletionEvidenceSchema } from "./quality-evidence.ts";
+import { orchestratorStatusLines } from "./orchestrator-tools.ts";
+import { loadOrchestrator, readOrchestrator, orchestratorStatus, STALL_THRESHOLD, FAIL_EXIT_THRESHOLD } from "./orchestrator.ts";
 
 function taskLine(t: Task, withNext = false): string {
   const parts = [`[${t.status}]`, t.id, t.title, `(${t.type}${t.milestone ? `,${t.milestone}` : ""})`];
@@ -72,6 +74,7 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
       const { tasks } = loadTasks(root);
       const { sessions } = loadSessions(root);
       const security = loadSecurity(root);
+      const orchestrator = loadOrchestrator(root);
       const L: string[] = [];
 
       L.push(`# ${project.name}${project.phase ? ` — ${project.phase}` : ""}`);
@@ -113,6 +116,10 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
       } catch {
         L.push("⚠️ 治理模型未初始化；跨模块/语言边界尚未启用。");
       }
+
+      L.push("");
+      L.push("## 编排");
+      L.push(...orchestratorStatusLines(root));
 
       const last = sessions[sessions.length - 1];
       if (last) {
@@ -168,6 +175,22 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
           sessions: sessions.length,
           governance: governanceSummary,
         },
+        orchestrator: {
+          status: orchestratorStatus(orchestrator).status,
+          reason: orchestratorStatus(orchestrator).reason,
+          health: readOrchestrator(root).health,
+          goal: orchestrator.goal ? { objective: orchestrator.goal.objective, acceptance: orchestrator.goal.acceptance, note: orchestrator.goal.note || null } : null,
+          enabled: orchestrator.settings.enabled,
+          max_concurrency: orchestrator.settings.max_concurrency,
+          max_rounds: orchestrator.settings.max_rounds,
+          max_hours: orchestrator.settings.max_hours,
+          round_count: orchestrator.run.round_count,
+          active_run_id: orchestrator.run.active_run_id,
+          stall_rounds: orchestrator.run.stall_rounds,
+          stall_threshold: STALL_THRESHOLD,
+          consecutive_failures: orchestrator.run.consecutive_failures,
+          fail_exit_threshold: FAIL_EXIT_THRESHOLD,
+        },
         last_session: last ? { date: last.date, author: last.author || null, summary: last.summary, next_steps: last.next_steps } : null,
         ...(sinceSummary ? { since: sinceSummary } : {}),
       });
@@ -190,6 +213,22 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
           high_findings: z.number(),
           sessions: z.number(),
           governance: z.object({ modules: z.number(), interfaces: z.number(), repositories: z.number(), initialized: z.boolean() }),
+        }),
+        orchestrator: z.object({
+          status: z.string(),
+          reason: z.string(),
+          health: z.string(),
+          goal: z.object({ objective: z.string(), acceptance: z.string(), note: z.string().nullable() }).nullable(),
+          enabled: z.boolean(),
+          max_concurrency: z.number(),
+          max_rounds: z.number().nullable(),
+          max_hours: z.number().nullable(),
+          round_count: z.number(),
+          active_run_id: z.string().nullable(),
+          stall_rounds: z.number(),
+          stall_threshold: z.number(),
+          consecutive_failures: z.number(),
+          fail_exit_threshold: z.number(),
         }),
         last_session: z.object({ date: z.string(), author: z.string().nullable(), summary: z.string(), next_steps: z.array(z.string()) }).nullable(),
         since: z.object({ since: z.string(), tasks: z.number(), sessions: z.number(), items: z.array(z.string()) }).optional(),

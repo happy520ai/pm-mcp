@@ -1,5 +1,5 @@
 {
-  "seq": 24,
+  "seq": 26,
   "entries": [
     {
       "id": "D-0001",
@@ -372,6 +372,34 @@
         "test/usage-log.test.ts"
       ],
       "task_id": "T-069"
+    },
+    {
+      "id": "D-0025",
+      "date": "2026-10-27T04:03:18.544Z",
+      "author": "",
+      "symptom": "新增的 set_goal / set_orchestrator 工具调用一律返回「账本锁获取超时（3s）：另一进程正在写入本项目」，即使没有任何其他进程；同一项目下 get_orchestrator 读工具正常。",
+      "root_cause": "toolW 包装器的 runIdempotentWriteSync 在调用业务函数前已通过 withLedgerLock 持有账本锁，而业务函数 mutateOrchestrator 内部又调 withLedgerLock。文件锁不可重入：同一个文件锁第二次 wx 创建必然 EEXIST，而持锁 PID 正是自己（活着）且 .lock 未过期，于是等待到 3s 超时。",
+      "fix": "编排写工具改用 toolI（异步包装器不自带账本锁），并在 src/orchestrator.ts 的 mutateOrchestrator 注释里写明约束：本模块变更函数必须经 toolI 暴露，用 toolW 会二次取锁超时。",
+      "verified_how": "test/orchestrator.test.ts 的 MCP 端到端用例（真实 client 调 set_goal→set_orchestrator→record_round）由红转绿；全量 373 项通过。",
+      "files": [
+        "src/orchestrator.ts",
+        "src/orchestrator-tools.ts"
+      ],
+      "task_id": null
+    },
+    {
+      "id": "D-0026",
+      "date": "2026-10-27T04:03:18.739Z",
+      "author": "",
+      "symptom": "本仓库任何 feature/fix 任务转 done 时报错「ENOENT: no such file or directory, realpath 'E:\\\\通用型项目管理'」，错误信息完全无法指向真实问题（完成门禁选中的是外来质量报告）。",
+      "root_cause": ".pm/quality-runs 里混入了 unit_root=E:\\\\通用型项目管理 的报告（该目录现已不存在）。verifiedTaskEvidence 按 run_at 取最新报告后，先对该报告的 unit_root 做 fs.realpathSync.native，ENOENT 未被处理直接冒泡；「执行目录不属于当前项目」的友好校验在这一步之后才执行，所以永远走不到。",
+      "fix": "verifiedTaskEvidence 选报告时先判定「外来报告」并跳过：报告内所有 test/coverage 单元的 unit_root 都是绝对路径，且要么 realpath 失败、要么落在项目根之外 → 该报告不可能是本项目证据，跳过继续找次新的。同时给 unit_root 的 realpath 加 try/catch，不可读时给出「报告可能来自其他项目，请重新 run_quality_matrix」的可读指引。",
+      "verified_how": "新增用例：写入一份 run_at=2099、unit_root 指向不存在外部目录的报告，verifiedTaskEvidence 仍返回本项目有效报告；management-upgrade 10 项全过，全量 373 项通过。",
+      "files": [
+        "src/task-evidence.ts",
+        "test/management-upgrade.test.ts"
+      ],
+      "task_id": null
     }
   ]
 }

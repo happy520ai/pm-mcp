@@ -35,7 +35,7 @@
   "pm_mcp": {
     "acceptance_baseline": {
       "id": "pm-mcp-local-release",
-      "version": "1.1.0"
+      "version": "1.2.0"
     }
   },
   "scripts": {

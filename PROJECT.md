@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-20T16:32:34.275Z
+> 生成时间: 2026-10-27T08:01:33.546Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -11,8 +11,12 @@ flowchart LR
   M1["M1 v1 核心能力"]:::done
   M2["M2 v2 增强"]:::done
   M3["M3 v3 体验增强（Web UI 仪表盘等，暂不排期）"]:::planned
+  M4["M4 M4 目标锚定与编排开关（被动驱动的持久账本）"]:::done
+  M5["M5 M5 编排闭环文档化"]:::active
   M1 --> M2
   M2 --> M3
+  M3 --> M4
+  M4 --> M5
   classDef done fill:#9ca3af,stroke:#6b7280
   classDef active fill:#86efac,stroke:#16a34a
   classDef planned fill:#e5e7eb,stroke:#9ca3af
@@ -22,6 +26,8 @@ flowchart LR
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
 ✅ [██████████] 100% M2 v2 增强（30/30）
 ○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/1）
+✅ [██████████] 100% M4 M4 目标锚定与编排开关（被动驱动的持久账本）（5/5）
+▶ [██████████] 100% M5 M5 编排闭环文档化（1/1）
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
@@ -32,13 +38,14 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(31), package.json(19), src/index.ts(17) |
+| churn（变更率） | ⚠️ 热点 README.md(36), package.json(21), src/index.ts(17) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 24 条记录 |
-| 测试背书 | 33/33 个功能带测试 |
+| 调试知识 | 26 条记录 |
+| 测试背书 | 34/34 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-20 16:29（命令 1/1；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-09-17 15:22（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-10-27 07:59（命令 4/4；证据 tests_observed） |
+| 标准化验收 | ✅ 2026-10-27 07:59（需求 33/33，errors 0） |
+| 自动编排 | ✅ ready（可执行下一轮（2/不限 轮（上限 不限）））· 并发 8 · 轮次 2/不限 |
 
 ## 🧭 模块与语言治理
 - pm-mcp [tool] typescript · owner project-maintainers · roots .
@@ -46,7 +53,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 68 · backlog 1
+- 总览: done 74 · backlog 1
 
 ## 🧩 功能清单
 ### src
@@ -96,24 +103,26 @@ flowchart LR
 ### pm-mcp
 - ✅ F-032 Qoder 按请求认领工作区与 launch 接入 — Qoder 多窗口共用常驻子进程时项目根不再启动期钉死：服务端按「工具名+参数+紧时间窗」指纹倒扫会话运行日志拿调用方 cwd，root_source 如实标注
 - ✅ F-033 git 对账 fallback 解析 — 宿主进程 PATH 缺 git 时 resolveGitCommand 按 PATH → where git → 常见安装路径兜底解析并缓存；changedGi
+### 编排
+- ✅ F-034 自动编排：目标锚定、手动开关、并发与轮次记账 — 自动编排的持久账本与指令源（ADR-008）：set_goal 写最终目标与机器可判定的验收锚点；set_orchestrator 手动开关（enabled 变
 
 ## 🏛️ 架构决策（最近）
+- [ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）](.pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md)
+- [ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令](.pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md)
 - [ADR-007-输出行数预算显式设为-100（默认-150）](.pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md)
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 - [ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root](.pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md)
-- [ADR-004-语义治理采用AST保证分层与运行时证据扩展](.pm/decisions/ADR-004-语义治理采用AST保证分层与运行时证据扩展.md)
-- [ADR-003-标准化验收采用冻结基线与机器证据指针](.pm/decisions/ADR-003-标准化验收采用冻结基线与机器证据指针.md)
 
 ## 📜 最近会话
-- 2026-10-20 [zcode] T-069 根治质量矩阵/gate 偶发 6-7 失败：根因是测试子进程继承发起方 PATH（服务端无 git），测试里 5 处裸 spawnSync("git") 全挂，与共享状态无关。测试改用共享 resolveGitCommand；gate 失败时打印摘录；报告持久化 output_excerpt。最小 PATH gate ×3 PASS、真实矩阵 352/352、全量测试全绿。
-  - 改动: src/quality-store.ts, scripts/quality-gate.mts, test/exploit.test.ts, test/management-upgrade.test.ts, test/usage-log.test.ts, .pm/debuglog.json, .pm/tasks.json, .pm/quality-runs/quality-20261020-162704-148-0000.json 等 9 个
-- 2026-10-20 [zcode] 0.6.0 发布闭环完成：git ENOENT fallback（T-065）、update_task 报错带指引（T-066）、index.ts 拆分 52 行（T-067）、审计误报修复（T-068）、install.ps1 qoder 分支与版本修复（T-062）；npm 0.6.0 经 CI trusted publishing 上线（运行 39446179769），GitHub Release v0.6.0；M2 收口 30/30，功能 F-032/F-033、ADR-007 登记。
-  - 改动: package.json, install.ps1, README.md, .github/workflows/publish-npm.yml, src/git-state.ts, src/task-evidence.ts, src/index.ts, src/resources.ts 等 21 个
-- 2026-09-20 [qoder] 修好 Qoder 多窗口共用常驻进程时项目根被启动期定格的缺陷（T-064）。取证：Qoder 只派生一个 stdio 子进程给所有窗口（pid 24452 自 09-19 22:55 存活，09-20 三个 session token 共用同一 server uuid），所有 run 日志目录名都是主进程 pid，所以 ADR-005 的 ppid 匹配不成立。改为按请求认领：新增 caller-workspace.ts 用「工具名+参数+紧时间窗」指纹倒扫会话日志拿 initial_cwd，tool-base 每次调用下发 RequestContext，54 个工具全部改用当次根；registrar 形参改名 startupRoot 让漏改编译不过。适配器不再伪造 --root，改传 PM_MCP_ROOT_HINT(_SOURCE)，root_source 不再永远报 --root；歧义时不猜并列出候选。get_status 的 structuredContent 补齐全量状态（Qoder 的 mcp_call 只呈现结构化载荷）。ADR-006 记录并标记 ADR-005 被取代。351 测试全过，quality gate PASS，并用 dist 真实派生 + 真实日志回放双重取证。
-  - 改动: src/caller-workspace.ts, src/tool-base.ts, src/qoder-launch.ts, src/paths.ts, src/project-tools.ts, src/index.ts, src/governance-tools.ts, src/audit-tools.ts 等 15 个
-- 2026-09-19 [?] T-063 Qoder 客户端接入：工作区提示解析 + qoder-launch 适配器：Qoder 真实派生的新会话已实测通过：新建独立会话调用 mcp__pm_mcp__get_status 返回 root=E:\通用型项目管理、root_source=--root、version 0.5.0，证明用户级一条配置（node .../dist/qoder-launch.js，不带 --root）在 Qoder 里能起服务并把项目根钉到当前工作区。换工作区验证同一条配置：QODER_WORKER_CWD 指向 unified-ai-system 时 root 随之切换，各工作区各归各账本。当前这个会话需 /mcp reload 才会拿到连接。
-- 2026-09-19 [qoder] 把 pm-mcp 接入 Qoder 做成受支持能力：根解析支持客户端工作区提示与未插值占位符防护，新增 qoder-launch 适配器 + launch 子命令，setup/doctor 支持 --client qoder，并用真命令把用户级配置改写为一条不钉根的适配器条目；配套 11 个用例与 README 章节。
-  - 改动: src/paths.ts, src/qoder-launch.ts, src/index.ts, src/project-tools.ts, src/setup.ts, src/setup-project.ts, src/doctor.ts, src/cli.ts 等 12 个
+- 2026-10-27 [?] T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 落地；独立复核发现的 7 处与代码不符已逐条修正（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 真实幂等行为补幂等层说明、只写路径持账本锁、重置计数需 enabled 真实翻转、自愈结算代价）。卡原验收要求的 gate 全绿经由基线 1.2.0 升版达成（48→58），升版由用户授权「修好他」。
+  - 改动: README.md, .pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md, package.json, .pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md
+- 2026-10-27 [zcode] 修复验收门禁死锁并纠正文档：①基线升版 1.1.0→1.2.0（QR-FS-TOOLS 阈值与 AT-FS-TOOLS 断言 48→58，其余门槛不变），draft→approve 走工具链，同步 package.json 指向 1.2.0，补 1.2.0 的 plan 与 first-failure 证据（升版必需，否则 acceptance 脚本 ENOENT）；②按独立复核意见修正 README「自动编排闭环」七处表述（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 的真实幂等行为、缺幂等层说明、只写路径持锁、重置计数需 enabled 真实翻转、自愈结算会吃预算并清零停滞）；③workflow 门禁命令改为 cmd.exe /c npm run gate（Windows 下 shell-less spawn 起不了 npm，实测 exit 0）。
+  - 改动: README.md, package.json, .pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md, .zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts
+- 2026-10-27 [?] T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 已写入，但独立复核指出 7 处与代码不符（budgetLabel 并非全站渲染、get_orchestrator 无 structuredContent、record_round 幂等层未被说明、enabled 未翻转时重置计数是静默 no-op、纯读路径不持锁、自愈 end 会推进轮数等）。npm run gate 退出码 1：audit 无红旗、quality PASS，acceptance-gate errors=8——已批准基线把 mcp_tools 固定为 equal 48，实测 58。
+- 2026-10-27 [zcode] T-075 收尾：把 README「自动编排闭环」预算渲染示例改写为 budgetLabel 的精确输出（`7/40 轮（上限 24h）`、`7/不限 轮（上限 不限）`），使会话内容证据重新覆盖 README 当前内容。前一条会话 S-0074 已记录本节与 ADR-009 的主体内容；本次仅一处措辞修正，未改源码，未 commit。
+  - 改动: README.md
+- 2026-10-27 [zcode] T-075 文档与决策：README.md 新增「自动编排闭环（心跳 + 动态工作流）」一节——五段分工（拆卡 / 派发动态工作流 / 结束 tick / 复核 / commit 收轮）、get_orchestrator 七个状态取值与优先级、record_round 的 begin/end 语义与单轮互斥三层保证、预算 null=不限（并如实标注 max_hours 目前不参与状态判定）、active_run_id 作为互斥令牌与「同 id 结算」的自愈指针、复核通过才 commit、禁止 push 与发布；同时用 record_decision 落了 ADR-009《编排闭环五段分工与 active_run_id 自愈指针》。未改源码，未 commit。
+  - 改动: README.md
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

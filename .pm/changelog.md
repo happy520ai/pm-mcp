@@ -1,5 +1,81 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-10-27 — 未知
+
+T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 落地；独立复核发现的 7 处与代码不符已逐条修正（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 真实幂等行为补幂等层说明、只写路径持账本锁、重置计数需 enabled 真实翻转、自愈结算代价）。卡原验收要求的 gate 全绿经由基线 1.2.0 升版达成（48→58），升版由用户授权「修好他」。
+
+改动文件（6）: README.md, .pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md, package.json, .pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md
+
+## 2026-10-27 — zcode
+
+修复验收门禁死锁并纠正文档：①基线升版 1.1.0→1.2.0（QR-FS-TOOLS 阈值与 AT-FS-TOOLS 断言 48→58，其余门槛不变），draft→approve 走工具链，同步 package.json 指向 1.2.0，补 1.2.0 的 plan 与 first-failure 证据（升版必需，否则 acceptance 脚本 ENOENT）；②按独立复核意见修正 README「自动编排闭环」七处表述（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 的真实幂等行为、缺幂等层说明、只写路径持锁、重置计数需 enabled 真实翻转、自愈结算会吃预算并清零停滞）；③workflow 门禁命令改为 cmd.exe /c npm run gate（Windows 下 shell-less spawn 起不了 npm，实测 exit 0）。
+
+改动文件（6）: README.md, package.json, .pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md, .zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts
+
+下一步: 跑 npm run gate 验证 1.2.0 基线全绿后提交；把升基线流程（draft→approve→package.json 版本→plan/first-failure 证据）写进 ADR-010；心跳的 record_round(begin) 应存 workflow 运行 id 而非时间戳，才能用 active_run_id 直查 GetWorkflowRun
+
+## 2026-10-27 — 未知
+
+T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 已写入，但独立复核指出 7 处与代码不符（budgetLabel 并非全站渲染、get_orchestrator 无 structuredContent、record_round 幂等层未被说明、enabled 未翻转时重置计数是静默 no-op、纯读路径不持锁、自愈 end 会推进轮数等）。npm run gate 退出码 1：audit 无红旗、quality PASS，acceptance-gate errors=8——已批准基线把 mcp_tools 固定为 equal 48，实测 58。
+
+下一步: 按复核意见逐条修正 README 表述；baseline 升版（48→58）属人工批准动作，不在循环权限内
+
+## 2026-10-27 — zcode
+
+T-075 收尾：把 README「自动编排闭环」预算渲染示例改写为 budgetLabel 的精确输出（`7/40 轮（上限 24h）`、`7/不限 轮（上限 不限）`），使会话内容证据重新覆盖 README 当前内容。前一条会话 S-0074 已记录本节与 ADR-009 的主体内容；本次仅一处措辞修正，未改源码，未 commit。
+
+改动文件（1）: README.md
+
+下一步: 心跳复核阶段：npm run gate 仍因验收基线把 mcp_tools 固定为 48（现 58）而失败，需另立任务升版基线后再重跑
+
+## 2026-10-27 — zcode
+
+T-075 文档与决策：README.md 新增「自动编排闭环（心跳 + 动态工作流）」一节——五段分工（拆卡 / 派发动态工作流 / 结束 tick / 复核 / commit 收轮）、get_orchestrator 七个状态取值与优先级、record_round 的 begin/end 语义与单轮互斥三层保证、预算 null=不限（并如实标注 max_hours 目前不参与状态判定）、active_run_id 作为互斥令牌与「同 id 结算」的自愈指针、复核通过才 commit、禁止 push 与发布；同时用 record_decision 落了 ADR-009《编排闭环五段分工与 active_run_id 自愈指针》。未改源码，未 commit。
+
+改动文件（1）: README.md
+
+下一步: 重跑 npm run gate，确认 audit / quality / acceptance-cycle 全绿后再把 T-075 置 done；本轮不 commit：等心跳复核阶段决定是否提交
+
+## 2026-10-27 — zcode
+
+无人值守前提验证：CreateWorkflow 只读探针（dwfrun-5e0ee337）未卡确认、后台启动、完成通知正常送达——前提成立。目标换为循环内可判定验收（去掉发布到 npm）；旧心跳 automation-37cc9e0c 的 prompt 原位重写为五段式（拆卡→派发workflow→结束tick→复核→commit+record_round(end)），running 分支改为查 GetWorkflowRun 自愈，保留原 */5 schedule，未新建任务。注意：仓库处于 detached HEAD（心跳第5段已加护栏），开启编排前需先切回分支。
+
+改动文件（2）: .pm/orchestrator.json, .zcode/workflow-drafts/无人值守启动探针.dwf.ts
+
+下一步: 切回正常分支（当前 detached HEAD，commit 会丢失）；set_orchestrator(enabled:true, reason:...) 开启编排，观察前几轮五段式心跳是否按预期推进；若第2段派发 workflow 的脚本质量不稳，考虑把脚本沉淀为 saved workflow（SaveWorkflow）让心跳按名字派发
+
+## 2026-10-27 — zcode
+
+预算支持「不限」：max_rounds / max_hours 改为 nullable，null = 不限，此时只剩停滞（连续3轮无新证据）与连续失败（2次）两个进度型刹车。新增 budgetLabel 统一渲染，get_status/PROJECT.md/各工具文案一致显示「不限」。验证：npm run quality PASS（quality-20261027-044522-304，test/build/typecheck/coverage 四项全绿），全量 374 项通过。注意：当前运行的 MCP 进程仍是旧 schema，需重连后才能接受 null 参数。
+
+改动文件（7）: src/orchestrator.ts, src/orchestrator-tools.ts, src/project-tools.ts, src/dashboard.ts, test/orchestrator.test.ts, PROJECT.md, .pm/quality-runs/quality-20261027-044522-304-0000.json
+
+下一步: 重连 MCP 后调用 set_orchestrator(max_rounds:null, max_hours:null) 把本项目预算改为不限（当前运行进程仍是旧 schema，会拒绝 null）；观察心跳前几轮记录，确认拆卡与开轮按预期推进
+
+## 2026-10-27 — zcode
+
+按用户指定的参数建成自动编排心跳：每 5 分钟一次（*/5 * * * *），并发每轮 = min(随机3-8, 可认领任务数, 硬上限8)；任务数为 0 的 tick 只拆卡不开轮；连续无证据/连续失败自动退出；只本地 commit，禁止 push/发布。pm-mcp 侧把 max_concurrency 硬上限设为 8、max_rounds 预算提到 200 轮。心跳只读 get_orchestrator 决定开不开轮，禁止自改开关。
+
+改动文件（2）: .pm/orchestrator.json, PROJECT.md
+
+下一步: 观察前几轮心跳的台账记录（get_orchestrator 的最近记录），确认轮次记账与停滞检测按预期推进
+
+## 2026-10-27 — zcode
+
+首次真实调用新编排工具验证闭环：get_orchestrator 初始 no-goal（台账缺失=禁用）→ 两次违规调用均被拒（开关缺 reason；并发 9 被 schema 上限拒绝）→ set_goal 记录演示目标 → set_orchestrator 开启（并发 3）→ record_round begin/end 记账成功，重复 begin 被拒 → get_status 已显示「## 编排」段与 structuredContent.orchestrator。结论：开关、留痕、单轮互斥、预算推进、状态可见性全部经真实 MCP 调用生效。
+
+改动文件（2）: .pm/orchestrator.json, PROJECT.md
+
+下一步: 待用户确认后创建定时任务（每 30 分钟读 get_orchestrator，ready 才开轮），未创建前编排开关处于开启但无执行者；用 set_goal 覆盖演示目标为真实最终目标
+
+## 2026-10-27 — zcode
+
+M4 第一段落地：pm-mcp 成为「目标锚定 + 可开关编排 + 轮次记账」的被动驱动账本（ADR-008，控制流外置，仍不联网/不调模型/不唤起会话）。新增 src/orchestrator.ts（Goal/Settings/Run schema、fail-closed 读取：缺失=禁用、损坏=阻止写入且不覆盖、校验不截断、七种状态推导）与 src/orchestrator-tools.ts（set_goal/set_orchestrator/record_round/get_orchestrator，工具目录 54→58）；get_status 与 PROJECT.md 暴露编排状态。修两个真实缺陷：①toolW 自带账本锁不可重入导致编排工具全部 3s 超时（改走 toolI 并写明约束）②完成门禁选中外来质量报告（unit_root=E:\\通用型项目管理，目录已不存在）裸抛 ENOENT，改为跳过外来报告并给可读指引。验证：npm run gate PASS（quality-20261027-040236-550，test/build/typecheck/coverage 四项全绿），全量 373 项通过，orchestrator.ts 分支覆盖 96.59%。注：package-lock.json 的改动来自本会话开始之前，非本次改动。用户确认前不创建定时任务。
+
+改动文件（22）: .pm/debuglog.json, .pm/features.json, .pm/roadmap.json, .pm/security.json, .pm/tasks.json, PROJECT.md, README.md, package-lock.json, src/dashboard.ts, src/project-tools.ts, src/task-evidence.ts, src/tools.ts, src/version.ts, test/management-upgrade.test.ts, .pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md, .pm/quality-runs/quality-20261027-035320-448-0000.json, .pm/quality-runs/quality-20261027-035436-338-0000.json, .pm/quality-runs/quality-20261027-035546-974-0000.json, .pm/quality-runs/quality-20261027-040236-550-0000.json, src/orchestrator-tools.ts, src/orchestrator.ts, test/orchestrator.test.ts
+
+下一步: M4 剩余：把「定时任务 + 短轮次」实际跑通一次（需用户确认后再建自动化，不在本会话范围内）；编排台账目前只在读取时 fail-closed；可考虑 audit_structure 增加「编排台账损坏/停滞」的显式告警节；dist 已重建（58 工具），发布前仍需 npm pack→SHA→publish-npm.yml 流程（沿用 0.6.0 已验证流程）
+
 ## 2026-10-20 — zcode
 
 T-069 根治质量矩阵/gate 偶发 6-7 失败：根因是测试子进程继承发起方 PATH（服务端无 git），测试里 5 处裸 spawnSync("git") 全挂，与共享状态无关。测试改用共享 resolveGitCommand；gate 失败时打印摘录；报告持久化 output_excerpt。最小 PATH gate ×3 PASS、真实矩阵 352/352、全量测试全绿。

@@ -1,5 +1,5 @@
 {
-  "seq": 69,
+  "seq": 75,
   "tasks": [
     {
       "id": "T-001",
@@ -2447,6 +2447,278 @@
       "updated": "2026-10-20T16:32:09.294Z",
       "started_at": null,
       "completed_at": "2026-10-20T16:32:09.294Z"
+    },
+    {
+      "id": "T-070",
+      "title": "ADR-008：编排分工定位（控制流外置，pm-mcp 只记账与发指令）",
+      "detail": "记录决策：控制流（派发/执行/汇总）归外部定时任务与 workflow；pm-mcp 仍是离线、零 Key、不调用任何模型，只提供目标锚点、编排开关与状态可见性。同时把 ADR-002「全部离线」的适用范围收窄为「扫描与检索类功能离线」，编排开关本身不触发任何模型调用。需说明 pm-mcp 无法主动唤起会话这一架构边界，以及短轮次 + 断点续做如何穿越进程退出。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M4",
+      "steps": [
+        {
+          "text": "写 ADR-008 正文（背景/决定/后果），含 ADR-002 范围收窄说明",
+          "done": false
+        },
+        {
+          "text": "record_decision 落台账",
+          "done": false
+        },
+        {
+          "text": "README 补一句能力边界说明（pm-mcp 不唤起会话、不消耗模型额度）",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/orchestrator.ts",
+        "test/orchestrator.test.ts",
+        ".pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md",
+        "README.md"
+      ],
+      "acceptance": "decision 记录落库且 list_decisions 可见；ADR-008 文件存在并与 ADR-002 的适用范围关系写清",
+      "result_note": "ADR-008 已落库：控制流外置（定时任务/workflow 驱动），pm-mcp 只承担目标锚点、可开关编排配置与状态可见性；不联网、不要 Key、不调用模型。ADR-002 适用范围收窄为「扫描与检索类功能离线」。能力边界与架构边界（无法主动唤起会话）写入 README。",
+      "verification": "list_decisions 可见 ADR-008；npm run gate 工具目录探针 58 个工具一致",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T02:41:49.928Z",
+      "updated": "2026-10-27T03:37:10.352Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T03:37:10.352Z"
+    },
+    {
+      "id": "T-071",
+      "title": "orchestrator 配置模型与存储（fail-closed）",
+      "detail": "新增 .pm/orchestrator.json：enabled（手动开关）、max_concurrency（1-8 整数）、预算上限（最多轮数、最长小时数）、运行状态（active_run_id、round_count、stall_rounds、paused_reason/paused_at、updated_at）。规则：文件缺失或解析失败一律视为 enabled=false（fail-closed，防台账损坏导致整晚空烧额度）；超范围取值直接报错而非静默截断；所有写入走既有跨进程账本锁。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M4",
+      "steps": [
+        {
+          "text": "orchestrator.ts 定义 Goal/Settings/Run/Log schema（schema 与存储同模块，参照 governance-model）",
+          "done": true
+        },
+        {
+          "text": "fail-closed 读取：缺失=默认禁用；损坏=禁用+阻止写入且不覆盖原文件",
+          "done": true
+        },
+        {
+          "text": "校验只报错不截断（并发 1-8、轮数、小时）",
+          "done": true
+        },
+        {
+          "text": "单测：fail-closed、校验、轮次推进、停滞阈值、失败退出、日志有界",
+          "done": true
+        },
+        {
+          "text": "npm run gate 四项全绿",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/orchestrator.ts",
+        "test/orchestrator.test.ts"
+      ],
+      "acceptance": "配置文件缺失时读取结果为禁用；max_concurrency=9 被拒绝且报错含正确范围；连续 N 轮无新证据置 stall",
+      "result_note": ".pm/orchestrator.json 落地：GoalSchema/SettingsSchema（enabled、max_concurrency 1-8、max_rounds、max_hours）/RunState（active_run_id、round_count、stall_rounds、consecutive_failures、paused_reason）。fail-closed：文件缺失=禁用不报错，损坏=禁用且阻止写入、不覆盖原文件；取值越界只报错不截断。状态推导七种，在飞轮次优先级最高。写操作走账本锁，注意 toolI/toolW 的锁约定。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261027-040236-550-0000.json\n报告 SHA-256: 2cbad5efbf5c0cf10df177a514c64ab93119f8a89954e59c1351fd5c1fd6fc52\n源码 SHA-256: 1c40bc03e9cf05170ad6aaa441f7d3b541109bf49c91c7a8ab036600ccbc62e3\n执行时间: 2026-10-27T04:02:36.550Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: npm run gate 全绿（quality-20261027-040236-550：test/build/typecheck/coverage 四项 passed）；test/orchestrator.test.ts 20 项全过；orchestrator.ts 分支覆盖 96.59%",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T02:41:50.035Z",
+      "updated": "2026-10-27T04:03:03.475Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T04:02:47.095Z"
+    },
+    {
+      "id": "T-072",
+      "title": "set_goal 工具：最终目标 + 可判定验收锚",
+      "detail": "新增工具：写入最终目标（objective）、机器可判定的验收标准（acceptance，必填，指向现有验收基线或可执行的质量矩阵命令）、以及目标说明。存入 .pm/orchestrator.json 的 goal 段，不覆盖 project.json 已有 goals（那是项目级目标列表，这里是单个可判定的最终目标锚点）。验收标准为空必须拒绝——否则\"直到完成\"没有机器可判的终点，会无限空转。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P0",
+      "milestone": "M4",
+      "steps": [
+        {
+          "text": "setGoal 实现：objective/acceptance 必填，重复写入保留 created",
+          "done": true
+        },
+        {
+          "text": "set_goal 工具注册；修复 toolW 锁不可重入死锁，改经 toolI 暴露",
+          "done": true
+        },
+        {
+          "text": "工具目录契约 54→58 并重建 dist",
+          "done": true
+        },
+        {
+          "text": "单测：空 acceptance 拒绝、持久化、MCP 端到端",
+          "done": true
+        },
+        {
+          "text": "质量门全绿",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/orchestrator-tools.ts",
+        "test/orchestrator.test.ts",
+        "src/tools.ts",
+        "src/version.ts"
+      ],
+      "acceptance": "set_goal 写入后 get_status 能看到目标与验收标准；acceptance 为空被拒绝；update_project 的 goals 不被覆盖",
+      "result_note": "set_goal 落地：acceptance 为空直接拒绝（没有机器可判终点就无法\"直到完成\"），重复写入保留 created 时间。修复一个真实死锁：toolW 包装器已持账本锁且不可重入，编排工具改用 toolI，并在 orchestrator.ts 注释写明该约束。工具目录契约 54→58。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261027-040236-550-0000.json\n报告 SHA-256: 2cbad5efbf5c0cf10df177a514c64ab93119f8a89954e59c1351fd5c1fd6fc52\n源码 SHA-256: 1c40bc03e9cf05170ad6aaa441f7d3b541109bf49c91c7a8ab036600ccbc62e3\n执行时间: 2026-10-27T04:02:36.550Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: quality-20261027-040236-550 全绿；test/orchestrator.test.ts 含真实 MCP client 端到端调用 set_goal/set_orchestrator/record_round/get_orchestrator",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T02:42:16.785Z",
+      "updated": "2026-10-27T04:03:03.653Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T04:02:47.323Z"
+    },
+    {
+      "id": "T-073",
+      "title": "set_orchestrator 工具：手动开关 / 并发 / 预算 / 轮次记账",
+      "detail": "新增工具，供任意会话一键开关：enabled（开/关）、max_concurrency（并发上限，可选）、预算上限（可选）、reason（开关理由，必填以便追溯）。每次开关记原因与时间到台账日志。同时提供轮次记账入口：轮次开始时记录 active_run_id，结束时清零并推进 round_count；连续 N 轮无新证据推进 stall_rounds，达到阈值判定停滞。失败退出规则（连续额度/鉴权错误则停止）也在此实现并落状态。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M4",
+      "steps": [
+        {
+          "text": "setSettings：开关必填 reason，并发/预算可单改，开启重置停滞与失败计数",
+          "done": true
+        },
+        {
+          "text": "beginRound/endRound：active_run_id 单轮互斥、轮数推进、停滞与连续失败判定",
+          "done": true
+        },
+        {
+          "text": "set_orchestrator 与 record_round 工具注册（toolI）",
+          "done": true
+        },
+        {
+          "text": "get_orchestrator 读工具：状态/目标/预算/日志",
+          "done": true
+        },
+        {
+          "text": "单测 + 质量门全绿",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/orchestrator.ts",
+        "src/orchestrator-tools.ts",
+        "src/tools.ts"
+      ],
+      "acceptance": "set_orchestrator(off) 后 get_status 显示禁用与暂停原因；enabled 与 max_concurrency 可只改一项；连续失败退出逻辑在测试中可验证",
+      "result_note": "set_orchestrator（开关必须给 reason 留痕、并发/预算可单独调整、开启清除暂停标记并重置停滞与失败计数但不重置轮数）+ record_round（begin/end、active_run_id 保证同时只一轮、无证据累加停滞、连续失败达到阈值退出）+ get_orchestrator（状态/目标/预算/日志）。开关关闭后任何会话读状态即知不该开轮。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261027-040236-550-0000.json\n报告 SHA-256: 2cbad5efbf5c0cf10df177a514c64ab93119f8a89954e59c1351fd5c1fd6fc52\n源码 SHA-256: 1c40bc03e9cf05170ad6aaa441f7d3b541109bf49c91c7a8ab036600ccbc62e3\n执行时间: 2026-10-27T04:02:36.550Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: quality-20261027-040236-550 全绿；orchestrator.test.ts 覆盖开关留痕、并发单改、轮次推进、停滞阈值、失败退出、双开拒绝",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T02:42:16.885Z",
+      "updated": "2026-10-27T04:03:08.492Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T04:02:56.183Z"
+    },
+    {
+      "id": "T-074",
+      "title": "get_status / 仪表盘暴露编排状态",
+      "detail": "让任意会话一眼看到编排状态：是否启用、目标、并发、预算余量、当前轮次与停滞计数、最近暂停原因。这是\"被动驱动\"能自转的前提——模型每轮开工第一件事是 get_status，状态必须自证。",
+      "type": "feature",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M4",
+      "steps": [
+        {
+          "text": "get_status 文本加「## 编排」段（复用 orchestratorStatusLines）",
+          "done": true
+        },
+        {
+          "text": "structuredContent 加 orchestrator 段并同步 outputSchema",
+          "done": true
+        },
+        {
+          "text": "PROJECT.md 健康表加「自动编排」行（不可读时降级不失败）",
+          "done": true
+        },
+        {
+          "text": "单测：已设/未设 goal 两种输出 + 端到端断言",
+          "done": true
+        },
+        {
+          "text": "质量门全绿",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "src/project-tools.ts",
+        "src/dashboard.ts",
+        "src/orchestrator-tools.ts"
+      ],
+      "acceptance": "未设置 goal 与已设置 goal 两种情况下 get_status 都有正确输出；structuredContent 含 orchestrator 段",
+      "result_note": "get_status 增加「## 编排」段与 structuredContent.orchestrator（状态/原因/健康/目标/开关/并发/预算/停滞/失败阈值），台账损坏时显式提示；PROJECT.md 健康表新增「自动编排」行，台账不可读时降级为提示而不让仪表盘生成失败。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261027-040236-550-0000.json\n报告 SHA-256: 2cbad5efbf5c0cf10df177a514c64ab93119f8a89954e59c1351fd5c1fd6fc52\n源码 SHA-256: 1c40bc03e9cf05170ad6aaa441f7d3b541109bf49c91c7a8ab036600ccbc62e3\n执行时间: 2026-10-27T04:02:36.550Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）\n验证说明: quality-20261027-040236-550 全绿；端到端测试断言 get_status 含编排段与目标文本；realrepo PROJECT.md 同步测试通过",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T02:42:17.002Z",
+      "updated": "2026-10-27T04:03:08.617Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T04:02:56.438Z"
+    },
+    {
+      "id": "T-075",
+      "title": "README 与 ADR 记录「心跳 + workflow」五段闭环约定",
+      "detail": "当前这套闭环约定只存在于定时任务的 prompt 文本里，仓库内无任何记录：状态机、begin/end 记账、预算 null 语义、active_run_id 的指针用法、复核边界都没有成文。后果是任何人（包括未来的会话）都得重新推导，用户本次也是手工重写了整段 prompt 才把「tick 既派发又干活」改成五段分工。本卡把约定落到 README 与 ADR，内容必须以 src/orchestrator.ts 与 src/orchestrator-tools.ts 的实际实现为准，不得描述尚未实现的行为（例如 pm-mcp 不会主动唤起会话、不会自行跑 workflow）。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P1",
+      "milestone": "M5",
+      "steps": [
+        {
+          "text": "读 src/orchestrator.ts 与 src/orchestrator-tools.ts，核对状态机、整数记账、null 预算的真实语义",
+          "done": false
+        },
+        {
+          "text": "README 新增「自动编排闭环」小节：五段分工 + 状态取值 + 指针自愈 + 复核与 commit 边界",
+          "done": false
+        },
+        {
+          "text": "record_decision 落 ADR-009（五段分工与 active_run_id 自愈指针）",
+          "done": false
+        },
+        {
+          "text": "npm run gate 全绿",
+          "done": false
+        }
+      ],
+      "checkpoint": {
+        "note": "README「自动编排闭环」小节与 ADR-009 已写入，但独立复核指出 7 处与代码不符（budgetLabel 并非全站渲染、get_orchestrator 无 structuredContent、record_round 幂等层未被说明、enabled 未翻转时重置计数是静默 no-op、纯读路径不持锁、自愈 end 会推进轮数等）。npm run gate 退出码 1：audit 无红旗、quality PASS，acceptance-gate errors=8——已批准基线把 mcp_tools 固定为 equal 48，实测 58。",
+        "next_step": "按复核意见逐条修正 README 表述；baseline 升版（48→58）属人工批准动作，不在循环权限内",
+        "at": "2026-10-27T07:36:47.781Z"
+      },
+      "files": [
+        "README.md",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md",
+        "package.json",
+        ".pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md"
+      ],
+      "acceptance": "README 存在「自动编排闭环」小节，且以下各条与代码实际行为逐条一致：七种状态取值、record_round 的 begin/end 语义与单轮互斥、预算 null=不限、active_run_id 当指针用于自愈、复核通过后才 commit、禁止 push/发布；record_decision 落 ADR-009 且 list_decisions 可见；npm run gate 全绿（audit/quality/acceptance-cycle 全 passed）",
+      "result_note": "README「自动编排闭环」小节与 ADR-009 落地；独立复核发现的 7 处与代码不符已逐条修正（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 真实幂等行为补幂等层说明、只写路径持账本锁、重置计数需 enabled 真实翻转、自愈结算代价）。卡原验收要求的 gate 全绿经由基线 1.2.0 升版达成（48→58），升版由用户授权「修好他」。",
+      "verification": "npm run gate 退出码 0：audit 硬红旗 0、quality PASS（quality-20261027-075926-671，test/build/typecheck/coverage 全过）、acceptance-gate PASS errors=0（pm-mcp-local-20261027-075927-fc5ac0b5，基线 1.2.0）",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T05:20:23.221Z",
+      "updated": "2026-10-27T08:01:33.507Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T08:01:33.507Z"
     }
   ]
 }

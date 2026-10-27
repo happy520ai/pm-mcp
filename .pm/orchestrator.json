@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "goal": {
+    "objective": "把 pm-mcp 的自动编排闭环跑通（workflow 外置：心跳拆卡并派发动态工作流，复核后收轮；目标锚定、轮次记账、停滞与失败退出全部经真实调用验证）",
+    "acceptance": "npm run gate 全绿（audit / quality / acceptance-cycle 全部 passed，最新质量报告源码匹配）且当前排期的任务卡全部 done（list_tasks 除 backlog 外无 todo / in_progress / blocked 遗留）",
+    "note": "这是演示用目标，可直接用 set_goal 覆盖。终点为循环内可判定项，不含发布到 npm。不做的事：不引入 API Key、不联网调模型、不主动唤起会话、不 push 远端、不发布（ADR-008）。",
+    "created": "2026-10-27T04:31:20.541Z",
+    "updated": "2026-10-27T05:10:34.439Z"
+  },
+  "settings": {
+    "enabled": true,
+    "max_concurrency": 8,
+    "max_rounds": null,
+    "max_hours": null
+  },
+  "run": {
+    "active_run_id": null,
+    "round_count": 2,
+    "stall_rounds": 0,
+    "consecutive_failures": 1,
+    "last_round_at": "2026-10-27T07:36:58.218Z",
+    "started_at": "2026-10-27T04:31:24.110Z",
+    "paused_reason": null,
+    "paused_at": null
+  },
+  "log": [
+    {
+      "at": "2026-10-27T04:31:20.541Z",
+      "kind": "goal",
+      "note": "把 pm-mcp 的自动编排闭环跑通并发布 0.7.0：目标锚定、开关、轮次记账、停滞与失败退出全部经真实调用验证"
+    },
+    {
+      "at": "2026-10-27T04:31:24.112Z",
+      "kind": "enable",
+      "note": "演示闭环：验证开关与记账链路（用户可随时 set_orchestrator(enabled:false, reason:...) 关闭）"
+    },
+    {
+      "at": "2026-10-27T04:31:28.329Z",
+      "kind": "round-start",
+      "note": "demo-round-1"
+    },
+    {
+      "at": "2026-10-27T04:31:40.593Z",
+      "kind": "round-end",
+      "note": "demo-round-1: 有新证据"
+    },
+    {
+      "at": "2026-10-27T04:50:27.867Z",
+      "kind": "disable",
+      "note": "用户选择先关闭：等确定真实目标与验收标准后再开启（本 tick 由用户当场决定，非心跳自行改开关）"
+    },
+    {
+      "at": "2026-10-27T05:10:34.439Z",
+      "kind": "goal",
+      "note": "把 pm-mcp 的自动编排闭环跑通（workflow 外置：心跳拆卡并派发动态工作流，复核后收轮；目标锚定、轮次记账、停滞与失败退出全部经真实调用验证）"
+    },
+    {
+      "at": "2026-10-27T05:18:13.698Z",
+      "kind": "enable",
+      "note": "用户授权开启：心跳循环收轮需要自动编排台账；此前按约定未擅自开启，现经用户明确指示启用"
+    },
+    {
+      "at": "2026-10-27T05:26:13.420Z",
+      "kind": "round-start",
+      "note": "cron-2026-10-27T05:26:09Z"
+    },
+    {
+      "at": "2026-10-27T07:36:58.218Z",
+      "kind": "round-fail",
+      "note": "cron-2026-10-27T05:26:09Z: 失败 质量门禁未过：acceptance-gate errors=8（已批准基线把 mcp_tools 固定为 equal 48，实测 58；audit 无红旗、quality PASS）"
+    }
+  ],
+  "updated": "2026-10-27T07:36:58.218Z"
+}

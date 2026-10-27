@@ -290,11 +290,69 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 
 也可以直接用内置 prompts：`start-session` / `end-session` / `onboard` / `architecture-review` / `acceptance-review`；其中 `onboard` 会引导客户端读取状态并生成新人/AI 入职简报。
 
-## 工具清单（54 个）
+## 自动编排闭环（心跳 + 动态工作流）
+
+pm-mcp 只提供目标锚点、开关/并发/预算、轮次记账与退出判据，不唤起会话、不调用模型，也不自己跑循环（ADR-008）。「直到完成」由仓库外的定时心跳承载：每次 tick 先读 `get_orchestrator`，按 `status` 决定开不开新轮。一次闭环固定为五段：
+
+| 段 | 做什么 | 与代码对应的约束 |
+|---|---|---|
+| ① 拆卡 | 读 `get_orchestrator` / `get_status` / `list_tasks`，从 backlog 挑一张卡；长任务用 `add_task` 给出 steps 与验收标准 | 只有 `status = ready` 才该开新轮；`running` 表示已有在飞轮次，不要再开 |
+| ② 派发动态工作流 | `record_round({action:"begin", run_id})` 登记本轮，再启动 workflow 执行这张卡 | `begin` 要求已 `set_goal`；已有在飞轮次且 `run_id` 不同会直接报错 |
+| ③ 结束 tick | 本次 tick 到点返回，不阻塞等待长任务；后续 tick 继续观察 workflow 结果 | `begin` 不推进 `round_count`——轮数只在 `end` 时 +1 |
+| ④ 复核 | workflow 结束后核对产出（证据、测试、文档、验收项），不一致就退回或按失败记账 | `end` 传 `failure` 或 `produced_evidence:false` 会驱动连续失败/停滞计数 |
+| ⑤ commit 收轮 | 复核通过才 commit，随后 `record_round({action:"end", run_id, produced_evidence:true})` 收轮 | `end` 清零 `active_run_id`、`round_count` +1；`run_id` 必须与在飞轮次相同 |
+
+这五段是外部 workflow 的约定，pm-mcp 不执行也不校验其中的复核与 commit；它只保证账本上的单轮互斥、轮数与退出计数。
+
+### 状态取值
+
+`get_orchestrator` 的 `status` 是七个字面量之一，按以下优先级判定（`src/orchestrator.ts:200-217`）：
+
+| status | 含义 | 判定 |
+|---|---|---|
+| `running` | 一轮正在执行 | `active_run_id` 非空；优先级最高，即使已关闭或预算耗尽也先报 running |
+| `no-goal` | 没设终点 | 未调用 `set_goal` |
+| `disabled` | 编排关闭 | `enabled=false` 且无在飞轮次 |
+| `failed-out` | 连续失败退出 | `consecutive_failures >= 2` |
+| `stalled` | 停滞退出 | `stall_rounds >= 3` |
+| `budget-exhausted` | 轮数预算用完 | `max_rounds` 非 null 且 `round_count >= max_rounds` |
+| `ready` | 可以开下一轮 | 以上都不满足 |
+
+`get_status` 与 `get_orchestrator` 都会同时给出 `reason`。开轮前只看 `ready`；`running` 时不要开新轮，`stalled` / `failed-out` 需要人工确认后重新开启。重置停滞/失败计数的唯一途径是让 `enabled` **真实翻转**：先 `set_orchestrator(enabled:false, reason:...)` 再 `enabled:true`。在已开启状态下再传 `enabled:true` 是静默 no-op，**不会**清零计数。
+
+### record_round：单轮互斥与记账
+
+- **begin**：只校验「已设目标」与「没有别人在飞的轮次」，然后写入 `active_run_id = run_id`、刷新 `last_round_at` 并记 `round-start` 日志。它**不**检查 `enabled`、预算余量或停滞/失败阈值——这些由调用方读 `status` 前置判断，是调用方约定而非硬拦截。同一 `run_id` 重复 begin：直接调 `beginRound` 会再次写入并**追加一条** `round-start` 日志（日志有界，旧记录被挤出）；经 MCP 调用时同参数重复 begin 走幂等复用，什么都不变。
+- **end**：在飞轮次的 `run_id` 与本次不同则拒绝记账；成功时清零 `active_run_id`、`round_count` +1。传 `failure` 时 `consecutive_failures` +1、停滞计数归零（达到 2 次记 `fail-exit`）；成功时 `consecutive_failures` 归零，`produced_evidence` 缺省为 `true`，传 `false` 会让 `stall_rounds` +1（达到 3 次记 `stalled`）。
+- **幂等层**：经 MCP 调用时，**参数完全相同**的重复 `begin` / `end` 会被幂等复用并标注「↩️ 幂等复用」，不推进 `round_count`；参数一变（例如把 `produced_evidence` 从 `false` 翻成 `true`）就是一次新记账，会再 +1。「重复记账不推进」只在参数逐字节相同时成立。
+- **同一时间只允许一轮**由三层保证：`status` 优先返回 `running`；`begin` 见到非空 `active_run_id` 且 id 不同就报错；**写路径**（`mutateOrchestrator`）持账本文件锁，跨进程并发写串行化。纯读路径（`readOrchestrator`/`loadOrchestrator`）不持锁——并发写期间读到的是写前或写后的完整状态。台账损坏时写入被直接拒绝（fail-closed）。
+- **边界**：`end` 不与 `begin` 配对也会被接受并推进轮数（代码只比对「有在飞轮次时 id 是否相同」），配对由调用方保证。
+
+### 预算：null 表示不限
+
+- `max_rounds: null` 时跳过 `budget-exhausted` 判定，只剩停滞（3 轮无新证据）与连续失败（2 轮）两个进度型刹车。
+- `max_hours: null` 时界面显示「不限」；**小时上限目前只参与展示与回显，不参与状态判定**——代码没有按 `started_at` 计算已用时长，也没有任何状态取值源自小时预算。
+- `get_orchestrator` / `set_orchestrator` / `record_round` 的文本输出由 `budgetLabel` 渲染为 `<已跑>/<轮数上限> 轮（上限 <小时>h 或 不限）`，例如 `7/40 轮（上限 24h）`、`7/不限 轮（上限 不限）`。`PROJECT.md` 仪表盘的「自动编排」行由 `src/dashboard.ts` 自行拼接，只显示 `轮次 <已跑>/<轮数上限>`（null 显示「不限」），**不含**小时上限。
+- `get_status` 的 `structuredContent` 里 `max_rounds` / `max_hours` 是 JSON `null`（不是字符串「不限」）；`get_orchestrator` 目前**没有**结构化载荷（注册时未传 presentation），只有文本内容——依赖 structuredContent 的调用方要改读 `get_status`。
+
+### active_run_id：互斥令牌，也是自愈指针
+
+`run_id` 内容由调用方自定（workflow 运行 id 或时间戳）。它同时承担四件事：互斥令牌、状态机最高优先级判据、界面「当前轮」字段、排障定位。
+
+它**只在 `end` 内部被清零**。pm-mcp 没有超时或租约回收：一轮 begin 之后进程崩溃、没调到 `end`，台账会停在 `running`，之后用不同 `run_id` 的 `begin` 一律被拒。所谓自愈是调用方约定——后继 tick 从 `get_orchestrator` 读到遗留的 `active_run_id`，用**同一个 id** 调 `record_round({action:"end"})` 把它结算掉。不要把它理解为 pm-mcp 会自动清理遗留轮次。**结算有代价**：这次 `end` 会把 `round_count` +1，且 `produced_evidence` 缺省 `true` 会把 `stall_rounds` 清零——等于把崩溃轮记成「有新证据」。要如实反映应显式传 `produced_evidence:false`（或 `failure`）。
+
+### 复核通过才 commit；禁止 push 与发布
+
+- commit 是第 ⑤ 段动作，前置条件是第 ④ 段复核通过；pm-mcp 不验证也没有能力验证复核是否真的发生。
+- 心跳与 workflow 只做**本地 commit**：不 `git push`、不打 tag、不发布到 npm 或任何渠道。发布是人工决定，不属于自动编排闭环。
+- commit 之后用 `produced_evidence:true` 收轮，让本轮计为新证据；没有可核验产出时如实传 `false` 或 `failure`，让停滞/失败计数生效。
+
+## 工具清单（58 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
 | 状态 | `init_project` / `get_status` / `update_project` / `regenerate_dashboard` | 初始化、一站式「我在哪」（`since` 汇总任务/会话变化）、改元信息与预算、重生成仪表盘 |
+| 编排 | `set_goal` / `set_orchestrator` / `record_round` / `get_orchestrator` | 最终目标与机器可判定的验收锚点；手动开关自动编排（enabled 变更必须给 reason 留痕）、并发上限（1-8）与轮数/小时预算；一轮开始/结束记账（停滞检测、连续失败退出、轮数预算）；编排状态与台账日志（开轮前第一件事）。台账缺失/损坏一律视为禁用（fail-closed），损坏时写入被阻止并明确报错 |
 | 路线图 | `add_milestone` / `update_milestone` / `get_roadmap` | 里程碑生命周期；depth=1 单行摘要 / depth=2 展开活跃任务 |
 | 任务 | `add_task` / `list_tasks` / `update_task` / `checkpoint` | 进度/断点/会话合并更新；feature/fix 完成强制关联文件与最新真实测试报告 |
 | 功能 | `register_feature` / `list_features` | 功能地图（入口文件 = 漂移对账锚点；测试文件 = 测试背书） |
@@ -420,6 +478,7 @@ npm run benchmark:volume -- --size-gib 20 --file-bytes 1048576 --full-audit --te
 - 幂等层能避免重复计算、重复落账并缩短重复调用输出，但无法返还模型在发起 MCP 调用前已经消耗的推理 token；客户端/Agent 编排仍应避免无意义扇出。
 - 结构/安全扫描忽略内置目录（node_modules/.git/dist/build/venv 等）与常见二进制/锁文件，尚不通用解析 `.gitignore`；`search_code` 的 rg 后端会解析。目录深度上限 64 层（超限计数上报，不静默）。
 - **仓库提供 fail-closed 巡检命令**；定时器、托管 CI 与会话 hooks 属部署层，必须在相应环境单独配置和监控。
+- **自动编排**只是账本与指令源：pm-mcp 不唤起会话、不调用任何模型、不消耗模型额度；控制流（定时器/workflow）由外部承载，pm-mcp 只提供目标锚点、开关/并发/预算、轮次记账与停滞退出判定（ADR-008）。没有任何机制能阻止模型自行停止；「直到完成」依赖外部时钟把短轮次一次次拉起。
 - 语义层面无法强制的（笔记内容是否属实、AI 是否真跑了测试）依赖 git 对账与审计交叉验证，不承诺语义级防伪。
 - 静态语义层已使用编译器/Tree-sitter AST，但 AST 证明的是源码结构，不证明真实执行。反射、动态分发、依赖注入、生成代码和线上调用仍必须导入 hash-bound runtime trace；要求 runtime 保证时，仅有 AST 会严格失败。
 - 标准化验收报告只对其冻结 scope、版本、环境与证据成立；第一方验收不等于独立评价、托管 CI、生产证明或 ISO 认证。

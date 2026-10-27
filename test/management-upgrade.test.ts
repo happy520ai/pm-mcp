@@ -219,6 +219,21 @@ test("完成门禁拒绝文字声明、过期源码和后来失败的验证", as
   await ok("update_task", { id: "T-001", status: "done", result_note: "自动采用最新有效验证" });
 });
 
+test("最新报告属于其他项目或被删除的目录时跳过它，继续采用本项目有效证据", async (t) => {
+  const { root, ok } = fixture(t);
+  await ok("add_task", { title: "外来报告不冒充", type: "feature", files: ["src/a.mjs"] });
+  const report = await realTestEvidence(root);
+  const base = JSON.parse(fs.readFileSync(path.join(root, report), "utf8"));
+  const foreignMissing = {
+    ...base,
+    run_at: "2099-01-01T00:00:00.000Z",
+    results: [{ ...base.results[0], unit_root: path.join(path.dirname(root), "pm-foreign-unit-does-not-exist") }],
+  };
+  fs.writeFileSync(path.join(root, ".pm/quality-runs/quality-20990101-000000-000-9999.json"), JSON.stringify(foreignMissing));
+  const used = verifiedTaskEvidence(root, report, ["src/a.mjs"]);
+  assert.ok(used.includes(report), "最新但属于其他项目的报告不得阻断本项目证据");
+});
+
 test("完成证据拒绝损坏、未执行、零测试、跳过项、越界执行目录和排除文件", async (t) => {
   const { root, ok } = fixture(t);
   const report = await realTestEvidence(root);

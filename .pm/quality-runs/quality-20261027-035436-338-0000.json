@@ -1,0 +1,61 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-10-27T03:54:36.338Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.14.0"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "1c40bc03e9cf05170ad6aaa441f7d3b541109bf49c91c7a8ab036600ccbc62e3",
+      "files": 148,
+      "bytes": 1454634
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "1c40bc03e9cf05170ad6aaa441f7d3b541109bf49c91c7a8ab036600ccbc62e3",
+      "files": 148,
+      "bytes": 1454634
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 82099,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 83410,
+        "stderr_bytes": 0,
+        "output_sha256": "d9e2972c718ae327f0da87cfa9422e8b82ddae3e43c505009c88a621af0d4b18",
+        "tests": 373,
+        "passed": 372,
+        "failed": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "output_excerpt": "✖ 真实 PROJECT.md 与状态同步（无人手改、无漂移） (133.7273ms)\n✖ failing tests:\ntest at test\\realrepo.test.ts:66:1\n✖ 真实 PROJECT.md 与状态同步（无人手改、无漂移） (133.7273ms)",
+      "error": ""
+    }
+  ]
+}

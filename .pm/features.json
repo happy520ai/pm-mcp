@@ -1,5 +1,5 @@
 {
-  "seq": 33,
+  "seq": 34,
   "features": [
     {
       "id": "F-001",
@@ -589,6 +589,23 @@
       "status": "implemented",
       "created": "2026-10-20T15:17:45.243Z",
       "updated": "2026-10-20T15:17:45.243Z"
+    },
+    {
+      "id": "F-034",
+      "name": "自动编排：目标锚定、手动开关、并发与轮次记账",
+      "description": "自动编排的持久账本与指令源（ADR-008）：set_goal 写最终目标与机器可判定的验收锚点；set_orchestrator 手动开关（enabled 变更必须带 reason 留痕）、并发上限 1-8、轮数/小时预算；record_round 记录一轮开始/结束，驱动停滞检测（连续 3 轮无新证据）、连续失败退出（2 次）与轮数预算；get_orchestrator 与 get_status/PROJECT.md 暴露状态。台账缺失或损坏一律视为禁用（fail-closed），损坏时阻止写入且不覆盖原文件。pm-mcp 仍不联网、不调用模型、不唤起会话：控制流由外部定时任务/workflow 承载。",
+      "module": "编排",
+      "entry_files": [
+        "src/orchestrator.ts",
+        "src/orchestrator-tools.ts"
+      ],
+      "test_files": [
+        "test/orchestrator.test.ts",
+        "test/realrepo.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-27T04:03:24.167Z",
+      "updated": "2026-10-27T04:03:24.167Z"
     }
   ]
 }

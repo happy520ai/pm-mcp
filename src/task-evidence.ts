@@ -52,6 +52,25 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
     const stat = fs.lstatSync(part);
     if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("质量证据目录必须是项目内的普通目录。");
   }
+  const within = (base: string, target: string) => {
+    const relative = path.relative(base, target);
+    return relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+  };
+  // 其他项目/工作区写进来的报告（unit_root 全部落在本项目之外）永远不可能是本项目证据，
+  // 跳过而不是用 ENOENT/越界这类错误打断选报告；目录不存在时尤其要给出可读的指引。
+  const isForeignReport = (value: unknown): boolean => {
+    const parsed = reportSchema.safeParse(value);
+    if (!parsed.success) return false;
+    const tests = parsed.data.results.filter((item) => item.kind === "test" || item.kind === "coverage");
+    if (tests.length === 0 || tests.some((item) => !path.isAbsolute(item.unit_root))) return false;
+    return tests.every((item) => {
+      try {
+        return !within(absolute, fs.realpathSync.native(item.unit_root));
+      } catch {
+        return true;
+      }
+    });
+  };
   const reports = fs.readdirSync(directory).filter((name) => /^quality-.*\.json$/.test(name)).map((name) => {
     const file = path.join(directory, name);
     const stat = fs.lstatSync(file);
@@ -62,7 +81,7 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
     if (!header.success) throw new Error(`质量报告 ${name} 缺少有效生成时间，无法判断新鲜度。`);
     return { relative: `.pm/quality-runs/${name}`, raw, value, runAt: header.data.run_at };
   }).sort((a, b) => b.runAt.localeCompare(a.runAt) || b.relative.localeCompare(a.relative));
-  const latest = reports[0];
+  const latest = reports.find((report) => !isForeignReport(report.value));
   if (!latest) throw new Error("缺少质量验证报告，请先执行 run_quality_matrix（confirm_execute: true），全绿后再 update_task(done)。");
   if (requested !== undefined && projectFilePath(requested) !== latest.relative) throw new Error("必须使用最新质量报告，不能绕过后来出现的验证结果。请省略 verification_run 参数（自动选最新），或用最新报告的路径重试。");
   const parsed = reportSchema.safeParse(latest.value);
@@ -80,12 +99,14 @@ export function verifiedTaskEvidence(root: string, requested?: string, files: st
   if (level === "execution_only" && policy?.minimum !== "execution_only") {
     throw new Error("仅有命令执行证据，未观察到完整测试计数。默认完成策略要求 tests_observed；请使用可识别的测试摘要，或由项目负责人明确设置兼容策略并说明理由。");
   }
-  const within = (base: string, target: string) => {
-    const relative = path.relative(base, target);
-    return relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
-  };
   if (tests.some((item) => !path.isAbsolute(item.unit_root))) throw new Error("质量报告的执行目录不属于当前项目。");
-  const unitRoots = tests.map((item) => fs.realpathSync.native(item.unit_root));
+  const unitRoots = tests.map((item) => {
+    try {
+      return fs.realpathSync.native(item.unit_root);
+    } catch {
+      throw new Error(`质量报告的执行目录不存在或不可读: ${item.unit_root}。报告可能来自其他项目/工作区，请重新执行 run_quality_matrix 生成本项目的报告。`);
+    }
+  });
   if (unitRoots.some((unit) => !within(absolute, unit))) throw new Error("质量报告的执行目录不属于当前项目。");
   if (anchors.some((file) => !unitRoots.some((unit) => within(unit, path.join(absolute, file))))) {
     throw new Error("质量报告的测试单元未覆盖任务关联文件所在目录。请把关联文件纳入测试覆盖，或将 files 改为质量报告已覆盖目录内的文件后重试。");

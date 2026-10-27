@@ -16,6 +16,20 @@ import { churnStats, debtAging } from "./health.ts";
 import { detectDrift, featureVerifyMark } from "./audit.ts";
 import { loadGovernance, type GovernanceFile } from "./governance-model.ts";
 import { touchRegistry } from "./registry.ts";
+import { loadOrchestrator, orchestratorStatus } from "./orchestrator.ts";
+
+/** 自动编排一行摘要：台账缺失或损坏只降级为提示，绝不让仪表盘生成失败 */
+function orchestratorRow(root: string): string {
+  try {
+    const file = loadOrchestrator(root);
+    const { status, reason } = orchestratorStatus(file);
+    const mark = status === "ready" || status === "running" ? "✅" : status === "no-goal" || status === "disabled" ? "—" : "🚩";
+    const rounds = file.settings.max_rounds === null ? `${file.run.round_count}/不限` : `${file.run.round_count}/${file.settings.max_rounds}`;
+    return `${mark} ${status}（${reason}）· 并发 ${file.settings.max_concurrency} · 轮次 ${rounds}`;
+  } catch {
+    return "—（编排台账不可读）";
+  }
+}
 
 /** 生成 PROJECT.md 全文 */
 export function buildDashboard(root: string): string {
@@ -118,6 +132,7 @@ export function buildDashboard(root: string): string {
   L.push(`| 语义治理 | ${governance ? `${governance.modules.length} 模块 / ${governance.interfaces.length} 接口 / ${governance.repositories.length} 仓库` : "⚠️ 未初始化"} |`);
   L.push(`| 质量矩阵 | ${latestQuality ? `${latestQuality.ok ? "✅" : "🚩"} ${latestQuality.run_at.slice(0, 16).replace("T", " ")}（命令 ${latestQuality.results.filter((item) => item.status === "passed").length}/${latestQuality.results.length}；证据 ${latestQuality.evidence_level ?? "旧格式未标级"}）` : "⚠️ 尚无真实执行记录"} |`);
   L.push(`| 标准化验收 | ${latestAcceptance ? `${latestAcceptance.verdict === "accepted" ? "✅" : "🚩"} ${latestAcceptance.report_generated_at.slice(0, 16).replace("T", " ")}（需求 ${latestAcceptance.summary.requirements_passed}/${latestAcceptance.summary.requirements_total}，errors ${latestAcceptance.summary.errors}）` : "⚠️ 尚无正式评价报告"} |`);
+  L.push(`| 自动编排 | ${orchestratorRow(root)} |`);
   L.push("");
 
   /* 跨模块/语言治理（这里只读账本，不在每次写操作时重跑全仓语义图） */

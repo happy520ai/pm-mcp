@@ -1,5 +1,5 @@
 {
-  "seq": 68,
+  "seq": 78,
   "sessions": [
     {
       "id": "S-0001",
@@ -1636,6 +1636,239 @@
         "git fallback 的 0.6.0 修复尚未随包发布（发布在 0.7.0 或下个补丁版：重建 dist→npm pack→更新 publish-npm.yml TARBALL/SHA→gh release→dispatch）",
         "文件用途索引 33% 可继续提升；M3 Web UI 仪表盘（T-012）暂不排期"
       ]
+    },
+    {
+      "id": "S-0069",
+      "date": "2026-10-27T04:03:43.968Z",
+      "author": "zcode",
+      "summary": "M4 第一段落地：pm-mcp 成为「目标锚定 + 可开关编排 + 轮次记账」的被动驱动账本（ADR-008，控制流外置，仍不联网/不调模型/不唤起会话）。新增 src/orchestrator.ts（Goal/Settings/Run schema、fail-closed 读取：缺失=禁用、损坏=阻止写入且不覆盖、校验不截断、七种状态推导）与 src/orchestrator-tools.ts（set_goal/set_orchestrator/record_round/get_orchestrator，工具目录 54→58）；get_status 与 PROJECT.md 暴露编排状态。修两个真实缺陷：①toolW 自带账本锁不可重入导致编排工具全部 3s 超时（改走 toolI 并写明约束）②完成门禁选中外来质量报告（unit_root=E:\\\\通用型项目管理，目录已不存在）裸抛 ENOENT，改为跳过外来报告并给可读指引。验证：npm run gate PASS（quality-20261027-040236-550，test/build/typecheck/coverage 四项全绿），全量 373 项通过，orchestrator.ts 分支覆盖 96.59%。注：package-lock.json 的改动来自本会话开始之前，非本次改动。用户确认前不创建定时任务。",
+      "files": [
+        ".pm/debuglog.json",
+        ".pm/features.json",
+        ".pm/roadmap.json",
+        ".pm/security.json",
+        ".pm/tasks.json",
+        "PROJECT.md",
+        "README.md",
+        "package-lock.json",
+        "src/dashboard.ts",
+        "src/project-tools.ts",
+        "src/task-evidence.ts",
+        "src/tools.ts",
+        "src/version.ts",
+        "test/management-upgrade.test.ts",
+        ".pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md",
+        ".pm/quality-runs/quality-20261027-035320-448-0000.json",
+        ".pm/quality-runs/quality-20261027-035436-338-0000.json",
+        ".pm/quality-runs/quality-20261027-035546-974-0000.json",
+        ".pm/quality-runs/quality-20261027-040236-550-0000.json",
+        "src/orchestrator-tools.ts",
+        "src/orchestrator.ts",
+        "test/orchestrator.test.ts"
+      ],
+      "file_hashes": {
+        ".pm/debuglog.json": "e1507bb4d9df0a9ea3126a64e8ede550ebed780061da0eca3a6a755d4757921d",
+        ".pm/features.json": "22a096e6df9d1792701e5bcdeee3e6843b70861172cd8ceadb4f4f12b07f435a",
+        ".pm/roadmap.json": "6cb738a93fe1202334c7ebea76a516a9fcacb61ed21832c9e2e629ccff3f6112",
+        ".pm/security.json": "8abc2681572f0b34df9fd4eeb3d35c298acf5b885f0e2fccc4c30b8196207d99",
+        ".pm/tasks.json": "de8f443181aa522b4ff5384ea6b03411cc62a0cdf2da96c48a1c0f53ee8a3a5a",
+        "PROJECT.md": "c322507e9c0d7f88d3c145fdeebf7137a806ca9c2194a2e064b9337d3bb80d23",
+        "README.md": "8a7f48a334f891dde222c44eab6fca33072b28dc809b84d93620d5b163ba0a21",
+        "package-lock.json": "792d343d69b34afd4e241b4c12435f0e107b99b7c1dc3b7e470a6dea418e339d",
+        "src/dashboard.ts": "18dc5109b974edcdf67588e192d1735525860075ae503a7732525a3629974489",
+        "src/project-tools.ts": "5eea4f0a71c49c1ea8919870cab7c0e32ca68e5514be007891515714fb3e32c9",
+        "src/task-evidence.ts": "f711c1f40dceb86c7f859496476883dc345e423b1aeceda9d721b046b4223f3e",
+        "src/tools.ts": "7819287e937bb0bac11abc23c3461190a0f341e045269b803c1d60ec5c0c1494",
+        "src/version.ts": "dea5012a1f006f5338724ec6b5ae12f3c90a4212d1c29562846b4540985d97e2",
+        "test/management-upgrade.test.ts": "f0c9b6cd6fa8332e68c05b0a8fea4de1bbab0dd27d169ac948a13157e387d504",
+        ".pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md": "0a1032954d7bf2163c16f739ad1a90d7201a46c31d1d95e7e827be9a6cf13739",
+        ".pm/quality-runs/quality-20261027-035320-448-0000.json": "391879d0a6fd5bfb1ab3a72d1828f9d9d16ff262aab7eafcf0a029fdeb7e5af8",
+        ".pm/quality-runs/quality-20261027-035436-338-0000.json": "31317db673fb4b312549cb75d776c7dca40e6bc089f603c1c39128f9abfd7908",
+        ".pm/quality-runs/quality-20261027-035546-974-0000.json": "78a4e982073a528d9f836c737d2bd5cef6c547b8284ed16186bae6e1030c2fc4",
+        ".pm/quality-runs/quality-20261027-040236-550-0000.json": "06ad0b76faaead607d0f991764db60a86e2de190027e787c9486658126a043ce",
+        "src/orchestrator-tools.ts": "301adf062987bd2d2b701554269ef8443bf389a0e3eec76153dfed7de0cf5936",
+        "src/orchestrator.ts": "837d933f5ef5484198280c04ca82b5229befb82be5cc4d1168853d51af6baef0",
+        "test/orchestrator.test.ts": "f608ad4ccaf7c26522af1fbc8e44df5f6ed8ecc4bb5969bdbc80ae299ac9a2a6"
+      },
+      "next_steps": [
+        "M4 剩余：把「定时任务 + 短轮次」实际跑通一次（需用户确认后再建自动化，不在本会话范围内）",
+        "编排台账目前只在读取时 fail-closed；可考虑 audit_structure 增加「编排台账损坏/停滞」的显式告警节",
+        "dist 已重建（58 工具），发布前仍需 npm pack→SHA→publish-npm.yml 流程（沿用 0.6.0 已验证流程）"
+      ]
+    },
+    {
+      "id": "S-0070",
+      "date": "2026-10-27T04:32:02.983Z",
+      "author": "zcode",
+      "summary": "首次真实调用新编排工具验证闭环：get_orchestrator 初始 no-goal（台账缺失=禁用）→ 两次违规调用均被拒（开关缺 reason；并发 9 被 schema 上限拒绝）→ set_goal 记录演示目标 → set_orchestrator 开启（并发 3）→ record_round begin/end 记账成功，重复 begin 被拒 → get_status 已显示「## 编排」段与 structuredContent.orchestrator。结论：开关、留痕、单轮互斥、预算推进、状态可见性全部经真实 MCP 调用生效。",
+      "files": [
+        ".pm/orchestrator.json",
+        "PROJECT.md"
+      ],
+      "file_hashes": {
+        ".pm/orchestrator.json": "a25e0826730599327ddc0a29eb7e6691b09d3387bee76a9b2f648875c700470d",
+        "PROJECT.md": "43f11a2b66803e09b0b8e56748d565743551260ff7c252d3b713bbf06fa210ff"
+      },
+      "next_steps": [
+        "待用户确认后创建定时任务（每 30 分钟读 get_orchestrator，ready 才开轮），未创建前编排开关处于开启但无执行者",
+        "用 set_goal 覆盖演示目标为真实最终目标"
+      ]
+    },
+    {
+      "id": "S-0071",
+      "date": "2026-10-27T04:34:39.470Z",
+      "author": "zcode",
+      "summary": "按用户指定的参数建成自动编排心跳：每 5 分钟一次（*/5 * * * *），并发每轮 = min(随机3-8, 可认领任务数, 硬上限8)；任务数为 0 的 tick 只拆卡不开轮；连续无证据/连续失败自动退出；只本地 commit，禁止 push/发布。pm-mcp 侧把 max_concurrency 硬上限设为 8、max_rounds 预算提到 200 轮。心跳只读 get_orchestrator 决定开不开轮，禁止自改开关。",
+      "files": [
+        ".pm/orchestrator.json",
+        "PROJECT.md"
+      ],
+      "file_hashes": {
+        ".pm/orchestrator.json": "b1c3ddb439d75f0e27720aebfbf865513ccc218b45533317af7e6441b77cff08",
+        "PROJECT.md": "77a49bbf3598da8428d9c59b4851f551a5373c3330ac23d62368cd5f50ecab83"
+      },
+      "next_steps": [
+        "观察前几轮心跳的台账记录（get_orchestrator 的最近记录），确认轮次记账与停滞检测按预期推进"
+      ]
+    },
+    {
+      "id": "S-0072",
+      "date": "2026-10-27T04:45:29.080Z",
+      "author": "zcode",
+      "summary": "预算支持「不限」：max_rounds / max_hours 改为 nullable，null = 不限，此时只剩停滞（连续3轮无新证据）与连续失败（2次）两个进度型刹车。新增 budgetLabel 统一渲染，get_status/PROJECT.md/各工具文案一致显示「不限」。验证：npm run quality PASS（quality-20261027-044522-304，test/build/typecheck/coverage 四项全绿），全量 374 项通过。注意：当前运行的 MCP 进程仍是旧 schema，需重连后才能接受 null 参数。",
+      "files": [
+        "src/orchestrator.ts",
+        "src/orchestrator-tools.ts",
+        "src/project-tools.ts",
+        "src/dashboard.ts",
+        "test/orchestrator.test.ts",
+        "PROJECT.md",
+        ".pm/quality-runs/quality-20261027-044522-304-0000.json"
+      ],
+      "file_hashes": {
+        "src/orchestrator.ts": "0f14109a85789542098f1374b1a0f6e8f90a0e3934b910f04062fee87bff881e",
+        "src/orchestrator-tools.ts": "eb8b791c5f7e3fd09f6321b1029cbde4a94fdfa4560094217a7884317e2a1653",
+        "src/project-tools.ts": "023e6ef5c269e4624fcdad47b80ffb35b15d9883cf98915822b2ae333e62a2ce",
+        "src/dashboard.ts": "61aa304a77c5275c22937c0a887e652f7215fa096bd8b21cbe1158b1736b40e3",
+        "test/orchestrator.test.ts": "12fae2012212880ba8651b4931d649e9da784c0a298f4311ad606aafa1bc59b9",
+        "PROJECT.md": "3a1cff71c37406162038d4250eaa971f2aa521dba8f0cd25b1bf0a68f22594a6",
+        ".pm/quality-runs/quality-20261027-044522-304-0000.json": "23d6d807776febe055175ed8d404cce19fca32702e1593028cae211764595732"
+      },
+      "next_steps": [
+        "重连 MCP 后调用 set_orchestrator(max_rounds:null, max_hours:null) 把本项目预算改为不限（当前运行进程仍是旧 schema，会拒绝 null）",
+        "观察心跳前几轮记录，确认拆卡与开轮按预期推进"
+      ]
+    },
+    {
+      "id": "S-0073",
+      "date": "2026-10-27T05:11:08.793Z",
+      "author": "zcode",
+      "summary": "无人值守前提验证：CreateWorkflow 只读探针（dwfrun-5e0ee337）未卡确认、后台启动、完成通知正常送达——前提成立。目标换为循环内可判定验收（去掉发布到 npm）；旧心跳 automation-37cc9e0c 的 prompt 原位重写为五段式（拆卡→派发workflow→结束tick→复核→commit+record_round(end)），running 分支改为查 GetWorkflowRun 自愈，保留原 */5 schedule，未新建任务。注意：仓库处于 detached HEAD（心跳第5段已加护栏），开启编排前需先切回分支。",
+      "files": [
+        ".pm/orchestrator.json",
+        ".zcode/workflow-drafts/无人值守启动探针.dwf.ts"
+      ],
+      "file_hashes": {
+        ".pm/orchestrator.json": "b048e0bc3c1ec2a27ea019c8368ec82a9b65df4a093e012dbc823584acb5bba6",
+        ".zcode/workflow-drafts/无人值守启动探针.dwf.ts": "ffc293370466d7cce708cf3f909c167bf3846c6bbe4588cf8968048ecb9c32d6"
+      },
+      "next_steps": [
+        "切回正常分支（当前 detached HEAD，commit 会丢失）",
+        "set_orchestrator(enabled:true, reason:...) 开启编排，观察前几轮五段式心跳是否按预期推进",
+        "若第2段派发 workflow 的脚本质量不稳，考虑把脚本沉淀为 saved workflow（SaveWorkflow）让心跳按名字派发"
+      ]
+    },
+    {
+      "id": "S-0074",
+      "date": "2026-10-27T07:11:39.914Z",
+      "author": "zcode",
+      "summary": "T-075 文档与决策：README.md 新增「自动编排闭环（心跳 + 动态工作流）」一节——五段分工（拆卡 / 派发动态工作流 / 结束 tick / 复核 / commit 收轮）、get_orchestrator 七个状态取值与优先级、record_round 的 begin/end 语义与单轮互斥三层保证、预算 null=不限（并如实标注 max_hours 目前不参与状态判定）、active_run_id 作为互斥令牌与「同 id 结算」的自愈指针、复核通过才 commit、禁止 push 与发布；同时用 record_decision 落了 ADR-009《编排闭环五段分工与 active_run_id 自愈指针》。未改源码，未 commit。",
+      "files": [
+        "README.md"
+      ],
+      "file_hashes": {
+        "README.md": "56f588284bc8308ae4a9eede8a3fd10d6c7b934429b941af43d482b37af9f0fd"
+      },
+      "next_steps": [
+        "重跑 npm run gate，确认 audit / quality / acceptance-cycle 全绿后再把 T-075 置 done",
+        "本轮不 commit：等心跳复核阶段决定是否提交"
+      ]
+    },
+    {
+      "id": "S-0075",
+      "date": "2026-10-27T07:16:51.296Z",
+      "author": "zcode",
+      "summary": "T-075 收尾：把 README「自动编排闭环」预算渲染示例改写为 budgetLabel 的精确输出（`7/40 轮（上限 24h）`、`7/不限 轮（上限 不限）`），使会话内容证据重新覆盖 README 当前内容。前一条会话 S-0074 已记录本节与 ADR-009 的主体内容；本次仅一处措辞修正，未改源码，未 commit。",
+      "files": [
+        "README.md"
+      ],
+      "file_hashes": {
+        "README.md": "12322e3a6577eecc5bcb7602bc08bfbf977682697320cfbae4b34640735c58a8"
+      },
+      "next_steps": [
+        "心跳复核阶段：npm run gate 仍因验收基线把 mcp_tools 固定为 48（现 58）而失败，需另立任务升版基线后再重跑"
+      ]
+    },
+    {
+      "id": "S-0076",
+      "date": "2026-10-27T07:36:47.789Z",
+      "author": "",
+      "summary": "T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 已写入，但独立复核指出 7 处与代码不符（budgetLabel 并非全站渲染、get_orchestrator 无 structuredContent、record_round 幂等层未被说明、enabled 未翻转时重置计数是静默 no-op、纯读路径不持锁、自愈 end 会推进轮数等）。npm run gate 退出码 1：audit 无红旗、quality PASS，acceptance-gate errors=8——已批准基线把 mcp_tools 固定为 equal 48，实测 58。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "按复核意见逐条修正 README 表述；baseline 升版（48→58）属人工批准动作，不在循环权限内"
+      ]
+    },
+    {
+      "id": "S-0077",
+      "date": "2026-10-27T07:55:21.353Z",
+      "author": "zcode",
+      "summary": "修复验收门禁死锁并纠正文档：①基线升版 1.1.0→1.2.0（QR-FS-TOOLS 阈值与 AT-FS-TOOLS 断言 48→58，其余门槛不变），draft→approve 走工具链，同步 package.json 指向 1.2.0，补 1.2.0 的 plan 与 first-failure 证据（升版必需，否则 acceptance 脚本 ENOENT）；②按独立复核意见修正 README「自动编排闭环」七处表述（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 的真实幂等行为、缺幂等层说明、只写路径持锁、重置计数需 enabled 真实翻转、自愈结算会吃预算并清零停滞）；③workflow 门禁命令改为 cmd.exe /c npm run gate（Windows 下 shell-less spawn 起不了 npm，实测 exit 0）。",
+      "files": [
+        "README.md",
+        "package.json",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md",
+        ".zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts"
+      ],
+      "file_hashes": {
+        "README.md": "b38cd9189209c480c2f2482848712624d4da893b3e66e0c74779d95c2ab80049",
+        "package.json": "487d9b59454d4567faaeb8eec2c4b37f8fac8075f0ba8356e05bb4db48d0c722",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json": "5b29032c7dd4fd843084d7c007ce58ae16484ab9fafd86086717090a009723de",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md": "fffce42c07d7ec2baab1c76ea0e6f3bed4ed862d9422ea421ca3d2c77272d97d",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md": "afbf4fed1127e340c66000c1cdedcc246ddef865e4ed99e7fb4fc0464b0706ee",
+        ".zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts": "3c13dc319f94ad6b8c43ef5220d545a6389ae2892af7824e0aac08baaaa32a11"
+      },
+      "next_steps": [
+        "跑 npm run gate 验证 1.2.0 基线全绿后提交",
+        "把升基线流程（draft→approve→package.json 版本→plan/first-failure 证据）写进 ADR-010",
+        "心跳的 record_round(begin) 应存 workflow 运行 id 而非时间戳，才能用 active_run_id 直查 GetWorkflowRun"
+      ]
+    },
+    {
+      "id": "S-0078",
+      "date": "2026-10-27T08:01:33.515Z",
+      "author": "",
+      "summary": "T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 落地；独立复核发现的 7 处与代码不符已逐条修正（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 真实幂等行为补幂等层说明、只写路径持账本锁、重置计数需 enabled 真实翻转、自愈结算代价）。卡原验收要求的 gate 全绿经由基线 1.2.0 升版达成（48→58），升版由用户授权「修好他」。",
+      "files": [
+        "README.md",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md",
+        "package.json",
+        ".pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md"
+      ],
+      "file_hashes": {
+        "README.md": "b38cd9189209c480c2f2482848712624d4da893b3e66e0c74779d95c2ab80049",
+        ".pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json": "5b29032c7dd4fd843084d7c007ce58ae16484ab9fafd86086717090a009723de",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md": "fffce42c07d7ec2baab1c76ea0e6f3bed4ed862d9422ea421ca3d2c77272d97d",
+        ".pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md": "afbf4fed1127e340c66000c1cdedcc246ddef865e4ed99e7fb4fc0464b0706ee",
+        "package.json": "487d9b59454d4567faaeb8eec2c4b37f8fac8075f0ba8356e05bb4db48d0c722",
+        ".pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md": "2ccd21cfb5f91a20d5df2c2b67079aee7fae621dd1c487fc8e40aa3f1434d438"
+      },
+      "next_steps": []
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "seq": 3,
+  "seq": 5,
   "milestones": [
     {
       "id": "M1",
@@ -27,6 +27,24 @@
       "order": 3,
       "created": "2026-10-20T14:45:09.767Z",
       "updated": "2026-10-20T14:45:09.767Z"
+    },
+    {
+      "id": "M4",
+      "title": "M4 目标锚定与编排开关（被动驱动的持久账本）",
+      "goal": "在离线零 Key 的前提下让 pm-mcp 成为「目标→任务卡→执行→验收」闭环的持久账本与指令源：控制流归外部定时任务/workflow，pm-mcp 提供目标锚点（set_goal）、可手动开关的编排配置（set_orchestrator）、轮次记账（record_round）与状态可见性（get_orchestrator / get_status / PROJECT.md）。台账缺失或损坏一律视为禁用（fail-closed）。",
+      "status": "done",
+      "order": 4,
+      "created": "2026-10-27T02:41:20.984Z",
+      "updated": "2026-10-27T04:04:50.604Z"
+    },
+    {
+      "id": "M5",
+      "title": "M5 编排闭环文档化",
+      "goal": "把「心跳 + 动态工作流」五段闭环从一份定时任务 prompt 变成仓库内的可查证约定：README 说明与实际行为一致，ADR 记录架构与自愈指针约定，使后来会话不必重新推导。",
+      "status": "active",
+      "order": 5,
+      "created": "2026-10-27T05:20:12.846Z",
+      "updated": "2026-10-27T05:20:23.119Z"
     }
   ]
 }
