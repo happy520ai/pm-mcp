@@ -1,5 +1,13 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-10-27 — zcode
+
+T-076：README.md 新增「验收基线升版流程」一节——四步升版（旧版 JSON 生成新版本号文件只改必要阈值 / save_acceptance_baseline_draft 存 draft / approve_acceptance_baseline 按 fingerprint 批准 / package.json 指向新版），并写明升版必须同时提供 <baseline-id>-<version>-plan.md 与 <baseline-id>-<version>-first-failure.md 两份证据，缺任一 acceptance 脚本直接 ENOENT。
+
+改动文件（1）: README.md
+
+下一步: 复跑 npm run gate 确认退出码 0；update_task 置 T-076 done
+
 ## 2026-10-27 — 未知
 
 T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 落地；独立复核发现的 7 处与代码不符已逐条修正（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 真实幂等行为补幂等层说明、只写路径持账本锁、重置计数需 enabled 真实翻转、自愈结算代价）。卡原验收要求的 gate 全绿经由基线 1.2.0 升版达成（48→58），升版由用户授权「修好他」。

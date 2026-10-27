@@ -1,5 +1,5 @@
 {
-  "seq": 26,
+  "seq": 27,
   "entries": [
     {
       "id": "D-0001",
@@ -398,6 +398,19 @@
       "files": [
         "src/task-evidence.ts",
         "test/management-upgrade.test.ts"
+      ],
+      "task_id": null
+    },
+    {
+      "id": "D-0027",
+      "date": "2026-10-27T08:03:21.258Z",
+      "author": "",
+      "symptom": "动态工作流内 world.run(\"npm\", [\"run\",\"gate\"]) 报 spawn C:\\Program Files\\nodejs\\npm ENOENT；改为 world.run(\"npm.cmd\", ...) 后报 '\"C:\\Program Files\\nodejs\\npm.cmd\"' 不是内部或外部命令。",
+      "root_cause": "Windows 上 npm 实际是 npm.cmd 批处理脚本，child_process 在 shell:false 下 spawn(\"npm\") 解析不到可执行文件；直接 spawn(\"npm.cmd\") 也不行（不经 shell 的 spawn 无法执行批处理），报「不是内部或外部命令」。两次失败都发生在 workflow 第 4 段，确定性门禁从未真正执行，当轮结论实际来自子代理的手动运行。",
+      "fix": "workflow 脚本里的门禁命令改为 world.run(\"cmd.exe\", [\"/c\", \"npm\", \"run\", \"gate\"])；用 node spawnSync 实测 exit 0 后把草稿脚本 .zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts 改为该写法。",
+      "verified_how": "node -e spawnSync('cmd.exe',['/c','npm','run','typecheck']) 退出码 0；修改后的 AmendWorkflow 重派成功。",
+      "files": [
+        ".zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts"
       ],
       "task_id": null
     }

@@ -14,11 +14,11 @@
     "max_hours": null
   },
   "run": {
-    "active_run_id": null,
+    "active_run_id": "cron-2026-10-27T08:11:29Z",
     "round_count": 2,
     "stall_rounds": 0,
     "consecutive_failures": 1,
-    "last_round_at": "2026-10-27T07:36:58.218Z",
+    "last_round_at": "2026-10-27T08:11:58.933Z",
     "started_at": "2026-10-27T04:31:24.110Z",
     "paused_reason": null,
     "paused_at": null
@@ -68,7 +68,12 @@
       "at": "2026-10-27T07:36:58.218Z",
       "kind": "round-fail",
       "note": "cron-2026-10-27T05:26:09Z: 失败 质量门禁未过：acceptance-gate errors=8（已批准基线把 mcp_tools 固定为 equal 48，实测 58；audit 无红旗、quality PASS）"
+    },
+    {
+      "at": "2026-10-27T08:11:58.933Z",
+      "kind": "round-start",
+      "note": "cron-2026-10-27T08:11:29Z"
     }
   ],
-  "updated": "2026-10-27T07:36:58.218Z"
+  "updated": "2026-10-27T08:11:58.933Z"
 }

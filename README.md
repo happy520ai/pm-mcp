@@ -422,6 +422,17 @@ changelog.md      # 自动生成
 - 风险强制 owner、likelihood、impact、treatment、补偿控制；残余风险超过基线、未授权接受或复审过期都会阻断。
 - 正式结论只能由 evaluator 计算；JSON、Markdown 与 `.sha256.json` 三件套不可覆盖，缺一或被改即失败。
 
+### 验收基线升版流程
+
+批准后的同 ID/版本不可修改（`src/acceptance-tools.ts:268` 只允许 draft 批准，`src/acceptance-tools.ts:270-272` 按 SHA-256 fingerprint 比对，内容变化即拒绝）。任何阈值调整（例如 1.1.0 把 `mcp_tools` 固定为 48，而 M2/M4 新增编排后实测 58，1.2.0 只把该阈值从 48 改为 58）必须走升版，共四步：
+
+1. **基于旧版 JSON 生成新版本号文件**：复制 `.pm/acceptance/baselines/<baseline-id>/<旧版本>.json` 为 `<新版本>.json`（版本须符合 semver），更新 `baseline_version` 字段，只改必要阈值及其对应断言的期望值（如 `mcp_tools` 阈值 48→58），其余量化阈值、需求、风险与测试追踪保持不变，并在 `approval.rationale` 写明改了什么、为什么。
+2. **存 draft**：调用 `save_acceptance_baseline_draft`（`baseline_file` 指向新 JSON，须位于 `.pm/acceptance/` 内且 `approval.status=draft`，见 `src/acceptance-tools.ts:241-245`），返回的 fingerprint 记下来供下一步使用。
+3. **按当前 fingerprint 批准**：调用 `approve_acceptance_baseline`，传 `baseline_id`、`baseline_version`、`expected_fingerprint_sha256`（第 2 步返回值）。fingerprint 不匹配即拒绝；批准时间不得早于基线创建时间。
+4. **更新指针**：把 `package.json` 的 `pm_mcp.acceptance_baseline.version` 指向新版本号，`npm run acceptance:cycle`（`scripts/acceptance-cycle.mts`）即按新基线评价。
+
+**升版必须同时提供两份证据文件**：`.pm/acceptance/evidence/<baseline-id>-<version>-plan.md` 与 `.pm/acceptance/evidence/<baseline-id>-<version>-first-failure.md`。`scripts/create-pm-acceptance-evaluation.mts:27-28` 对非 legacy 基线（legacy 仅限 `pm-mcp-local-release@1.0.0`）默认按这两个路径读取 EV-PLAN 与 EV-FIRST-FAILURE 证据，`scripts/create-pm-acceptance-evaluation.mts:55-57` 用 `fs.statSync` 取 mtime、`src/acceptance-tools.ts:74-95` 用 `fs.openSync` 计算 SHA-256——任一文件缺失，acceptance 脚本会直接 ENOENT 报错。
+
 ## 防钻空设计（红队评审加固）
 
 这套机制的对手是"想抄近路的 AI（和偷懒的人）"。以下空子已被逐一堵上；`test/exploit.test.ts` 当前包含 20 个名称明确的“钻空”用例，另有边界与精确性用例：

@@ -1,5 +1,5 @@
 {
-  "seq": 75,
+  "seq": 76,
   "tasks": [
     {
       "id": "T-001",
@@ -2719,6 +2719,42 @@
       "updated": "2026-10-27T08:01:33.507Z",
       "started_at": null,
       "completed_at": "2026-10-27T08:01:33.507Z"
+    },
+    {
+      "id": "T-076",
+      "title": "README 补「验收基线升版流程」",
+      "detail": "本次修门禁死锁踩了两个坑，都没成文：一是升版必须同时补 .pm/acceptance/evidence/<baseline-id>-<version>-plan.md 与 -first-failure.md，否则 scripts/create-pm-acceptance-evaluation.mts 直接 ENOENT；二是批准必须先 draft 再 approve（approved 版本不可覆盖），且批准后要同步 package.json 的版本指向，否则门禁仍跑旧基线。把这条流程写进文档，避免下次从零推导。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M5",
+      "steps": [
+        {
+          "text": "读 src/acceptance-tools.ts 与 scripts/create-pm-acceptance-evaluation.mts 核实四条流程与证据文件要求",
+          "done": false
+        },
+        {
+          "text": "README 增「验收基线升版流程」小节",
+          "done": false
+        },
+        {
+          "text": "npm run gate 退出码 0",
+          "done": false
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "README.md"
+      ],
+      "acceptance": "README 存在「验收基线升版流程」小节，且四步与工具实际行为一致：①基于旧版生成新版本号 JSON 并只改必要阈值 ②save_acceptance_baseline_draft 存 draft ③approve_acceptance_baseline 按 fingerprint 批准 ④package.json 的 pm_mcp.acceptance_baseline.version 指向新版，且说明必须同时提供 <id>-<version>-plan.md 与 -first-failure.md 两份证据（缺则 acceptance 脚本 ENOENT）；npm run gate 退出码 0",
+      "result_note": "README.md 在「标准化产品验收」节内新增「验收基线升版流程」小节：四步升版（①复制旧版 JSON 生成新版本号文件、只改必要阈值如 mcp_tools 48→58 并在 rationale 写明；②save_acceptance_baseline_draft 存 draft；③approve_acceptance_baseline 按当前 fingerprint 批准；④package.json 的 pm_mcp.acceptance_baseline.version 指向新版），并写明升版必须同时提供 .pm/acceptance/evidence/<baseline-id>-<version>-plan.md 与 <baseline-id>-<version>-first-failure.md 两份证据（create-pm-acceptance-evaluation.mts:27-28 默认路径、:55-57 statSync，缺任一直接 ENOENT）。内容均先经 src/acceptance-tools.ts 与 scripts/create-pm-acceptance-evaluation.mts 核实。",
+      "verification": "npm run gate 退出码 0",
+      "tags": [],
+      "author": "zcode",
+      "created": "2026-10-27T08:11:41.222Z",
+      "updated": "2026-10-27T08:17:02.652Z",
+      "started_at": null,
+      "completed_at": "2026-10-27T08:17:02.652Z"
     }
   ]
 }
