@@ -1,0 +1,154 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-10-27T09:32:01.482Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "evidence_level": "unverified",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.14.0"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "f9be081773f6ad5150e2c5ae1dbcb377c99e505466a8478946bfa082e8fc72a8",
+      "files": 148,
+      "bytes": 1466637
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "f9be081773f6ad5150e2c5ae1dbcb377c99e505466a8478946bfa082e8fc72a8",
+      "files": 148,
+      "bytes": 1466637
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 62164,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 55251,
+        "stderr_bytes": 0,
+        "output_sha256": "bac7bf0749876ff726007925d900f2d37f5a6388cacbf4786828c3de66afb155",
+        "tests": 374,
+        "passed": 373,
+        "failed": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "output_excerpt": "✖ 20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接管 (4524.4456ms)\n✖ failing tests:\ntest at test\\watcher-leader.test.ts:77:1\n✖ 20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接管 (4524.4456ms)",
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "output_excerpt": "",
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "output_excerpt": "",
+      "error": "Blocked by an earlier failed quality command"
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "coverage",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "blocked",
+      "exit_code": null,
+      "signal": null,
+      "duration_ms": 0,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 0,
+        "stderr_bytes": 0,
+        "output_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "unverified"
+      },
+      "output_excerpt": "",
+      "error": "Blocked by an earlier failed quality command"
+    }
+  ]
+}

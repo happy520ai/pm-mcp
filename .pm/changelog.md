@@ -1,5 +1,31 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-10-27 — 未知
+
+T-078 README 补 CLI 会话派发说明（桥二）：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节：桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑、只读 .pm/ 账本恢复）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
+
+改动文件（1）: README.md
+
+## 2026-10-27 — zcode-cli
+
+T-078：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节——桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
+
+改动文件（1）: README.md
+
+## 2026-10-27 — 未知
+
+T-077 桥二落地：CLI 会话登录验证与派发切换：login 完成（旅行者5050，GLM-5.3）；探针通过：spawn 的 CLI 会话以退出码 0 读到 get_orchestrator（ready/3 轮/台账正常）。根因修复：CLI 执行按 providerOrder[0] 取供应商，mimo 的 key 失效，已把 unified-key-pool 挪到队首（原文件备份 provider_config.json.backup-20261027-cli）。
+
+下一步: 建一张小卡（todo），spawn CLI 会话让它自己领卡执行，验证全链后把心跳派发切为 CLI 优先
+
+## 2026-10-27 — zcode
+
+搭双桥：ADR-010 记录「CLI 会话优先、子代理回退、一轮一会话」——桥①（workflow 子代理 + 统一号池）已跑通三轮；桥②（spawn 无头 zcode CLI）被 CLI 自身凭据 401 阻塞，已探明 CLI v0.17.0 支持 -p/--cwd/--surface，桌面端模型池 CLI 读不到，需用户执行一次 zcode login。建 T-077 承接桥二落地（login→探针→真实轮→切换派发），暂留 backlog 等用户完成登录后再提升。
+
+改动文件（2）: .pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md, .pm/tasks.json
+
+下一步: 用户执行 zcode login 后重跑只读探针（T-077 第 2 步），401 消失再验证桥②真实轮并切换派发
+
 ## 2026-10-27 — zcode
 
 T-076：README.md 新增「验收基线升版流程」一节——四步升版（旧版 JSON 生成新版本号文件只改必要阈值 / save_acceptance_baseline_draft 存 draft / approve_acceptance_baseline 按 fingerprint 批准 / package.json 指向新版），并写明升版必须同时提供 <baseline-id>-<version>-plan.md 与 <baseline-id>-<version>-first-failure.md 两份证据，缺任一 acceptance 脚本直接 ENOENT。

@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-27T08:23:29.440Z
+> 生成时间: 2026-10-27T09:36:32.670Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -27,10 +27,10 @@ flowchart LR
 ✅ [██████████] 100% M2 v2 增强（30/30）
 ○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/1）
 ✅ [██████████] 100% M4 M4 目标锚定与编排开关（被动驱动的持久账本）（5/5）
-▶ [██████████] 100% M5 M5 编排闭环文档化（2/2）
+▶ [████████░░] 75% M5 M5 编排闭环文档化（3/4）
 
 ## 🎯 当前焦点
-- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
+- 🔄 T-077 桥二落地：CLI 会话登录验证与派发切换（步骤 1/4） → 下一步: 建一张小卡（todo），spawn CLI 会话让它自己领卡执行，验证全链后把心跳派发切为 CLI 优先
 - 当前阶段: v0.3.0 本地验收通过：固定安装目录已配置，既有客户端待重连核验；未发布
 
 ## 🩺 健康摘要
@@ -38,14 +38,14 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(37), package.json(21), src/index.ts(17) |
+| churn（变更率） | ⚠️ 热点 README.md(39), package.json(21), src/index.ts(17) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 27 条记录 |
 | 测试背书 | 34/34 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-27 08:23（命令 4/4；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-10-27 08:23（需求 33/33，errors 0） |
-| 自动编排 | ✅ running（一轮正在执行：cron-2026-10-27T08:11:29Z）· 并发 8 · 轮次 2/不限 |
+| 质量矩阵 | ✅ 2026-10-27 09:36（命令 4/4；证据 tests_observed） |
+| 标准化验收 | ✅ 2026-10-27 09:36（需求 33/33，errors 0） |
+| 自动编排 | ✅ ready（可执行下一轮（4/不限 轮（上限 不限）））· 并发 8 · 轮次 4/不限 |
 
 ## 🧭 模块与语言治理
 - pm-mcp [tool] typescript · owner project-maintainers · roots .
@@ -53,7 +53,8 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 75 · backlog 1
+- 总览: done 76 · backlog 1 · in_progress 1
+- [in_progress] T-077 桥二落地：CLI 会话登录验证与派发切换 (feature, M5)
 
 ## 🧩 功能清单
 ### src
@@ -107,21 +108,21 @@ flowchart LR
 - ✅ F-034 自动编排：目标锚定、手动开关、并发与轮次记账 — 自动编排的持久账本与指令源（ADR-008）：set_goal 写最终目标与机器可判定的验收锚点；set_orchestrator 手动开关（enabled 变
 
 ## 🏛️ 架构决策（最近）
+- [ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话](.pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md)
 - [ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）](.pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md)
 - [ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令](.pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md)
 - [ADR-007-输出行数预算显式设为-100（默认-150）](.pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md)
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
-- [ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root](.pm/decisions/ADR-005-Qoder-项目根解析：按-ppid-匹配会话运行日志，而不是钉死---root.md)
 
 ## 📜 最近会话
-- 2026-10-27 [zcode] T-076：README.md 新增「验收基线升版流程」一节——四步升版（旧版 JSON 生成新版本号文件只改必要阈值 / save_acceptance_baseline_draft 存 draft / approve_acceptance_baseline 按 fingerprint 批准 / package.json 指向新版），并写明升版必须同时提供 <baseline-id>-<version>-plan.md 与 <baseline-id>-<version>-first-failure.md 两份证据，缺任一 acceptance 脚本直接 ENOENT。
+- 2026-10-27 [?] T-078 README 补 CLI 会话派发说明（桥二）：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节：桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑、只读 .pm/ 账本恢复）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
   - 改动: README.md
-- 2026-10-27 [?] T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 落地；独立复核发现的 7 处与代码不符已逐条修正（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 真实幂等行为补幂等层说明、只写路径持账本锁、重置计数需 enabled 真实翻转、自愈结算代价）。卡原验收要求的 gate 全绿经由基线 1.2.0 升版达成（48→58），升版由用户授权「修好他」。
-  - 改动: README.md, .pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md, package.json, .pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md
-- 2026-10-27 [zcode] 修复验收门禁死锁并纠正文档：①基线升版 1.1.0→1.2.0（QR-FS-TOOLS 阈值与 AT-FS-TOOLS 断言 48→58，其余门槛不变），draft→approve 走工具链，同步 package.json 指向 1.2.0，补 1.2.0 的 plan 与 first-failure 证据（升版必需，否则 acceptance 脚本 ENOENT）；②按独立复核意见修正 README「自动编排闭环」七处表述（budgetLabel 适用范围、get_orchestrator 无 structuredContent、begin/end 的真实幂等行为、缺幂等层说明、只写路径持锁、重置计数需 enabled 真实翻转、自愈结算会吃预算并清零停滞）；③workflow 门禁命令改为 cmd.exe /c npm run gate（Windows 下 shell-less spawn 起不了 npm，实测 exit 0）。
-  - 改动: README.md, package.json, .pm/acceptance/baselines/pm-mcp-local-release/1.2.0.json, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-plan.md, .pm/acceptance/evidence/pm-mcp-local-release-1.2.0-first-failure.md, .zcode/workflow-drafts/T-075-编排闭环文档化.dwf.ts
-- 2026-10-27 [?] T-075 README 与 ADR 记录「心跳 + workflow」五段闭环约定：README「自动编排闭环」小节与 ADR-009 已写入，但独立复核指出 7 处与代码不符（budgetLabel 并非全站渲染、get_orchestrator 无 structuredContent、record_round 幂等层未被说明、enabled 未翻转时重置计数是静默 no-op、纯读路径不持锁、自愈 end 会推进轮数等）。npm run gate 退出码 1：audit 无红旗、quality PASS，acceptance-gate errors=8——已批准基线把 mcp_tools 固定为 equal 48，实测 58。
-- 2026-10-27 [zcode] T-075 收尾：把 README「自动编排闭环」预算渲染示例改写为 budgetLabel 的精确输出（`7/40 轮（上限 24h）`、`7/不限 轮（上限 不限）`），使会话内容证据重新覆盖 README 当前内容。前一条会话 S-0074 已记录本节与 ADR-009 的主体内容；本次仅一处措辞修正，未改源码，未 commit。
+- 2026-10-27 [zcode-cli] T-078：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节——桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
+  - 改动: README.md
+- 2026-10-27 [?] T-077 桥二落地：CLI 会话登录验证与派发切换：login 完成（旅行者5050，GLM-5.3）；探针通过：spawn 的 CLI 会话以退出码 0 读到 get_orchestrator（ready/3 轮/台账正常）。根因修复：CLI 执行按 providerOrder[0] 取供应商，mimo 的 key 失效，已把 unified-key-pool 挪到队首（原文件备份 provider_config.json.backup-20261027-cli）。
+- 2026-10-27 [zcode] 搭双桥：ADR-010 记录「CLI 会话优先、子代理回退、一轮一会话」——桥①（workflow 子代理 + 统一号池）已跑通三轮；桥②（spawn 无头 zcode CLI）被 CLI 自身凭据 401 阻塞，已探明 CLI v0.17.0 支持 -p/--cwd/--surface，桌面端模型池 CLI 读不到，需用户执行一次 zcode login。建 T-077 承接桥二落地（login→探针→真实轮→切换派发），暂留 backlog 等用户完成登录后再提升。
+  - 改动: .pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md, .pm/tasks.json
+- 2026-10-27 [zcode] T-076：README.md 新增「验收基线升版流程」一节——四步升版（旧版 JSON 生成新版本号文件只改必要阈值 / save_acceptance_baseline_draft 存 draft / approve_acceptance_baseline 按 fingerprint 批准 / package.json 指向新版），并写明升版必须同时提供 <baseline-id>-<version>-plan.md 与 <baseline-id>-<version>-first-failure.md 两份证据，缺任一 acceptance 脚本直接 ENOENT。
   - 改动: README.md
 
 ---

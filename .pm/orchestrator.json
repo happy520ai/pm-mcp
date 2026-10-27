@@ -14,11 +14,11 @@
     "max_hours": null
   },
   "run": {
-    "active_run_id": "cron-2026-10-27T08:11:29Z",
-    "round_count": 2,
+    "active_run_id": null,
+    "round_count": 4,
     "stall_rounds": 0,
-    "consecutive_failures": 1,
-    "last_round_at": "2026-10-27T08:11:58.933Z",
+    "consecutive_failures": 0,
+    "last_round_at": "2026-10-27T09:30:19.926Z",
     "started_at": "2026-10-27T04:31:24.110Z",
     "paused_reason": null,
     "paused_at": null
@@ -73,7 +73,22 @@
       "at": "2026-10-27T08:11:58.933Z",
       "kind": "round-start",
       "note": "cron-2026-10-27T08:11:29Z"
+    },
+    {
+      "at": "2026-10-27T08:23:53.673Z",
+      "kind": "round-end",
+      "note": "cron-2026-10-27T08:11:29Z: 有新证据"
+    },
+    {
+      "at": "2026-10-27T09:26:20.560Z",
+      "kind": "round-start",
+      "note": "cli-2026-10-27T00:00:00"
+    },
+    {
+      "at": "2026-10-27T09:30:19.926Z",
+      "kind": "round-end",
+      "note": "cli-2026-10-27T00:00:00: 有新证据"
     }
   ],
-  "updated": "2026-10-27T08:11:58.933Z"
+  "updated": "2026-10-27T09:30:19.926Z"
 }

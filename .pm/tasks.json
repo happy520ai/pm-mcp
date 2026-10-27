@@ -1,5 +1,5 @@
 {
-  "seq": 76,
+  "seq": 78,
   "tasks": [
     {
       "id": "T-001",
@@ -2755,6 +2755,86 @@
       "updated": "2026-10-27T08:17:02.652Z",
       "started_at": null,
       "completed_at": "2026-10-27T08:17:02.652Z"
+    },
+    {
+      "id": "T-077",
+      "title": "桥二落地：CLI 会话登录验证与派发切换",
+      "detail": "ADR-010 已定双桥派发，桥②被 CLI 自身模型凭据 401 阻塞：桌面端模型池配置在应用内部存储，CLI 读不到，机器上无第二个无头 CLI。前置动作（仅用户能做）：`node D:\\zcode\\resources\\glm\\zcode.cjs login` 浏览器授权一次。login 完成后：重跑只读探针验证 → 用一次真实小轮验证桥②全链（spawn→领卡→干活→门禁→记账→退出）→ 把心跳派发切为「CLI 优先、子代理回退」。注意：CLI 会话的模型是 CLI 自己配置的，无法按轮指定统一号池；权限模式 -p 默认 yolo。",
+      "type": "feature",
+      "status": "in_progress",
+      "priority": "P1",
+      "milestone": "M5",
+      "steps": [
+        {
+          "text": "（用户）执行 node D:\\zcode\\resources\\glm\\zcode.cjs login 完成浏览器授权",
+          "done": false
+        },
+        {
+          "text": "重跑只读探针：spawn CLI 会话读 get_orchestrator，确认 401 消失且能退出",
+          "done": true
+        },
+        {
+          "text": "用一张真实小卡验证桥②全链：spawn→领卡→干活→门禁→记账→退出",
+          "done": false
+        },
+        {
+          "text": "心跳派发切为「CLI 优先、子代理回退」，写进 README 循环章节",
+          "done": false
+        }
+      ],
+      "checkpoint": {
+        "note": "login 完成（旅行者5050，GLM-5.3）；探针通过：spawn 的 CLI 会话以退出码 0 读到 get_orchestrator（ready/3 轮/台账正常）。根因修复：CLI 执行按 providerOrder[0] 取供应商，mimo 的 key 失效，已把 unified-key-pool 挪到队首（原文件备份 provider_config.json.backup-20261027-cli）。",
+        "next_step": "建一张小卡（todo），spawn CLI 会话让它自己领卡执行，验证全链后把心跳派发切为 CLI 优先",
+        "at": "2026-10-27T09:25:42.384Z"
+      },
+      "files": [
+        ".pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md"
+      ],
+      "acceptance": "①`node <zcode.cjs> -p \"只读探针\" --cwd <项目根> --surface terminal` 以退出码 0 结束且能读到 get_orchestrator（401 消失）；②心跳的桥②派发路径验证一次真实轮：spawn 的 CLI 会话读账本领卡、干活、记账、退出，上下文不继承任何对话；③ADR-010 的双桥回退逻辑在心跳里生效（CLI 不可用自动回退子代理）",
+      "result_note": "",
+      "verification": "",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T09:16:23.879Z",
+      "updated": "2026-10-27T09:25:42.384Z",
+      "started_at": "2026-10-27T09:25:42.384Z",
+      "completed_at": null
+    },
+    {
+      "id": "T-078",
+      "title": "README 补 CLI 会话派发说明（桥二）",
+      "detail": "ADR-010 定了双桥派发（CLI 优先、子代理回退），README 的自动编排章节还没写桥二怎么用。补一小段：spawn 命令形态（node zcode.cjs -p \"指令\" --cwd 项目根 --surface terminal）、何时用（宿主对话关闭时循环仍可跑）、以及 Windows 下 providerOrder 需把可用池放队首（mimo 的 key 失效会导致执行 401）。",
+      "type": "chore",
+      "status": "done",
+      "priority": "P2",
+      "milestone": "M5",
+      "steps": [
+        {
+          "text": "读 .pm/decisions/ADR-010 与 README 自动编排章节",
+          "done": true
+        },
+        {
+          "text": "README 补 CLI 会话派发说明（spawn 命令、适用时机、providerOrder 注意事项）",
+          "done": true
+        },
+        {
+          "text": "npm run gate 退出码 0",
+          "done": true
+        }
+      ],
+      "checkpoint": null,
+      "files": [
+        "README.md"
+      ],
+      "acceptance": "README 的自动编排章节提到 CLI 会话派发方式（spawn 命令与 ADR-010 引用），与 ADR-010 内容一致；npm run gate 退出码 0",
+      "result_note": "README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节：桥①/桥②对比、spawn 命令形态（node zcode.cjs -p \"<指令>\" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑、只读 .pm/ 账本恢复）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。",
+      "verification": "npm run gate 退出码 0（acceptance-gate PASS · report=pm-mcp-local-20261027-093010-209057af）",
+      "tags": [],
+      "author": "",
+      "created": "2026-10-27T09:25:48.445Z",
+      "updated": "2026-10-27T09:30:18.011Z",
+      "started_at": "2026-10-27T09:26:23.273Z",
+      "completed_at": "2026-10-27T09:30:18.011Z"
     }
   ]
 }

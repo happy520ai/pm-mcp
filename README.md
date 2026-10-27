@@ -304,6 +304,15 @@ pm-mcp 只提供目标锚点、开关/并发/预算、轮次记账与退出判�
 
 这五段是外部 workflow 的约定，pm-mcp 不执行也不校验其中的复核与 commit；它只保证账本上的单轮互斥、轮数与退出计数。
 
+### 桥二：spawn CLI 会话派发
+
+第 ② 段的「启动 workflow 执行这张卡」有两座桥（ADR-010）：
+
+- **桥① workflow 子代理**：活在宿主对话里，可按轮指定统一号池模型；宿主对话关闭时随之失效。
+- **桥② spawn 无头 zcode CLI 会话**：独立于任何对话，命令形态 `node <zcode.cjs> -p "<指令>" --cwd <项目根> --surface terminal`。适用时机是**宿主对话关闭时循环仍要继续跑**：被 spawn 的会话只读 `.pm/` 账本恢复状态（`get_status` + 卡上的 steps/checkpoint），不继承任何对话历史，一轮一会话、上下文用完即弃。两座桥共用同一账本与门禁，切换派发方式不需要改账本。
+
+Windows 注意：CLI 的模型凭据来自其自身配置，`providerOrder` 需把**可用池放队首**——某个 provider 的 key 失效（例如 mimo）会让被 spawn 的会话执行时直接 401，整轮空转。桥②首次使用需要用户执行一次 `zcode login` 浏览器授权；CLI 不可用（未登录/401）时回退桥①。
+
 ### 状态取值
 
 `get_orchestrator` 的 `status` 是七个字面量之一，按以下优先级判定（`src/orchestrator.ts:200-217`）：
