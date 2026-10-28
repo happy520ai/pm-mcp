@@ -50,7 +50,12 @@ jobs:
         run: |
           curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.7.0/$TARBALL"
           echo "$EXPECTED_SHA256  $TARBALL" | sha256sum --check --strict
-          npm publish "$TARBALL" --dry-run --ignore-scripts --access public --tag latest
+          PKG_VERSION=$(node -e "console.log(JSON.parse(require('node:fs').readFileSync('package.json','utf8')).version)")
+          if npm view "@luckychen1993/pm-mcp@$PKG_VERSION" version >/dev/null 2>&1; then
+            echo "版本 $PKG_VERSION 已发布，跳过 dry-run（npm 11 的 dry-run 也会查 registry 冲突）；完整性校验不依赖它"
+          else
+            npm publish "$TARBALL" --dry-run --ignore-scripts --access public --tag latest
+          fi
       - name: Publish to npm using the configured trusted publisher
         if: inputs.publish
         run: |
