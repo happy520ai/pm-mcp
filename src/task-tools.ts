@@ -3,11 +3,12 @@ import { z } from "zod";
 import { refreshDerived } from "./dashboard.ts";
 import { normSep } from "./budget.ts";
 import { requireInitialized } from "./paths.ts";
-import { loadRoadmap, loadTasks, nextId, saveTasks } from "./store.ts";
+import { loadRoadmap, loadSessions, loadTasks, nextId, saveSessions, saveTasks } from "./store.ts";
 import { now, type TaskStatus, type TaskType } from "./types.ts";
 import { budgetLines, toolR, toolW } from "./tool-base.ts";
 import { captureFileHashes } from "./git-state.ts";
-import { appendSession } from "./session-log.ts";
+import { appendSessionRecord } from "./session-log.ts";
+import { NoSideEffectError } from "./idempotency.ts";
 import { verifiedTaskEvidence } from "./task-evidence.ts";
 import { taskPage, taskPageText, TaskPageSchema, type TaskListQuery } from "./task-pagination.ts";
 
@@ -194,15 +195,49 @@ export function registerTaskTools(server: McpServer, startupRoot: string): void 
         t.status = args.status;
       }
       t.updated = tnow;
-      saveTasks(root, data);
+      const tasksBefore = structuredClone(data);
+      let sessionsNext: ReturnType<typeof loadSessions> | null = null;
+      let sessionId: string | null = null;
       if (args.record_session ?? (args.checkpoint !== undefined)) {
-        const session = appendSession(root, {
-          summary: `${t.id} ${t.title}：${args.status === "done" ? t.result_note : args.checkpoint?.note ?? `状态 ${t.status}`}`,
-          files: args.files ?? [], next_steps: args.checkpoint ? [args.checkpoint.next_step] : [], author: args.author,
-        }, prepared.hashes);
-        notes.push(`会话 ${session} 已自动记录，无需重复 log_session。`);
+        try {
+          const sessions = loadSessions(root);
+          const session = appendSessionRecord(sessions, {
+            summary: `${t.id} ${t.title}：${args.status === "done" ? t.result_note : args.checkpoint?.note ?? `状态 ${t.status}`}`,
+            files: args.files ?? [], next_steps: args.checkpoint ? [args.checkpoint.next_step] : [], author: args.author,
+          }, prepared.hashes);
+          sessionId = session.id;
+          sessionsNext = sessions;
+        } catch (error) {
+          throw new NoSideEffectError(`会话账本不可用，任务未修改：${(error as Error).message}`);
+        }
       }
-      refreshDerived(root);
+      try {
+        saveTasks(root, data);
+      } catch (error) {
+        throw new NoSideEffectError(`任务写入失败，未产生变更：${(error as Error).message}`);
+      }
+      if (sessionsNext) {
+        try {
+          saveSessions(root, sessionsNext);
+        } catch (error) {
+          try {
+            saveTasks(root, tasksBefore);
+          } catch (rollbackError) {
+            throw new Error(
+              `任务已写入但会话写入失败，回滚也失败：${(error as Error).message}；` +
+              `回滚错误：${(rollbackError as Error).message}。请人工核对 tasks.json 与 sessions.json。`,
+            );
+          }
+          throw new NoSideEffectError(`会话写入失败，任务已回滚到原状态：${(error as Error).message}`);
+        }
+        notes.push(`会话 ${sessionId} 已自动记录，无需重复 log_session。`);
+      }
+      try {
+        refreshDerived(root);
+      } catch (error) {
+        // 业务账本已提交，派生文件失败不应把这次写入伪装成失败并封锁重试。
+        notes.push(`⚠️ 派生文件刷新失败（业务已写入成功）：${(error as Error).message}`);
+      }
       const stepsInfo = t.steps.length > 0 ? `，步骤 ${t.steps.filter((s) => s.done).length}/${t.steps.length}` : "";
       return [`✅ ${t.id} 已更新（${t.status}${stepsInfo}）。`, ...notes].join("\n");
     },

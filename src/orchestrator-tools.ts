@@ -11,6 +11,7 @@ import {
   STALL_THRESHOLD,
   beginRound,
   budgetLabel,
+  completeGoal,
   endRound,
   loadOrchestrator,
   orchestratorStatus,
@@ -24,11 +25,15 @@ import {
 export function orchestratorStatusLines(root: string): string[] {
   const { value: file, health, issue } = readOrchestrator(root);
   const { status, reason } = orchestratorStatus(file);
-  const lines = [`编排: ${status === "ready" || status === "running" ? "可运行" : status === "disabled" ? "已关闭" : status}（${reason}）`];
+  const label = status === "ready" || status === "running" ? "可运行" : status === "disabled" ? "已关闭" : status === "completed" ? "已完成" : status;
+  const lines = [`编排: ${label}（${reason}）`];
   if (file.goal) lines.push(`目标: ${file.goal.objective}｜验收: ${file.goal.acceptance}`);
   else lines.push("目标: 未设置（先 set_goal，否则不会自动开轮）");
   lines.push(`开关 ${file.settings.enabled ? "开" : "关"} · 并发 ${file.settings.max_concurrency} · 预算 ${budgetLabel(file)}`);
-      lines.push(`当前轮: ${file.run.active_run_id}${file.run.active_run_kind ? `（${file.run.active_run_kind}）` : ""}`);
+  lines.push(`当前轮: ${file.run.active_run_id}${file.run.active_run_kind ? `（${file.run.active_run_kind}）` : ""}`);
+  if (file.settings.enabled && file.settings.max_rounds === null && file.settings.max_hours === null && file.settings.max_total_tokens === null) {
+    lines.push("⚠️ 编排已开启但三项预算均为不限：没有成本防线，建议至少设置一项。");
+  }
   if (file.run.stall_rounds > 0 || file.run.consecutive_failures > 0) {
     lines.push(`停滞 ${file.run.stall_rounds}/${STALL_THRESHOLD} · 连续失败 ${file.run.consecutive_failures}/${FAIL_EXIT_THRESHOLD}`);
   }
@@ -88,10 +93,29 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
     },
   );
 
+  toolI<{ note?: string }>(
+    server, startupRoot,
+    "complete_goal",
+    "在按 acceptance 完成核验后，显式标记目标已完成。完成后编排进入终止态，调度不得再开新轮；设定新目标会清除完成标记。",
+    { note: z.string().optional().describe("完成说明：按什么证据判定验收通过（写入台账日志）") },
+    (args, ctx) => {
+      const root = ctx.root;
+      requireInitialized(root);
+      const file = completeGoal(root, args.note ?? "");
+      const { status, reason } = orchestratorStatus(file);
+      refreshDerived(root);
+      return [
+        "✅ 目标已标记完成，自动编排进入终止态（不会再有新轮）。",
+        reason,
+        `状态: ${status}`,
+      ].join("\n");
+    },
+  );
+
   toolI<{ action: "begin" | "end"; run_id: string; run_kind?: "workflow" | "cli" | "manual"; produced_evidence?: boolean; failure?: string; tokens_used?: number; tokens_unknown?: boolean }>(
     server, startupRoot,
     "record_round",
-    "记录一轮自动执行的开始与结束，驱动停滞检测、连续失败退出与轮数预算。由外部定时任务/workflow 调用。begin 会记录源码/质量报告基线；end 声称有证据时会核验是否真的变了源码或有新报告——空转冒充产出会被降级为无证据。",
+    "记录一轮自动执行的开始与结束，驱动停滞检测、连续失败退出与轮数预算。由外部定时任务/workflow 调用。每轮必须先 begin 再 end，且同一 run_id 只能结算一次。begin 会记录源码/质量报告基线；end 声称有证据时会核验源码是否真变、质量报告是否为结构有效的新文件——空转冒充产出会被降级为无证据。",
     {
       action: z.enum(["begin", "end"]).describe("begin 开轮，end 收尾"),
       run_id: z.string().trim().min(1).describe("本轮标识：workflow 运行 id / cli 会话 id 或时间戳（自愈时据此回查真实状态）"),

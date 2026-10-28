@@ -1,10 +1,10 @@
 import http from "node:http";
 import path from "node:path";
-import fs from "node:fs";
 import { isInitialized } from "./paths.ts";
 import { loadProject, loadTasks, loadRoadmap, loadFeatures, loadSessions, loadSecurity } from "./store.ts";
 import { milestoneStats } from "./roadmap.ts";
 import { aggregates, ensureFresh, getIndex } from "./index-store.ts";
+import { qualityReportSummary } from "./quality-report.ts";
 import { VERSION } from "./version.ts";
 
 /**
@@ -25,26 +25,19 @@ export interface DashboardState {
   exposure: string;
   version: string;
   milestones: Array<{ id: string; title: string; status: string; done: number; total: number; pct: number }>;
-  tasks: { total: number; byStatus: Record<string, number>; recent: Array<{ id: string; title: string; status: string; priority: string }> };
+  tasks: {
+    total: number;
+    byStatus: Record<string, number>;
+    recent: Array<{ id: string; title: string; status: string; priority: string; next: string; stale: boolean }>;
+  };
   features: { total: number; implemented: number; planned: number; deprecated: number };
   security: { open: number; high: number; accepted: number };
   sessions: { count: number; last: { at: string; author: string; summary: string } | null };
   index: { files: number; loc: number } | null;
-  quality: { at: string; ok: boolean; tests: string } | null;
+  quality: { at: string; ok: boolean; tests: string; commands: number; sourceMatched: boolean | null } | null;
 }
 
-function latestQualityRun(root: string): DashboardState["quality"] {
-  const dir = path.join(root, ".pm", "quality-runs");
-  try {
-    const latest = fs.readdirSync(dir).filter((name) => name.endsWith(".json")).sort().pop();
-    if (!latest) return null;
-    const raw = JSON.parse(fs.readFileSync(path.join(dir, latest), "utf8")) as {
-      run_at?: string; ok?: boolean; results?: Array<{ output_summary?: { passed?: number; tests?: number } }>;
-    };
-    const summary = raw.results?.[0]?.output_summary;
-    return { at: raw.run_at ?? "", ok: raw.ok === true, tests: summary ? `${summary.passed}/${summary.tests}` : "n/a" };
-  } catch { return null; }
-}
+const STALE_TASK_MS = 7 * 24 * 60 * 60_000;
 
 export function buildDashboardState(root: string): DashboardState {
   const absolute = path.resolve(root);
@@ -57,10 +50,18 @@ export function buildDashboardState(root: string): DashboardState {
 
   const byStatus: Record<string, number> = {};
   for (const task of tasks) byStatus[task.status] = (byStatus[task.status] ?? 0) + 1;
+  const now = Date.now();
   const recent = [...tasks]
     .sort((a, b) => b.id.localeCompare(a.id))
     .slice(0, 10)
-    .map((task) => ({ id: task.id, title: task.title, status: task.status, priority: task.priority ?? "" }));
+    .map((task) => ({
+      id: task.id,
+      title: task.title,
+      status: task.status,
+      priority: task.priority ?? "",
+      next: task.checkpoint?.next_step ?? "",
+      stale: task.status !== "done" && task.status !== "cancelled" && now - Date.parse(task.updated) > STALE_TASK_MS,
+    }));
 
   let index: DashboardState["index"] = null;
   try {
@@ -97,7 +98,7 @@ export function buildDashboardState(root: string): DashboardState {
       last: last ? { at: last.date, author: last.author, summary: last.summary } : null,
     },
     index,
-    quality: latestQualityRun(absolute),
+    quality: qualityReportSummary(absolute),
   };
 }
 
@@ -109,13 +110,17 @@ export function renderDashboardHtml(state: DashboardState): string {
       `<td><div class="bar"><div class="fill" style="width:${Math.min(100, Math.max(0, m.pct))}%"></div></div>${m.pct}%</td></tr>`;
   }).join("");
   const taskRows = state.tasks.recent.map((task) =>
-    `<tr><td>${esc(task.id)}</td><td>${esc(task.title)}</td><td>${esc(task.status)}</td><td>${esc(task.priority)}</td></tr>`,
+    `<tr><td>${esc(task.id)}</td><td>${esc(task.title)}</td>` +
+    `<td>${esc(task.status)}${task.stale ? ' <span class="bad">⚠ 陈旧</span>' : ""}</td>` +
+    `<td>${esc(task.priority)}</td><td>${esc(task.next || "—")}</td></tr>`,
   ).join("");
   const lastSession = state.sessions.last
     ? `<p>最近：${esc(state.sessions.last.at)} · ${esc(state.sessions.last.author)} — ${esc(state.sessions.last.summary.slice(0, 160))}</p>`
     : "<p>（无会话记录）</p>";
   const quality = state.quality
-    ? `<span class="${state.quality.ok ? "ok" : "bad"}">${state.quality.ok ? "✅" : "🚩"} ${esc(state.quality.tests)}</span> @ ${esc(state.quality.at)}`
+    ? `<span class="${state.quality.ok ? "ok" : "bad"}">${state.quality.ok ? "✅" : "🚩"} ${esc(state.quality.tests)}</span> @ ${esc(state.quality.at)}` +
+      `<br><small>${state.quality.commands} 项命令` +
+      `${state.quality.sourceMatched === false ? ' · <span class="bad">⚠ 报告源码与当前工作区不一致</span>' : ""}</small>`
     : "（暂无质量报告）";
   return `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
@@ -149,7 +154,7 @@ footer{color:#8a97a5;font-size:12px;margin-top:24px}
 <h2>里程碑</h2>
 ${milestoneRows ? `<table><tr><th>ID</th><th>标题</th><th>任务</th><th>进度</th></tr>${milestoneRows}</table>` : "<p>（无里程碑）</p>"}
 <h2>最近任务</h2>
-${taskRows ? `<table><tr><th>ID</th><th>标题</th><th>状态</th><th>优先级</th></tr>${taskRows}</table><p style="font-size:12px;color:#5b6b7c">状态分布：${esc(taskStatus)}</p>` : "<p>（无任务）</p>"}
+${taskRows ? `<table><tr><th>ID</th><th>标题</th><th>状态</th><th>优先级</th><th>下一步 / 断点</th></tr>${taskRows}</table><p style="font-size:12px;color:#5b6b7c">状态分布：${esc(taskStatus)}</p>` : "<p>（无任务）</p>"}
 <h2>会话</h2>
 ${lastSession}
 <footer>只读视图 · 仅绑定 127.0.0.1 · 数据来自 ${esc(state.name)} 的 .pm/ 台账 · ${new Date().toISOString()}</footer>

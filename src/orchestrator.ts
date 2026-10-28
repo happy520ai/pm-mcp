@@ -1,218 +1,28 @@
 import fs from "node:fs";
 import path from "node:path";
-import { z } from "zod";
+import { createHash } from "node:crypto";
 import { pmPath } from "./paths.ts";
 import { fingerprintProject } from "./project-fingerprint.ts";
-import { saveJson, withLedgerLock } from "./store.ts";
+import { latestValidQualityReport } from "./quality-report.ts";
+import {
+  FAIL_EXIT_THRESHOLD,
+  STALL_THRESHOLD,
+  mutateOrchestrator,
+  nowIso,
+  readOrchestrator,
+  validateConcurrency,
+  validateMaxHours,
+  validateMaxRounds,
+  validateMaxTokens,
+  type Goal,
+  type OrchestratorFile,
+  type RunKind,
+} from "./orchestrator-state.ts";
 
-export const ORCHESTRATOR_SCHEMA_VERSION = 1 as const;
-export const ORCHESTRATOR_FILE = "orchestrator.json";
+export * from "./orchestrator-state.ts";
 
-/** 并发上限：超过这个数只会撞速率限制与磁盘锁竞争，不会线性变快 */
-export const MIN_CONCURRENCY = 1;
-export const MAX_CONCURRENCY = 8;
-/** 连续多少轮没有任何新证据就判定停滞（而不是继续空转烧额度） */
-export const STALL_THRESHOLD = 3;
-/** 连续多少轮额度/鉴权失败就退出循环（不做无限重试） */
-export const FAIL_EXIT_THRESHOLD = 2;
-export const DEFAULT_MAX_ROUNDS = 40;
-export const DEFAULT_MAX_HOURS = 24;
 const LOG_LIMIT = 20;
-const MAX_ROUNDS_MAX = 500;
-const MAX_HOURS_MAX = 168;
-
-const Text = z.string().trim().min(1);
-const nowIso = () => new Date().toISOString();
-
-/** 最终目标锚点：acceptance 必填，否则「直到完成」没有机器可判的终点 */
-export const GoalSchema = z.object({
-  objective: Text,
-  acceptance: Text,
-  note: z.string().default(""),
-  created: z.string(),
-  updated: z.string(),
-});
-
-export const SettingsSchema = z.object({
-  enabled: z.boolean().default(false),
-  max_concurrency: z.number().int().min(MIN_CONCURRENCY).max(MAX_CONCURRENCY).default(3),
-  /** null = 不限（此时只靠停滞与连续失败两个进度型刹车） */
-  max_rounds: z.number().int().min(1).max(MAX_ROUNDS_MAX).nullable().default(DEFAULT_MAX_ROUNDS),
-  max_hours: z.number().min(0.1).max(MAX_HOURS_MAX).nullable().default(DEFAULT_MAX_HOURS),
-  /** 累计 token 上限（null=不限）。一次纯文档轮曾烧掉 543 万 token，没有上限就没有成本防线 */
-  max_total_tokens: z.number().int().min(1).nullable().default(null),
-});
-
-/** 运行指针：区分是哪一座桥在跑，并记录可据此自愈的运行 id */
-export const RunKindSchema = z.enum(["workflow", "cli", "manual"]);
-
-export const RunStateSchema = z.object({
-  active_run_id: z.string().nullable().default(null),
-  /** 在飞轮次由哪种执行器承载；缺省 manual（手工 tick） */
-  active_run_kind: RunKindSchema.nullable().default(null),
-  /** begin 时的源码指纹与质量报告基线，供 end 核验「有新证据」是否属实 */
-  round_baseline: z.object({
-    source_sha256: z.string(),
-    quality_report: z.string().nullable(),
-    at: z.string(),
-  }).nullable().default(null),
-  round_count: z.number().int().min(0).default(0),
-  /** 累计消耗 token：由 end 逐轮累加（外部上报），用于 max_total_tokens 判定 */
-  tokens_used: z.number().int().min(0).default(0),
-  /** 协议合规计数：让「没上报成本」「证据被降级」在状态里可见，而不是只埋在日志 */
-  protocol: z.object({
-    /** 显式声明无法测量 token 的轮次数 */
-    tokens_unknown_rounds: z.number().int().min(0).default(0),
-    /** 声称有证据但被核验降级的轮次数（空转冒充产出的累计证据） */
-    evidence_downgrades: z.number().int().min(0).default(0),
-  }).default({}),
-  stall_rounds: z.number().int().min(0).default(0),
-  consecutive_failures: z.number().int().min(0).default(0),
-  last_round_at: z.string().nullable().default(null),
-  started_at: z.string().nullable().default(null),
-  paused_reason: z.string().nullable().default(null),
-  paused_at: z.string().nullable().default(null),
-});
-
-export const LogEntrySchema = z.object({
-  at: z.string(),
-  kind: Text,
-  note: Text,
-});
-
-export const OrchestratorSchema = z.object({
-  schema_version: z.literal(ORCHESTRATOR_SCHEMA_VERSION),
-  goal: GoalSchema.nullable().default(null),
-  settings: SettingsSchema.default({}),
-  run: RunStateSchema.default({}),
-  log: z.array(LogEntrySchema).default([]),
-  updated: z.string(),
-});
-
-export type Goal = z.infer<typeof GoalSchema>;
-export type OrchestratorSettings = z.infer<typeof SettingsSchema>;
-export type OrchestratorRun = z.infer<typeof RunStateSchema>;
-export type RunKind = z.infer<typeof RunKindSchema>;
-export type OrchestratorFile = z.infer<typeof OrchestratorSchema>;
-export type OrchestratorInput = z.input<typeof OrchestratorSchema>;
-
-export function orchestratorPath(root: string): string {
-  return pmPath(path.resolve(root), ORCHESTRATOR_FILE);
-}
-
-/** 文件缺失时的默认值：禁用状态，任何调用都不会因为没初始化而报错 */
-export function defaultOrchestrator(): OrchestratorFile {
-  const at = nowIso();
-  return {
-    schema_version: ORCHESTRATOR_SCHEMA_VERSION,
-    goal: null,
-    settings: { enabled: false, max_concurrency: 3, max_rounds: DEFAULT_MAX_ROUNDS, max_hours: DEFAULT_MAX_HOURS, max_total_tokens: null },
-    run: {
-      active_run_id: null,
-      active_run_kind: null,
-      round_baseline: null,
-      round_count: 0,
-      tokens_used: 0,
-      protocol: { tokens_unknown_rounds: 0, evidence_downgrades: 0 },
-      stall_rounds: 0,
-      consecutive_failures: 0,
-      last_round_at: null,
-      started_at: null,
-      paused_reason: null,
-      paused_at: null,
-    },
-    log: [],
-    updated: at,
-  };
-}
-
-/** 文件缺失 / 存在 / 损坏：只有「损坏」会阻止写入，以免静默覆盖一份可疑台账 */
-export type OrchestratorHealth = "ok" | "missing" | "invalid";
-
-export interface OrchestratorRead {
-  value: OrchestratorFile;
-  health: OrchestratorHealth;
-  issue?: string;
-}
-
-/** 缺失 → 默认禁用状态（fail-closed）；损坏 → 禁用状态 + 记录问题，不抛错、不覆盖原文件 */
-export function readOrchestrator(root: string): OrchestratorRead {
-  const file = orchestratorPath(root);
-  if (!fs.existsSync(file)) return { value: defaultOrchestrator(), health: "missing" };
-  try {
-    const raw: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
-    return { value: OrchestratorSchema.parse(raw), health: "ok" };
-  } catch (error) {
-    return {
-      value: defaultOrchestrator(),
-      health: "invalid",
-      issue: `${file}: ${(error as Error).message}`,
-    };
-  }
-}
-
-export function loadOrchestrator(root: string): OrchestratorFile {
-  return readOrchestrator(root).value;
-}
-
-export function saveOrchestrator(root: string, file: OrchestratorFile): OrchestratorFile {
-  const parsed = OrchestratorSchema.parse(file);
-  const target = orchestratorPath(root);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  saveJson(target, parsed);
-  return parsed;
-}
-
-/** 读-改-写走账本锁；台账损坏时拒绝写入并明确报错。
- *  锁不可重入：本模块的变更函数必须经 toolI（异步包装器不自带账本锁）暴露，
- *  用 toolW 会在包装器已持锁的情况下二次取锁并超时。 */
-export function mutateOrchestrator(root: string, fn: (value: OrchestratorFile) => OrchestratorFile): OrchestratorFile {
-  return withLedgerLock(root, () => {
-    const read = readOrchestrator(root);
-    if (read.health === "invalid") {
-      throw new Error(`编排台账已损坏，已停止写入（当前视为禁用）：${read.issue}。请备份或删除 ${orchestratorPath(root)} 后重试。`);
-    }
-    const next = fn(read.value);
-    next.updated = nowIso();
-    return saveOrchestrator(root, next);
-  });
-}
-
-/* -------------------------------- 校验 -------------------------------- */
-
-/** 只报错不截断：静默把 16 改成 8 会让调用方以为真的开了 16 */
-export function validateConcurrency(value: number): number {
-  if (!Number.isInteger(value) || value < MIN_CONCURRENCY || value > MAX_CONCURRENCY) {
-    throw new RangeError(`max_concurrency 必须是 ${MIN_CONCURRENCY}-${MAX_CONCURRENCY} 之间的整数，收到: ${value}`);
-  }
-  return value;
-}
-
-export function validateMaxRounds(value: number | null): number | null {
-  if (value === null) return null;
-  if (!Number.isInteger(value) || value < 1 || value > MAX_ROUNDS_MAX) {
-    throw new RangeError(`max_rounds 必须是 1-${MAX_ROUNDS_MAX} 之间的整数，收到: ${value}`);
-  }
-  return value;
-}
-
-export function validateMaxHours(value: number | null): number | null {
-  if (value === null) return null;
-  if (!Number.isFinite(value) || value <= 0 || value > MAX_HOURS_MAX) {
-    throw new RangeError(`max_hours 必须是 0.1-${MAX_HOURS_MAX} 之间的数字，收到: ${value}`);
-  }
-  return value;
-}
-
-export function validateMaxTokens(value: number | null): number | null {
-  if (value === null) return null;
-  if (!Number.isInteger(value) || value < 1) {
-    throw new RangeError(`max_total_tokens 必须是正整数或 null，收到: ${value}`);
-  }
-  return value;
-}
-
-/* ------------------------------- 记账 -------------------------------- */
+const SETTLED_RUN_LIMIT = 200;
 
 /** 日志有界，避免台账无限膨胀 */
 function appendLog(file: OrchestratorFile, kind: string, note: string): void {
@@ -233,15 +43,22 @@ export function budgetLabel(file: OrchestratorFile): string {
 }
 
 export type OrchestratorStatus =
-  | "no-goal" | "disabled" | "running" | "budget-exhausted" | "stalled" | "failed-out" | "ready";
+  | "no-goal" | "disabled" | "running" | "completed" | "budget-exhausted" | "stalled" | "failed-out" | "ready";
 
 /** 单一事实判断：外部定时任务读它决定要不要开一轮 */
 export function orchestratorStatus(file: OrchestratorFile): { status: OrchestratorStatus; reason: string } {
   // 在飞的一轮优先级最高：调用方需要立刻看到「别开新轮」，而不是被「已关闭」误导
   if (file.run.active_run_id) return { status: "running", reason: `一轮正在执行：${file.run.active_run_id}` };
+  // 已验收完成是终止态：即使开关仍开着，也不得再开新轮
+  if (file.run.completed_at) {
+    return {
+      status: "completed",
+      reason: `目标已完成并验收（${file.run.completed_at}）${file.run.completed_note ? `：${file.run.completed_note}` : ""}`,
+    };
+  }
   if (!file.goal) return { status: "no-goal", reason: "尚未设置最终目标（set_goal）" };
   if (!file.settings.enabled) {
-    return { status: "disabled", reason: file.run.paused_reason ? `已暂停：${file.run.paused_reason}` : "编排已关闭" };
+    return { status: "disabled", reason: file.run.paused_reason ? `已暂停：${file.run.paused_reason}` : "自动编排已关闭（set_orchestrator）" };
   }
   if (file.run.consecutive_failures >= FAIL_EXIT_THRESHOLD) {
     return { status: "failed-out", reason: `连续 ${file.run.consecutive_failures} 轮失败（额度/鉴权），已退出循环，需人工确认后重新开启` };
@@ -260,13 +77,35 @@ export function orchestratorStatus(file: OrchestratorFile): { status: Orchestrat
 
 /* ------------------------------ 证据核验 ------------------------------ */
 
-/** 最新质量报告文件名（按文件名时间戳排序），没有则 null。只读目录，不解析内容。 */
+/** 最新“结构有效”的质量报告；坏 JSON/空文件不参与证据判定。 */
 export function latestQualityReport(root: string): string | null {
-  const directory = pmPath(root, "quality-runs");
-  if (!fs.existsSync(directory)) return null;
-  const names = fs.readdirSync(directory).filter((name) => /^quality-.*\.json$/.test(name)).sort();
-  const newest = names[names.length - 1];
-  return newest ? `.pm/quality-runs/${newest}` : null;
+  return latestValidQualityReport(root)?.path ?? null;
+}
+
+/** 目标指纹只取 objective+acceptance：只改 note 不应作废在飞轮次。 */
+function goalFingerprint(goal: Goal | null): string | null {
+  if (!goal) return null;
+  return createHash("sha256").update(`${goal.objective}\0${goal.acceptance}`).digest("hex");
+}
+
+function settledMarker(root: string, runId: string): string {
+  const hash = createHash("sha256").update(runId).digest("hex");
+  return pmPath(path.resolve(root), ".runtime", "settled-runs", `${hash}.json`);
+}
+
+function runAlreadySettled(root: string, runId: string): boolean {
+  return fs.existsSync(settledMarker(root, runId));
+}
+
+/** 永久结算标记与台账有界列表互为补充：台账限制 200 条，标记文件保证更久之后也不能复用同一 run_id。 */
+function markRunSettled(root: string, runId: string): void {
+  const file = settledMarker(root, runId);
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify({ run_id: runId, at: nowIso() }, null, 2) + "\n", { encoding: "utf8", flag: "wx" });
+  } catch {
+    // 标记写失败不推翻已提交的台账；台账内的 settled_run_ids 仍会拦截近期重复结算
+  }
 }
 
 export interface RoundEvidence {
@@ -306,6 +145,7 @@ export function setGoal(root: string, goal: SetGoalInput): OrchestratorFile {
   }
   return mutateOrchestrator(root, (file) => {
     const at = nowIso();
+    const changed = file.goal === null || file.goal.objective !== objective || file.goal.acceptance !== acceptance;
     file.goal = {
       objective,
       acceptance,
@@ -313,6 +153,17 @@ export function setGoal(root: string, goal: SetGoalInput): OrchestratorFile {
       created: file.goal?.created ?? at,
       updated: at,
     };
+    if (changed) {
+      // 目标变了，旧轮次不能继续算到新目标头上；显式作废并留痕。
+      if (file.run.active_run_id) {
+        appendLog(file, "round-cancelled", `${file.run.active_run_id}: 目标变更，在飞轮次作废`);
+        file.run.active_run_id = null;
+        file.run.active_run_kind = null;
+        file.run.round_baseline = null;
+      }
+      file.run.completed_at = null;
+      file.run.completed_note = "";
+    }
     appendLog(file, "goal", objective);
     return file;
   });
@@ -339,6 +190,14 @@ export function setSettings(root: string, input: SetSettingsInput): Orchestrator
     if (input.max_hours !== undefined) file.settings.max_hours = validateMaxHours(input.max_hours);
     if (input.max_total_tokens !== undefined) file.settings.max_total_tokens = validateMaxTokens(input.max_total_tokens);
     if (input.enabled !== undefined && input.enabled !== file.settings.enabled) {
+      if (input.enabled) {
+        if (file.run.completed_at) {
+          throw new Error("目标已完成并验收，不能再开启自动编排；如需继续，请先 set_goal 设定新目标。");
+        }
+        if (file.settings.max_rounds === null && file.settings.max_hours === null && file.settings.max_total_tokens === null) {
+          throw new Error("开启自动编排时至少需要一项有限预算（max_rounds / max_hours / max_total_tokens），否则没有成本防线。");
+        }
+      }
       file.settings.enabled = input.enabled;
       if (input.enabled) {
         file.run.started_at = file.run.started_at ?? at;
@@ -367,19 +226,22 @@ export interface BeginRoundInput {
 export function beginRound(root: string, input: BeginRoundInput | string): OrchestratorFile {
   const runId = (typeof input === "string" ? input : input.runId).trim();
   const kind: RunKind = typeof input === "string" ? "manual" : (input.kind ?? "manual");
-  const baseline = {
+  const baselineSource = {
     source_sha256: fingerprintProject(root).sha256,
     quality_report: latestQualityReport(root),
-    at: nowIso(),
   };
   return mutateOrchestrator(root, (file) => {
     if (!file.goal) throw new Error("尚未设置最终目标，不能开轮（请先 set_goal）。");
-    if (file.run.active_run_id && file.run.active_run_id !== runId) {
+    if (file.run.completed_at) throw new Error("目标已完成并验收，不能再开新轮；如需继续，请先 set_goal 设定新目标。");
+    if (file.run.active_run_id) {
       throw new Error(`已有一轮在执行（${file.run.active_run_id}），同一时间只允许一轮。`);
+    }
+    if (runAlreadySettled(root, runId) || file.run.settled_run_ids.includes(runId)) {
+      throw new Error(`run_id 已结算过（${runId}），不能重复使用；每轮必须使用新的 run_id。`);
     }
     file.run.active_run_id = runId;
     file.run.active_run_kind = kind;
-    file.run.round_baseline = baseline;
+    file.run.round_baseline = { ...baselineSource, goal_hash: goalFingerprint(file.goal), at: nowIso() };
     file.run.last_round_at = nowIso();
     appendLog(file, "round-start", `${runId}（${kind}）`);
     return file;
@@ -404,14 +266,35 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
   if (input.tokensUsed === undefined && !input.tokensUnknown) {
     throw new Error("record_round(end) 必须上报本轮成本：传 tokens_used（实际消耗）或 tokens_unknown:true（确实无法测量）。两者都不传会让 token 预算失效，已被拒绝。");
   }
-  const evidence = roundEvidence(root, readOrchestrator(root).value.run.round_baseline);
+  const runId = input.runId.trim();
+  if (runAlreadySettled(root, runId)) {
+    throw new Error(`run_id 已结算过（${runId}），拒绝重复结算。`);
+  }
+  const snapshot = readOrchestrator(root).value;
+  if (snapshot.run.active_run_id !== runId) {
+    throw new Error(snapshot.run.active_run_id
+      ? `本轮已不属于当前执行的轮次（${snapshot.run.active_run_id}），拒绝记账。`
+      : `没有在飞的轮次（${runId}），拒绝记账。每轮必须先 record_round(begin)。`);
+  }
+  if (snapshot.run.round_baseline?.goal_hash && goalFingerprint(snapshot.goal) !== snapshot.run.round_baseline.goal_hash) {
+    throw new Error("目标在开轮后已变更，旧轮次的产出不能结算到新目标账上；请用新 run_id 重新开轮。");
+  }
+  const evidence = roundEvidence(root, snapshot.run.round_baseline);
   const claimsEvidence = input.producedEvidence && !input.failure;
   // 声称有产出、但源码没变也没有新质量报告：按无证据处理，不让空转冒充成果
   const effectiveEvidence = claimsEvidence ? evidence.sourceChanged || evidence.newQualityReport : input.producedEvidence;
   const downgraded = claimsEvidence && !effectiveEvidence;
-  return mutateOrchestrator(root, (file) => {
-    if (file.run.active_run_id && file.run.active_run_id !== input.runId.trim()) {
-      throw new Error(`本轮已不属于当前执行的轮次（${file.run.active_run_id}），拒绝记账。`);
+  const result = mutateOrchestrator(root, (file) => {
+    if (file.run.active_run_id !== runId) {
+      throw new Error(file.run.active_run_id
+        ? `本轮已不属于当前执行的轮次（${file.run.active_run_id}），拒绝记账。`
+        : `没有在飞的轮次（${runId}），拒绝记账。每轮必须先 record_round(begin)。`);
+    }
+    if (file.run.settled_run_ids.includes(runId) || runAlreadySettled(root, runId)) {
+      throw new Error(`run_id 已结算过（${runId}），拒绝重复结算。`);
+    }
+    if (file.run.round_baseline?.goal_hash && goalFingerprint(file.goal) !== file.run.round_baseline.goal_hash) {
+      throw new Error("目标在开轮后已变更，旧轮次的产出不能结算到新目标账上；请用新 run_id 重新开轮。");
     }
     const run = file.run;
     const at = nowIso();
@@ -419,6 +302,7 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
     run.active_run_kind = null;
     run.round_baseline = null;
     run.round_count += 1;
+    run.settled_run_ids = [...run.settled_run_ids, runId].slice(-SETTLED_RUN_LIMIT);
     run.last_round_at = at;
     if (input.tokensUsed !== undefined && Number.isFinite(input.tokensUsed) && input.tokensUsed > 0) {
       run.tokens_used += Math.floor(input.tokensUsed);
@@ -430,7 +314,7 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
     if (input.failure) {
       run.consecutive_failures += 1;
       run.stall_rounds = 0;
-      const note = `${input.runId.trim()}: 失败 ${input.failure.trim().slice(0, 160)}`;
+      const note = `${runId}: 失败 ${input.failure.trim().slice(0, 160)}`;
       appendLog(file, run.consecutive_failures >= FAIL_EXIT_THRESHOLD ? "fail-exit" : "round-fail", note);
     } else {
       run.consecutive_failures = 0;
@@ -440,8 +324,25 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
         : downgraded
           ? `声称有证据但源码与质量报告都没变，按无证据计（停滞 ${run.stall_rounds}/${STALL_THRESHOLD}）`
           : `无新证据（停滞 ${run.stall_rounds}/${STALL_THRESHOLD}）`;
-      appendLog(file, run.stall_rounds >= STALL_THRESHOLD ? "stalled" : "round-end", `${input.runId.trim()}: ${detail}`);
+      appendLog(file, run.stall_rounds >= STALL_THRESHOLD ? "stalled" : "round-end", `${runId}: ${detail}`);
     }
+    return file;
+  });
+  markRunSettled(root, runId);
+  return result;
+}
+
+/** 目标完成：显式终止信号。调用方必须先按 acceptance 完成核验；此处只记账、不代替验收。 */
+export function completeGoal(root: string, note = ""): OrchestratorFile {
+  return mutateOrchestrator(root, (file) => {
+    if (!file.goal) throw new Error("尚未设置最终目标，不能标记完成。");
+    if (file.run.completed_at) throw new Error(`目标已完成（${file.run.completed_at}），请勿重复标记。`);
+    if (file.run.active_run_id) {
+      throw new Error(`还有一轮在执行（${file.run.active_run_id}），请先 record_round(end) 收轮，再标记目标完成。`);
+    }
+    file.run.completed_at = nowIso();
+    file.run.completed_note = note.trim();
+    appendLog(file, "goal-completed", note.trim() || file.goal.objective);
     return file;
   });
 }
@@ -450,4 +351,3 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
 export function shouldExitLoop(file: OrchestratorFile): boolean {
   return file.run.consecutive_failures >= FAIL_EXIT_THRESHOLD || file.run.stall_rounds >= STALL_THRESHOLD;
 }
-

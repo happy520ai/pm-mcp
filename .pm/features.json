@@ -1,5 +1,5 @@
 {
-  "seq": 34,
+  "seq": 41,
   "features": [
     {
       "id": "F-001",
@@ -606,6 +606,122 @@
       "status": "implemented",
       "created": "2026-10-27T04:03:24.167Z",
       "updated": "2026-10-27T04:03:24.167Z"
+    },
+    {
+      "id": "F-035",
+      "name": "工作区歧义写操作 fail-closed",
+      "description": "多工作区指纹歧义时写工具拒绝执行并列出候选根，显式 root 可逃生。",
+      "module": "workspace",
+      "entry_files": [
+        "src/caller-workspace.ts",
+        "src/tool-base.ts"
+      ],
+      "test_files": [
+        "test/hardening.test.ts",
+        "test/caller-workspace.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:21.810Z",
+      "updated": "2026-10-28T16:35:21.810Z"
+    },
+    {
+      "id": "F-036",
+      "name": "核心账本完整性与初始化提交点",
+      "description": "核心账本缺失或主体数组截断时 fail-closed；init 以 project.json 为最终提交点。",
+      "module": "ledger",
+      "entry_files": [
+        "src/store.ts",
+        "src/types.ts",
+        "src/init.ts"
+      ],
+      "test_files": [
+        "test/hardening.test.ts",
+        "test/integrity.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:21.903Z",
+      "updated": "2026-10-28T16:35:21.903Z"
+    },
+    {
+      "id": "F-037",
+      "name": "轮次一次性结算与目标完成态",
+      "description": "begin/end 严格配对，run_id 一次性结算，目标指纹绑定与 complete_goal 终止态。",
+      "module": "orchestrator",
+      "entry_files": [
+        "src/orchestrator.ts",
+        "src/orchestrator-state.ts",
+        "src/orchestrator-tools.ts"
+      ],
+      "test_files": [
+        "test/orchestrator.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:21.979Z",
+      "updated": "2026-10-28T16:35:21.979Z"
+    },
+    {
+      "id": "F-038",
+      "name": "质量报告结构校验",
+      "description": "质量报告按结构校验，坏 JSON/空报告不参与证据判定。",
+      "module": "quality",
+      "entry_files": [
+        "src/quality-report.ts",
+        "src/orchestrator.ts"
+      ],
+      "test_files": [
+        "test/orchestrator.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:22.050Z",
+      "updated": "2026-10-28T16:35:22.050Z"
+    },
+    {
+      "id": "F-039",
+      "name": "幂等缓存分层回收",
+      "description": "幂等读/自动写/显式写记录按 10 分钟/24 小时/90 天分层回收。",
+      "module": "idempotency",
+      "entry_files": [
+        "src/idempotency.ts",
+        "src/idempotency-gc.ts"
+      ],
+      "test_files": [
+        "test/hardening.test.ts",
+        "test/idempotency.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:22.120Z",
+      "updated": "2026-10-28T16:35:22.120Z"
+    },
+    {
+      "id": "F-040",
+      "name": "任务与会话写入回滚",
+      "description": "update_task 会话写入失败时回滚任务，NoSideEffectError 允许同键重试。",
+      "module": "tasks",
+      "entry_files": [
+        "src/task-tools.ts",
+        "src/session-log.ts"
+      ],
+      "test_files": [
+        "test/hardening.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:22.190Z",
+      "updated": "2026-10-28T16:35:22.190Z"
+    },
+    {
+      "id": "F-041",
+      "name": "UI 证据汇总与任务断点展示",
+      "description": "本地 UI 汇总全部质量命令、源码匹配状态、任务断点与陈旧标记。",
+      "module": "ui",
+      "entry_files": [
+        "src/ui.ts"
+      ],
+      "test_files": [
+        "test/ui.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-10-28T16:35:22.262Z",
+      "updated": "2026-10-28T16:35:22.262Z"
     }
   ]
 }

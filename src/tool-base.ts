@@ -11,6 +11,7 @@ import { rootResolution } from "./paths.ts";
 export interface RequestContext {
   root: string;
   rootSource: string;
+  rootAmbiguous?: boolean;
   rootCandidates?: string[];
 }
 
@@ -24,7 +25,22 @@ export function requestContext(tool: string, args: Record<string, unknown>, star
     startupRoot,
     startupSource: rootResolution()?.source ?? "unknown",
   });
-  return { root: resolution.root, rootSource: resolution.source, ...(resolution.candidates ? { rootCandidates: resolution.candidates } : {}) };
+  return {
+    root: resolution.root,
+    rootSource: resolution.source,
+    ...(resolution.ambiguous ? { rootAmbiguous: true } : {}),
+    ...(resolution.candidates ? { rootCandidates: resolution.candidates } : {}),
+  };
+}
+
+/** 写操作不能猜项目根：歧义时宁可报错，也不能把台账写进错误项目。 */
+function assertWritableRoot(ctx: RequestContext): void {
+  if (!ctx.rootAmbiguous) return;
+  const candidates = (ctx.rootCandidates ?? []).join(", ");
+  throw new Error(
+    `无法确定本次调用的项目根：多个工作区都可能匹配（${candidates || "候选未知"}）。` +
+    "写操作已拒绝，未修改任何项目。请显式传 root 参数（绝对路径）后重试。",
+  );
 }
 
 /** 无法自动认领工作区时的显式逃生口：任何工具都可以直接指定项目根 */
@@ -137,6 +153,7 @@ export function toolW<Args, Prepared = void>(
       const root = ctx.root;
       const started = Date.now();
       try {
+        assertWritableRoot(ctx);
         const result = runIdempotentWriteSync<Args, Prepared>(root, name, args, (value, prepared) => fn(value, ctx, prepared), prepare ? (value) => prepare(value, ctx) : undefined);
         const prefix = result.replayed ? `↩️ 幂等复用 ${result.key}\n` : result.pending ? `⏳ 幂等占位 ${result.key}\n` : "";
         const text = prefix + result.text;
@@ -175,6 +192,7 @@ export function toolI<Args>(
       const root = ctx.root;
       const started = Date.now();
       try {
+        assertWritableRoot(ctx);
         const result = await runIdempotentWrite(root, name, args, (value) => fn(value, ctx));
         const prefix = result.replayed ? `↩️ 幂等复用 ${result.key}\n` : result.pending ? `⏳ 幂等占位 ${result.key}\n` : "";
         const text = prefix + result.text;

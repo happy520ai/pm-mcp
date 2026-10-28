@@ -10,6 +10,17 @@
 
 当前源码与 npm 最新发布为 **0.7.0**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
 
+## 未发布：边界可靠性硬化（当前 main）
+
+- **工作区歧义 fail-closed**：多个 Qoder 会话同时匹配且无法用请求指纹区分时，写工具直接报错并列出候选根，绝不把台账写进启动期默认项目；显式 `root` 仍是逃生口。
+- **核心账本完整性**：已初始化项目里 `tasks` / `sessions` / `features` / `roadmap` 等核心账本缺失或主体数组缺失时直接报错，不再回退成空账；`init_project` 改为最后提交 `project.json`，中途失败可修复后重试。
+- **轮次一次性结算**：`end` 必须与在飞 `run_id` 精确配对，同一 `run_id` 只能结算一次；目标变更会作废在飞轮次；基线绑定目标指纹。
+- **目标完成终止态**：新增 `complete_goal`；完成后状态为 `completed`，调度不再开新轮。开启自动编排时至少需要一项有限预算。
+- **证据与缓存卫生**：损坏/空的质量报告不再算新证据；幂等读/写/显式键记录按 10 分钟 / 24 小时 / 90 天分层回收。
+- **任务与会话原子性**：`update_task` 在会话账本不可用时回滚任务写入，并允许修复后用同一参数重试；派生文件刷新失败不再把已提交的业务写入伪装成失败。
+- **CI 与 UI**：CI 增加 Windows 全量测试与 Windows/macOS 真实 tarball 安装探针；本地 UI 展示全部质量命令汇总、报告源码匹配状态和任务断点/陈旧标记。
+- **验收基线 1.3.0**：`mcp_tools` 58 → 59（新增 `complete_goal`），其余门槛不变；同时把基线标题/范围里的旧版本号更正为 0.7.0。升版流程与证据见 `.pm/acceptance/evidence/pm-mcp-local-release-1.3.0-*.md`。
+
 ## 0.7.0：自动编排闭环（目标锚定 → 派发 → 复核 → 收轮）与协议硬化
 
 - **编排账本与四个工具**：新增 `set_goal` / `set_orchestrator` / `record_round` / `get_orchestrator`（工具目录 54 → 58）。台账 `.pm/orchestrator.json` 记录最终目标、机器可判定的验收标准、手动开关（变更必须留理由）、并发上限、轮数与时长/token 预算、轮次与停滞/失败计数。**fail-closed**：台账缺失视为禁用，损坏时阻止写入且不覆盖原文件。
@@ -52,7 +63,7 @@ node dist/cli.js setup --client codex --project --local --force
 node dist/cli.js doctor --root .
 ```
 
-`doctor` 会核对配置并建立短期本地 MCP 读连接，检查实际版本、项目根、48 工具与新参数契约；不会把探测新进程冒充已经重连的客户端。探测不复制自定义凭据环境；结果会产生既有运行计量。显式 `--entry <本地入口>` 可用于安装包检查。配置更新后仍需在实际客户端重新连接，再调用 get_status 确认版本。复杂或歧义配置会拒绝自动替换，已有配置与升级前备份保留。
+`doctor` 会核对配置并建立短期本地 MCP 读连接，检查实际版本、项目根、59 工具与新参数契约；不会把探测新进程冒充已经重连的客户端。探测不复制自定义凭据环境；结果会产生既有运行计量。显式 `--entry <本地入口>` 可用于安装包检查。配置更新后仍需在实际客户端重新连接，再调用 get_status 确认版本。复杂或歧义配置会拒绝自动替换，已有配置与升级前备份保留。
 
 验收脚本从 `package.json` 的 `pm_mcp.acceptance_baseline` 统一读取基线 ID/版本，命令行可显式覆盖。批准记录不自动升版、不选择猜测的“最新”文件；本仓选择 1.1.0，原 1.0.0 保留。新版评价使用对应版本的计划与失败记录。
 
@@ -93,7 +104,7 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 
 ## 一个命令自动添加到 AI 编程助手
 
-本页安装示例使用 npm 上最新的**已发布**版本（当前为 **0.6.0**）。仓库源码与发布版本同步；需要本地验证时可用 `setup --local` 从源码构建后接入。
+本页安装示例使用 npm 上最新的**已发布**版本（当前为 **0.7.0**）。仓库源码与发布版本同步；需要本地验证时可用 `setup --local` 从源码构建后接入。
 
 要求：Node.js ≥ 22.18。Windows、macOS 和 Linux 使用同一条命令：
 
@@ -114,17 +125,7 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 Codex 桌面版启动 MCP 服务时不带工作区路径，逐项目钉根才能用。在项目目录里跑一条命令，自动完成「注册钉定条目 + 初始化 .pm + 写 AGENTS.md 工作规矩」：
 
 ```bash
-npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
-```
-
-跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
-
-### 新项目一条命令上手（Codex 必用）
-
-Codex 桌面版启动 MCP 服务时不带工作区路径，逐项目钉根才能用。在项目目录里跑一条命令，自动完成「注册钉定条目 + 初始化 .pm + 写 AGENTS.md 工作规矩」：
-
-```bash
-npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
+npx -y @luckychen1993/pm-mcp@0.7.0 setup --client codex --project
 ```
 
 跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
@@ -247,17 +248,17 @@ Windows 注意：CLI 的模型凭据来自其自身配置，`providerOrder` 需�
 
 ### record_round：单轮互斥与记账
 
-- **begin**：只校验「已设目标」与「没有别人在飞的轮次」，然后写入 `active_run_id = run_id`、刷新 `last_round_at` 并记 `round-start` 日志。它**不**检查 `enabled`、预算余量或停滞/失败阈值——这些由调用方读 `status` 前置判断，是调用方约定而非硬拦截。同一 `run_id` 重复 begin：直接调 `beginRound` 会再次写入并**追加一条** `round-start` 日志（日志有界，旧记录被挤出）；经 MCP 调用时同参数重复 begin 走幂等复用，什么都不变。
-- **end**：在飞轮次的 `run_id` 与本次不同则拒绝记账；成功时清零 `active_run_id`、`round_count` +1。传 `failure` 时 `consecutive_failures` +1、停滞计数归零（达到 2 次记 `fail-exit`）；成功时 `consecutive_failures` 归零，`produced_evidence` 缺省为 `true`，传 `false` 会让 `stall_rounds` +1（达到 3 次记 `stalled`）。
-- **幂等层**：经 MCP 调用时，**参数完全相同**的重复 `begin` / `end` 会被幂等复用并标注「↩️ 幂等复用」，不推进 `round_count`；参数一变（例如把 `produced_evidence` 从 `false` 翻成 `true`）就是一次新记账，会再 +1。「重复记账不推进」只在参数逐字节相同时成立。
-- **同一时间只允许一轮**由三层保证：`status` 优先返回 `running`；`begin` 见到非空 `active_run_id` 且 id 不同就报错；**写路径**（`mutateOrchestrator`）持账本文件锁，跨进程并发写串行化。纯读路径（`readOrchestrator`/`loadOrchestrator`）不持锁——并发写期间读到的是写前或写后的完整状态。台账损坏时写入被直接拒绝（fail-closed）。
-- **边界**：`end` 不与 `begin` 配对也会被接受并推进轮数（代码只比对「有在飞轮次时 id 是否相同」），配对由调用方保证。
+- **begin**：校验「已设目标」「目标未完成」「没有在飞轮次」「`run_id` 未被结算过」，然后写入 `active_run_id = run_id`、刷新 `last_round_at` 并记 `round-start` 日志。它**不**检查 `enabled`、预算余量或停滞/失败阈值——这些由调用方读 `status` 前置判断，是调用方约定而非硬拦截。同一 `run_id` 不能重复 begin：已有在飞轮次（包括同 id）会直接报错，避免重置基线。
+- **end**：必须与当前 `active_run_id` 精确配对；没有在飞轮次、id 不同或该 `run_id` 已结算过都拒绝记账。成功时清零 `active_run_id`、`round_count` +1，并把 `run_id` 记入有界结算列表与永久标记。传 `failure` 时 `consecutive_failures` +1、停滞计数归零（达到 2 次记 `fail-exit`）；成功时 `consecutive_failures` 归零，`produced_evidence` 缺省为 `true`，传 `false` 会让 `stall_rounds` +1（达到 3 次记 `stalled`）。
+- **幂等层**：经 MCP 调用时，**参数完全相同**的重复 `begin` / `end` 在短窗口内会被幂等复用并标注「↩️ 幂等复用」，不推进 `round_count`；窗口过后或参数变化，业务层的一次性结算仍会拒绝重复轮次。
+- **同一时间只允许一轮**由三层保证：`status` 优先返回 `running`；`begin` 见到任何在飞轮次就报错；**写路径**（`mutateOrchestrator`）持账本文件锁，跨进程并发写串行化。纯读路径（`readOrchestrator`/`loadOrchestrator`）不持锁——并发写期间读到的是写前或写后的完整状态。台账损坏时写入被直接拒绝（fail-closed）。
+- **目标变更**：`set_goal` 改了 objective/acceptance 时会作废在飞轮次（清空 `active_run_id` 与基线、记 `round-cancelled`），旧轮次的 `end` 会被拒绝；只改 note 不作废。
 
 ### 轮次证据核验（防止空转冒充产出）
 
 `record_round(begin)` 会记录当时的**源码指纹**与**最新质量报告文件名**作为基线；`record_round(end)` 声称 `produced_evidence: true` 时，pm-mcp 会核验这两者是否真的变化了：
 
-- 源码指纹变了，或出现了更新的质量报告 → 记为「有新证据」，停滞计数清零。
+- 源码指纹变了，或出现了更新的**结构有效**质量报告 → 记为「有新证据」，停滞计数清零。坏 JSON、空文件或缺 `results` 的报告会被跳过，继续回退到上一份有效报告。
 - 两者都没变却声称有证据 → **降级为无证据**并计入停滞，日志里明确写出「声称有证据但源码与质量报告都没变」。这是自动编排最该拦的一种谎：干了一轮什么都没产出，却把停滞计数刷掉。
 
 显式传 `produced_evidence: false` 不会被误判为降级（那是诚实的「无产出」）；传 `failure` 的失败轮不参与证据核验，只走连续失败计数。
@@ -270,6 +271,7 @@ Windows 注意：CLI 的模型凭据来自其自身配置，`providerOrder` 需�
 
 ### 预算：null 表示不限
 
+- 开启自动编排时，`max_rounds` / `max_hours` / `max_total_tokens` 至少要有**一项**有限值；三项全为 null 会被拒绝，避免无成本防线。开启后仍可单独把预算改为 null，此时 `get_status` / `get_orchestrator` 会显示「预算不限」警告。
 - `max_rounds: null` 时跳过 `budget-exhausted` 判定，只剩停滞（3 轮无新证据）与连续失败（2 轮）两个进度型刹车。
 - `max_total_tokens` 累计 token 上限（`end` 时由执行器上报 `tokens_used` 累加），达到即判 `budget-exhausted`；`null` = 不限。一次纯文档轮曾烧掉 543 万 token，没有成本上限就没有防线。
 - **成本上报是硬约束**：`end` 必须传 `tokens_used` 或显式 `tokens_unknown: true`，两者都省略会被直接拒绝——这不是提示，是报错。prompt 再旧也糊弄不过去。拒绝后轮次仍在飞，补上字段即可正常收轮。
@@ -282,7 +284,11 @@ Windows 注意：CLI 的模型凭据来自其自身配置，`providerOrder` 需�
 
 `run_id` 内容由调用方自定（workflow 运行 id 或时间戳）。它同时承担四件事：互斥令牌、状态机最高优先级判据、界面「当前轮」字段、排障定位。
 
-它**只在 `end` 内部被清零**。pm-mcp 没有超时或租约回收：一轮 begin 之后进程崩溃、没调到 `end`，台账会停在 `running`，之后用不同 `run_id` 的 `begin` 一律被拒。所谓自愈是调用方约定——后继 tick 从 `get_orchestrator` 读到遗留的 `active_run_id`，用**同一个 id** 调 `record_round({action:"end"})` 把它结算掉。不要把它理解为 pm-mcp 会自动清理遗留轮次。**结算有代价**：这次 `end` 会把 `round_count` +1，且 `produced_evidence` 缺省 `true` 会把 `stall_rounds` 清零——等于把崩溃轮记成「有新证据」。要如实反映应显式传 `produced_evidence:false`（或 `failure`）。
+它**只在 `end` 内部被清零**。pm-mcp 没有超时或租约回收：一轮 begin 之后进程崩溃、没调到 `end`，台账会停在 `running`，之后任何 `begin` 一律被拒。所谓自愈是调用方约定——后继 tick 从 `get_orchestrator` 读到遗留的 `active_run_id`，用**同一个 id** 调 `record_round({action:"end"})` 把它结算掉；该 id 结算后不可再用于新轮。不要把它理解为 pm-mcp 会自动清理遗留轮次。**结算有代价**：这次 `end` 会把 `round_count` +1，且 `produced_evidence` 缺省 `true` 会把 `stall_rounds` 清零——等于把崩溃轮记成「有新证据」。要如实反映应显式传 `produced_evidence:false`（或 `failure`）。
+
+### 目标完成：终止态
+
+按 `acceptance` 完成核验后调用 `complete_goal`，台账写入 `completed_at`，`orchestratorStatus` 变为 `completed`。这是终止态：即使 `enabled` 仍为 true，`begin` 也会被拒绝；只有 `set_goal` 设定新目标才会清除完成标记。`complete_goal` 不代替验收——它只记录调用方的完成声明，验收证据仍须由外部复核。
 
 ### 复核通过才 commit；禁止 push 与发布
 
@@ -290,12 +296,12 @@ Windows 注意：CLI 的模型凭据来自其自身配置，`providerOrder` 需�
 - 心跳与 workflow 只做**本地 commit**：不 `git push`、不打 tag、不发布到 npm 或任何渠道。发布是人工决定，不属于自动编排闭环。
 - commit 之后用 `produced_evidence:true` 收轮，让本轮计为新证据；没有可核验产出时如实传 `false` 或 `failure`，让停滞/失败计数生效。
 
-## 工具清单（58 个）
+## 工具清单（59 个）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
 | 状态 | `init_project` / `get_status` / `update_project` / `regenerate_dashboard` | 初始化、一站式「我在哪」（`since` 汇总任务/会话变化）、改元信息与预算、重生成仪表盘 |
-| 编排 | `set_goal` / `set_orchestrator` / `record_round` / `get_orchestrator` | 最终目标与机器可判定的验收锚点；手动开关自动编排（enabled 变更必须给 reason 留痕）、并发上限（1-8）与轮数/小时预算；一轮开始/结束记账（停滞检测、连续失败退出、轮数预算）；编排状态与台账日志（开轮前第一件事）。台账缺失/损坏一律视为禁用（fail-closed），损坏时写入被阻止并明确报错 |
+| 编排 | `set_goal` / `set_orchestrator` / `complete_goal` / `record_round` / `get_orchestrator` | 最终目标与机器可判定的验收锚点；手动开关自动编排（enabled 变更必须给 reason 留痕）、并发上限（1-8）与轮数/小时预算；按验收标记目标完成（终止态，不再开新轮）；一轮开始/结束记账（结束必须先 begin、同一 run_id 只能结算一次、停滞检测、连续失败退出、轮数预算）；编排状态与台账日志（开轮前第一件事）。台账缺失/损坏一律视为禁用（fail-closed），损坏时写入被阻止并明确报错 |
 | 路线图 | `add_milestone` / `update_milestone` / `get_roadmap` | 里程碑生命周期；depth=1 单行摘要 / depth=2 展开活跃任务 |
 | 任务 | `add_task` / `list_tasks` / `update_task` / `checkpoint` | 进度/断点/会话合并更新；feature/fix 完成强制关联文件与最新真实测试报告 |
 | 功能 | `register_feature` / `list_features` | 功能地图（入口文件 = 漂移对账锚点；测试文件 = 测试背书） |
@@ -317,7 +323,7 @@ Resources：`pm://dashboard`、`pm://roadmap`、`pm://tasks`、`pm://changelog`�
 
 所有写工具都接受可选 `idempotency_key`。同一业务的多个 Agent 应传同一个稳定键（例如 `T-123:add-login-task`）：同键同参数只执行一次并复用首次结果，同键不同参数直接拒绝。即使没有显式键，完全相同的并发写也会在短窗口内自动合并；完全相同的并行读会等待首个执行者并复用结果。
 
-并发保证有明确边界：正常运行的同键写只落一次，follower 最多等待 3 秒复用首次结果；仍未完成时以 MCP error 返回 pending，不把占位冒充成功。若进程在业务写入后、幂等完成记录前被强杀，pm-mcp 会把该键标为 `uncertain` 并禁止自动重放。它提供的是 **at-most-once + 不确定时 fail-closed**，不是跨多个 JSON 文件的事务型 exactly-once；核对目标账本后才能决定是否换新键。v0.1.3 的标准全局幂等记录会在首次复用时迁移到项目运行态，旧文件保留以便回滚。读合并只覆盖业务处理实际重叠的在途请求，完成结果不会继续缓存，避免外部代码刚变化却返回旧内容。每个项目由 SQLite 生命周期选举一个 watcher leader，其余进程低频待命；leader 被强杀后由一个 standby 接管。结构、安全、许可证与快照等权威审计强制重读内容，不把 `fs.watch` 或 mtime/size 缓存的最终一致性冒充强一致性。
+并发保证有明确边界：正常运行的同键写只落一次，follower 最多等待 3 秒复用首次结果；仍未完成时以 MCP error 返回 pending，不把占位冒充成功。若进程在业务写入后、幂等完成记录前被强杀，pm-mcp 会把该键标为 `uncertain` 并禁止自动重放。它提供的是 **at-most-once + 不确定时 fail-closed**，不是跨多个 JSON 文件的事务型 exactly-once；核对目标账本后才能决定是否换新键。v0.1.3 的标准全局幂等记录会在首次复用时迁移到项目运行态，旧文件保留以便回滚。读合并只覆盖业务处理实际重叠的在途请求；完成结果只在同一 revision 内复用（任何写操作都会 bump revision），并在 10 分钟 TTL 后回收，避免外部代码变化后长期返回旧内容。幂等记录同样分层回收：读记录 10 分钟、自动写记录 24 小时、显式业务键 90 天；pending/uncertain 记录保留供人工核对。每个项目由 SQLite 生命周期选举一个 watcher leader，其余进程低频待命；leader 被强杀后由一个 standby 接管。结构、安全、许可证与快照等权威审计强制重读内容，不把 `fs.watch` 或 mtime/size 缓存的最终一致性冒充强一致性。
 
 ## 数据模型（被管理项目内的 `.pm/`；JSON/Markdown 账本可 git diff，`index.db` 是忽略并可重建的缓存）
 
@@ -458,14 +464,14 @@ node scripts/health-check.mts --add-task <根> "[巡检] 摘要" fix  # 走账�
 
 行为：巡检先做独立精确走查，再以旧快照执行结构对账 + 安全体检 + 许可证审计；只有完整执行且无硬红旗时才推进当前快照，坏状态重复巡检不会因覆盖基线而假绿。红旗、公网项目未处理中危、目标缺失、账本损坏或巡检异常均**退出码 1**。`--tasks`/`--add-task` 提供查重和登记通道，但自动解析与查重由外部调度工作流负责。
 
-本机另有每 2 小时运行的 ZCode 自动化；它是仓库外的部署状态，需与脚本本身分开监控。GitHub Actions 在 Node 22.18 与 24 上执行类型检查、183 项测试与覆盖率门禁、构建和发布包走查；这仍是托管 CI 证据，不代表用户环境或生产证明。
+本机另有每 2 小时运行的 ZCode 自动化；它是仓库外的部署状态，需与脚本本身分开监控。GitHub Actions 在 Node 22.18 与 24 上执行类型检查、401 项测试与覆盖率门禁、构建和发布包走查；另有 Windows 全量测试与 Windows/macOS 真实 tarball 安装探针。这仍是托管 CI 证据，不代表用户环境或生产证明。
 
 ## 开发
 
 ```bash
 npm ci             # 按 lockfile 安装依赖，并通过 prepare 构建 dist/
-npm test           # node --test 显式 glob（当前 183 个用例）
-npm run coverage   # Node 原生覆盖率门禁：lines 90% / branches 85% / functions 90%
+npm test           # node --test 显式 glob（当前 401 个用例）
+npm run coverage   # Node 原生覆盖率门禁：lines 95% / branches 85% / functions 93%
 npm run build      # tsc 构建 dist/
 npm run typecheck  # 类型检查
 npm start          # 运行编译后的 dist MCP server
@@ -485,7 +491,7 @@ npm run gate          # 完整本地门禁
 | 单元 | budget/store/roadmap/health/security/license/audit/search/dashboard | 各账本与机制的正确性（含伪造密钥/危险模式 fixture、已识别命中原文不落盘断言） |
 | 治理 | governance-model/language-adapters/semantic-graph/semantic-evidence/polyglot-ast/portfolio/governance-audit | 模块 schema、八语言 AST、symbol-bound call、原生/runtime证据、私有接口、循环、影响闭包、semver 与跨仓 fail-closed |
 | 标准化验收 | acceptance-evaluator/acceptance-tools/acceptance-gate/quality-evidence | 九特性/五阶段、冻结指标与断言、双向追踪、风险接受、源码/证据/报告 SHA-256、伪造 PASS 失败 |
-| 集成 | integration/governance-mcp/quality-gate | 真实拉起 stdio server 全链路：48 工具、7 资源、5 提示词；真实执行安全 argv 质量命令 |
+| 集成 | integration/governance-mcp/quality-gate | 真实拉起 stdio server 全链路：59 工具、7 资源、5 提示词；真实执行安全 argv 质量命令 |
 | 场景 | scenario.test.ts | **对 dist 产物**跑三段会话生命周期：中文+空格路径、CRLF、断点跨进程恢复、故障注入（删测试/加 skip/删入口文件/新增依赖/伪造密钥/GPL 头）、三种根解析方式（cwd / PM_ROOT / --root）各用一遍 |
 | 完整性 + 真实仓库 | integrity.test.ts / realrepo.test.ts | 状态不变式（全账本 schema、派生逐字节一致、原子性、损坏恢复、500 任务规模折叠、并发双进程零丢失）；并以本仓库真实 `.pm` 为被测对象（漂移为零、PROJECT.md 同步、done 纪律、全仓拷贝审计不误报） |
 | 钻空（红队） | exploit.test.ts | 每个反制机制配一个「先钻、再断言钻不进」的测试（见上表） |
@@ -494,4 +500,4 @@ npm run gate          # 完整本地门禁
 
 ## 后续增强候选
 
-更深的语言编译器/LSP provider、自动运行时 instrumentation 与服务拓扑、OSV 联网漏洞查询（默认关）、全生态许可证/SBOM、受版权代码外部相似度检索、重复代码检测、Web UI、多用户权限。
+更深的语言编译器/LSP provider、自动运行时 instrumentation 与服务拓扑、全生态许可证/SBOM、受版权代码外部相似度检索、多用户权限。

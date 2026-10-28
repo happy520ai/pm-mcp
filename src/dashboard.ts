@@ -23,7 +23,9 @@ function orchestratorRow(root: string): string {
   try {
     const file = loadOrchestrator(root);
     const { status, reason } = orchestratorStatus(file);
-    const mark = status === "ready" || status === "running" ? "✅" : status === "no-goal" || status === "disabled" ? "—" : "🚩";
+    const mark = status === "ready" || status === "running" || status === "completed"
+      ? "✅"
+      : status === "no-goal" || status === "disabled" ? "—" : "🚩";
     const rounds = file.settings.max_rounds === null ? `${file.run.round_count}/不限` : `${file.run.round_count}/${file.settings.max_rounds}`;
     return `${mark} ${status}（${reason}）· 并发 ${file.settings.max_concurrency} · 轮次 ${rounds}`;
   } catch {

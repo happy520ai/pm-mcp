@@ -1,5 +1,5 @@
 {
-  "seq": 92,
+  "seq": 97,
   "sessions": [
     {
       "id": "S-0001",
@@ -2128,6 +2128,118 @@
       "next_steps": [
         "重派 publish workflow 验证幂等 + 校验步骤（commit/push 后）",
         "确认 npm 页面 0.7.0 可见"
+      ]
+    },
+    {
+      "id": "S-0093",
+      "date": "2026-10-28T14:51:16.952Z",
+      "author": "zcode",
+      "summary": "同步 GitHub 更新到本地：快进 9 个提交（01c2d70→502cd13，含 0.7.0 发布、M4 编排闭环账本、CI 发布修复），3 个 .pm 自动生成文件冲突采用远端权威版本并丢弃本地暂存；重建 dist 并跑测试 387/387 全过，工作区干净。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "/mcp reload 或重启 ZCode 后 get_status 应显示 0.7.0；上轮结论仍有效：0.6.x 的 git fallback 在 0.7.0 中已带，重连后 audit ⑨ git ENOENT 应清零",
+        "skip/空测试文本扫描误报是否在 0.7.0 已修需重连后复核"
+      ]
+    },
+    {
+      "id": "S-0094",
+      "date": "2026-10-28T15:34:15.061Z",
+      "author": "qoder",
+      "summary": "项目升级空间只读研究，未改源码、测试或配置。实际MCP确认0.7.0/58工具；typecheck通过，coverage初检387项中386通过，行/分支/函数覆盖率96.33/86.37/93.87%，唯一失败是现有PROJECT.md缺自动编排行。隔离临时夹具复现：工作区歧义仍可写启动根；tasks账本缺失被当空账并复用T-001；同run_id换幂等键可重复收轮与累计成本；schema解析丢弃未来字段。建议优先边界可靠性，再做结构化编排/输出、跨平台安装验证和只读UI证据定位。当前调用按收工规矩记账并自动刷新派生文档，初检失败不等于当前复验结果。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "待用户选择升级范围，不自动建功能任务、不派发、不提交或发布。优先修复工作区歧义写入、核心账本缺失/版本防护、run_id唯一结算。",
+        "本次研究会话写入后复验coverage；未执行会更新审计/验收台账的完整gate。后续按需要统一README版本/工具数/覆盖率描述与项目阶段。"
+      ]
+    },
+    {
+      "id": "S-0095",
+      "date": "2026-10-28T16:31:28.592Z",
+      "author": "qoder",
+      "summary": "边界可靠性硬化：工作区歧义 fail-closed、核心账本完整性、幂等缓存 GC、轮次一次性结算与目标完成态、质量报告内容校验、update_task 回滚、UI/CI 增强；验收基线升至 1.3.0",
+      "files": [
+        ".github/workflows/ci.yml",
+        "README.md",
+        "package.json",
+        "src/audit.ts",
+        "src/caller-workspace.ts",
+        "src/idempotency.ts",
+        "src/init.ts",
+        "src/orchestrator-tools.ts",
+        "src/orchestrator.ts",
+        "src/session-log.ts",
+        "src/store.ts",
+        "src/task-tools.ts",
+        "src/tool-base.ts",
+        "src/types.ts",
+        "src/ui.ts",
+        "src/version.ts",
+        "test/orchestrator.test.ts",
+        "test/ui.test.ts",
+        "src/idempotency-gc.ts",
+        "src/orchestrator-state.ts",
+        "src/quality-report.ts",
+        "test/hardening.test.ts"
+      ],
+      "file_hashes": {
+        ".github/workflows/ci.yml": "04a0638c57015bad09276f835cb3b70dcaace2de7989a4f875ab30149d6e55e8",
+        "README.md": "9b15961b95ae6da80462d8ca58e1d16c8ef847ac8605950824ed87e566ee2fc6",
+        "package.json": "1e833294283b0baf3a80431a92a40f952fc141a4d4b17d1b5d09c71bd6944140",
+        "src/audit.ts": "08d4a2cc602b3b25770c27f0a174687e0da90a6e985657fc0c2b425d0a4a8826",
+        "src/caller-workspace.ts": "b476b0b82c07509105e352b0629627dc9cfd4ad7afe9f1d558be15c1ad848d04",
+        "src/idempotency.ts": "033d0687771a2656e759f06355e052c0f2cbfd2755b27d9ad4ea675aa0e55297",
+        "src/init.ts": "1c120fd230ac88b8b237305125f469c3ae805f1ebfcf6b1ae78fcba4072813ed",
+        "src/orchestrator-tools.ts": "39eda3cfde1813d45241a0849fccc4b124e30038a38745cba85ba267fd4dbdc6",
+        "src/orchestrator.ts": "5b81885aea586e870efbc71dc0fd4b9b26f809312682836d455f15ecc75cb0bc",
+        "src/session-log.ts": "1888ea3b458ef461a4f4e7264e416a1538d3da225bc37380748872197872ef66",
+        "src/store.ts": "e3cc01bcad5604a394e157fd6cf243d5eb8de368a861e029631c14dbe3bf7d92",
+        "src/task-tools.ts": "868609e102cf990054306f3645bee36f643af433101dcd8910b691c8495f4b68",
+        "src/tool-base.ts": "ed95f6f364eb655e81b8c443fbea8ec32ba662258ff7df74598350b99315cc68",
+        "src/types.ts": "eff34c6ac610bbecb13531b740faa15149ac7d97e081b10962d62493eb8b9d70",
+        "src/ui.ts": "b95dd7c7f550c8676dc800b8a576769d7901353b71c491f9e225c32c9a23c3a8",
+        "src/version.ts": "1f6a98b15ced478edb910d976f65861d87b34cd28bac67737c59a3afbba9b7af",
+        "test/orchestrator.test.ts": "0537d8c410c0578983fb63ba8738fb5e8e8c3f4d8856ab6c0d2d013f64b9b6d0",
+        "test/ui.test.ts": "aa9a2ff2e18d447340613850ac88e74312ad75895a52d745d2e72afd9703e05e",
+        "src/idempotency-gc.ts": "e27dcd4908f91822edbf7c0144f3e2a75c28f533db2deee56b113a35d34f82a9",
+        "src/orchestrator-state.ts": "0b282478b6ec6836a32f4b00929dcc87e01da58dec3598513215722d1aabdbab",
+        "src/quality-report.ts": "9b8dfb932bdf662a9389f7b36fc04721fd0bab39515b12760fef3dab1f477eee",
+        "test/hardening.test.ts": "1ee352cc97c5f8d7d4a43d782822ce4ac29f7c61daf304e1f313f2cd527027f3"
+      },
+      "next_steps": [
+        "重跑 npm run gate 至全绿",
+        "通过后按验收标准标记编排目标完成"
+      ]
+    },
+    {
+      "id": "S-0096",
+      "date": "2026-10-28T16:34:36.315Z",
+      "author": "qoder",
+      "summary": "T-012 Web UI 仪表盘：本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。",
+      "files": [
+        "src/ui.ts",
+        "test/ui.test.ts"
+      ],
+      "file_hashes": {
+        "src/ui.ts": "b95dd7c7f550c8676dc800b8a576769d7901353b71c491f9e225c32c9a23c3a8",
+        "test/ui.test.ts": "aa9a2ff2e18d447340613850ac88e74312ad75895a52d745d2e72afd9703e05e"
+      },
+      "next_steps": []
+    },
+    {
+      "id": "S-0097",
+      "date": "2026-10-28T16:36:28.443Z",
+      "author": "qoder",
+      "summary": "修正仪表盘对 completed 编排状态的展示：完成态显示 ✅ 而不是误标红旗；已刷新 PROJECT.md。",
+      "files": [
+        "src/dashboard.ts"
+      ],
+      "file_hashes": {
+        "src/dashboard.ts": "cf0af61fdd3a35608c583474cbaf0b13ae236e7b8c959d4bde1279ecfd4fc6f2"
+      },
+      "next_steps": [
+        "重跑 npm run gate 确认最终全绿"
       ]
     }
   ]

@@ -8,6 +8,8 @@ import { closeIndex } from "../src/index-store.ts";
 import { saveTasks, saveRoadmap, loadTasks, loadRoadmap } from "../src/store.ts";
 import { TaskSchema, MilestoneSchema, now } from "../src/types.ts";
 import { buildDashboardState, renderDashboardHtml, startUiServer } from "../src/ui.ts";
+import { fingerprintProject } from "../src/project-fingerprint.ts";
+import { saveQualityRun } from "../src/quality-store.ts";
 
 const roots: string[] = [];
 after(() => {
@@ -53,6 +55,37 @@ test("仪表盘状态：账本聚合与里程碑进度", () => {
   assert.equal(state.milestones[0]?.done, 1);
   assert.equal(state.milestones[0]?.total, 1);
   assert.equal(state.security.open, 0);
+});
+
+test("UI 汇总全部质量命令、源码匹配状态与任务断点/陈旧标记", () => {
+  const root = fixture();
+  const source = fingerprintProject(root);
+  const command = (kind: string) => ({
+    command: { command: process.execPath, args: ["--test", kind], cwd: root, kind, requiredExecutable: process.execPath, timeoutMs: 1000, maxOutputBytes: 4096 },
+    status: "passed" as const, exitCode: 0, signal: null, durationMs: 1, truncated: false,
+    stdout: "ℹ tests 3\nℹ pass 3\nℹ fail 0", stderr: "",
+  });
+  saveQualityRun(root, { execute: true, ok: true, results: [command("test"), command("coverage")] }, { source_before: source, source_after: source });
+  let state = buildDashboardState(root);
+  assert.equal(state.quality?.commands, 2);
+  assert.equal(state.quality?.tests, "6/6");
+  assert.equal(state.quality?.sourceMatched, true);
+
+  fs.writeFileSync(path.join(root, "src", "changed.ts"), "export const changed = 1;\n", "utf8");
+  assert.equal(buildDashboardState(root).quality?.sourceMatched, false, "源码变化后必须标记报告已过期");
+
+  const tasks = loadTasks(root);
+  tasks.tasks[0]!.status = "in_progress";
+  tasks.tasks[0]!.completed_at = null;
+  tasks.tasks[0]!.updated = new Date(Date.now() - 8 * 24 * 60 * 60_000).toISOString();
+  tasks.tasks[0]!.checkpoint = { note: "已做到一半", next_step: "继续实现模块", at: now() };
+  saveTasks(root, tasks);
+  state = buildDashboardState(root);
+  assert.equal(state.tasks.recent[0]?.next, "继续实现模块");
+  assert.equal(state.tasks.recent[0]?.stale, true);
+  const html = renderDashboardHtml(state);
+  assert.ok(html.includes("陈旧"));
+  assert.ok(html.includes("继续实现模块"));
 });
 
 test("HTML 渲染强制转义用户内容，脚本不可注入", () => {

@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-28T07:26:10.843Z
+> 生成时间: 2026-10-28T16:42:00.568Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -10,9 +10,9 @@
 flowchart LR
   M1["M1 v1 核心能力"]:::done
   M2["M2 v2 增强"]:::done
-  M3["M3 v3 体验增强（Web UI 仪表盘等，暂不排期）"]:::planned
+  M3["M3 v3 体验增强（本地只读 Web UI 已交付）"]:::done
   M4["M4 M4 目标锚定与编排开关（被动驱动的持久账本）"]:::done
-  M5["M5 M5 编排闭环文档化"]:::active
+  M5["M5 M5 编排闭环文档化"]:::done
   M1 --> M2
   M2 --> M3
   M3 --> M4
@@ -25,27 +25,27 @@ flowchart LR
 
 ✅ [██████████] 100% M1 v1 核心能力（9/9）
 ✅ [██████████] 100% M2 v2 增强（30/30）
-○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/1）
+✅ [██████████] 100% M3 v3 体验增强（本地只读 Web UI 已交付）（1/1）
 ✅ [██████████] 100% M4 M4 目标锚定与编排开关（被动驱动的持久账本）（5/5）
-▶ [██████████] 100% M5 M5 编排闭环文档化（4/4）
+✅ [██████████] 100% M5 M5 编排闭环文档化（4/4）
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
-- 当前阶段: v0.3.0 本地验收通过：固定安装目录已配置，既有客户端待重连核验；未发布
+- 当前阶段: 0.7.0 + 边界可靠性硬化（工作区歧义/账本完整性/轮次一次性结算/完成态，本地验证，未发布）
 
 ## 🩺 健康摘要
 | 账本 | 状态 |
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(46), package.json(26), PROJECT.md(18) |
+| churn（变更率） | ⚠️ 热点 README.md(47), package.json(27), PROJECT.md(18) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 28 条记录 |
-| 测试背书 | 34/34 个功能带测试 |
+| 调试知识 | 31 条记录 |
+| 测试背书 | 41/41 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-28 07:07（命令 4/4；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-10-28 07:07（需求 33/33，errors 0） |
-| 自动编排 | ✅ ready（可执行下一轮（4/不限 轮（上限 不限）））· 并发 8 · 轮次 4/不限 |
+| 质量矩阵 | ✅ 2026-10-28 16:39（命令 4/4；证据 tests_observed） |
+| 标准化验收 | ✅ 2026-10-28 16:39（需求 33/33，errors 0） |
+| 自动编排 | ✅ completed（目标已完成并验收（2026-10-28T16:34:36.417Z）：npm run gate 全绿（audit 无红旗；quality PASS；acceptance 1.3.0 PASS errors=0）；排期任务已全部收口。）· 并发 8 · 轮次 4/40 |
 
 ## 🧭 模块与语言治理
 - pm-mcp [tool] typescript · owner project-maintainers · roots .
@@ -53,7 +53,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 77 · backlog 1
+- 总览: done 78
 
 ## 🧩 功能清单
 ### src
@@ -105,6 +105,20 @@ flowchart LR
 - ✅ F-033 git 对账 fallback 解析 — 宿主进程 PATH 缺 git 时 resolveGitCommand 按 PATH → where git → 常见安装路径兜底解析并缓存；changedGi
 ### 编排
 - ✅ F-034 自动编排：目标锚定、手动开关、并发与轮次记账 — 自动编排的持久账本与指令源（ADR-008）：set_goal 写最终目标与机器可判定的验收锚点；set_orchestrator 手动开关（enabled 变
+### workspace
+- ✅ F-035 工作区歧义写操作 fail-closed — 多工作区指纹歧义时写工具拒绝执行并列出候选根，显式 root 可逃生。
+### ledger
+- ✅ F-036 核心账本完整性与初始化提交点 — 核心账本缺失或主体数组截断时 fail-closed；init 以 project.json 为最终提交点。
+### orchestrator
+- ✅ F-037 轮次一次性结算与目标完成态 — begin/end 严格配对，run_id 一次性结算，目标指纹绑定与 complete_goal 终止态。
+### quality
+- ✅ F-038 质量报告结构校验 — 质量报告按结构校验，坏 JSON/空报告不参与证据判定。
+### idempotency
+- ✅ F-039 幂等缓存分层回收 — 幂等读/自动写/显式写记录按 10 分钟/24 小时/90 天分层回收。
+### tasks
+- ✅ F-040 任务与会话写入回滚 — update_task 会话写入失败时回滚任务，NoSideEffectError 允许同键重试。
+### ui
+- ✅ F-041 UI 证据汇总与任务断点展示 — 本地 UI 汇总全部质量命令、源码匹配状态、任务断点与陈旧标记。
 
 ## 🏛️ 架构决策（最近）
 - [ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话](.pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md)
@@ -114,16 +128,14 @@ flowchart LR
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 
 ## 📜 最近会话
-- 2026-10-28 [zcode] 0.7.0 发布流程：版本 bump + 发布说明 + gate 全绿 + npm pack（SHA256 c82c869f…）+ publish workflow 更新 + tag v0.7.0 推送 + 用 git 凭据走 API 建 Release 426358864 并上传 tarball + dispatch publish。publish 步骤成功、npm registry 已有 0.7.0（本地 sha512 与 registry 一致），但校验步骤硬编码 @0.6.1 导致假红。修复：校验版本改读 package.json，publish 步骤幂等化（版本已存在则跳过）。
-  - 改动: .github/workflows/publish-npm.yml, package.json, README.md, src/watcher-coordinator.ts, test/watcher-leader.test.ts
-- 2026-10-28 [zcode] 0.7.0 发布就绪：版本号 bump、README 发布说明、dist 重建、gate 全绿（quality-20261028-070102-337、acceptance errors=0）、npm pack 得到 luckychen1993-pm-mcp-0.7.0.tgz（SHA256 c82c869f…），publish-npm.yml 的 TARBALL/EXPECTED_SHA256/concurrency/描述/Release 路径全部指向 0.7.0。
-  - 改动: .github/workflows/publish-npm.yml, package.json, README.md, src/watcher-coordinator.ts, test/watcher-leader.test.ts
-- 2026-10-28 [zcode] 发布前根治 watcher-leader 偶发失败（两层根因）：①测试旗标计数在「激活→降级→再激活」时被异步 close 回调误删（改按进程计数，归零才删）；②真正的产品问题——覆盖率插桩加重 I/O 后 20 进程并发开 SQLite 索引库会撞 disk I/O error，而协调器把瞬态错误按故障上报到 stderr。新增 isTransientActivationError 分类，瞬态错误静默重试、连续 3 次才上报。覆盖率插桩下连跑两次 387/387 全绿。
-  - 改动: src/watcher-coordinator.ts, test/watcher-leader.test.ts, README.md, package.json
-- 2026-10-28 [zcode] 0.7.0 发布准备：版本号 0.6.1→0.7.0，README 顶部补 0.7.0 发布说明（编排闭环/证据核验/成本硬约束/双桥/基线 1.2.0），dist 重建。gate 因改动未记会话证据报红旗，记账后复跑。
-  - 改动: README.md, package.json, dist/orchestrator.js
-- 2026-10-28 [zcode] 把「诚实记账」从约定升级为机制：①record_round(end) 硬约束——tokens_used 与 tokens_unknown 两者必传其一，省略直接报错（拒绝后轮次仍在飞，补字段即可收轮），旧 prompt 无法再静默跳过成本上报；②RunState 新增 protocol 计数（tokens_unknown_rounds / evidence_downgrades），让「没上报成本」「证据被降级」在状态里可见而非埋在日志；③get_orchestrator 每次输出「本轮协议」硬约束说明与合规偏离计数——心跳每次 tick 第一步读它，旧 prompt 也能看到该做什么；④get_status structuredContent 补 max_total_tokens/tokens_used/protocol 字段；⑤README docs 索引句改写为读者视角（何时需要、里面有什么）；⑥AGENTS.md 与 README 同步硬约束。orchestrator 测试 30→33 项全过。
-  - 改动: README.md, src/orchestrator.ts, src/orchestrator-tools.ts, src/project-tools.ts, test/orchestrator.test.ts
+- 2026-10-28 [qoder] 修正仪表盘对 completed 编排状态的展示：完成态显示 ✅ 而不是误标红旗；已刷新 PROJECT.md。
+  - 改动: src/dashboard.ts
+- 2026-10-28 [qoder] T-012 Web UI 仪表盘：本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。
+  - 改动: src/ui.ts, test/ui.test.ts
+- 2026-10-28 [qoder] 边界可靠性硬化：工作区歧义 fail-closed、核心账本完整性、幂等缓存 GC、轮次一次性结算与目标完成态、质量报告内容校验、update_task 回滚、UI/CI 增强；验收基线升至 1.3.0
+  - 改动: .github/workflows/ci.yml, README.md, package.json, src/audit.ts, src/caller-workspace.ts, src/idempotency.ts, src/init.ts, src/orchestrator-tools.ts 等 22 个
+- 2026-10-28 [qoder] 项目升级空间只读研究，未改源码、测试或配置。实际MCP确认0.7.0/58工具；typecheck通过，coverage初检387项中386通过，行/分支/函数覆盖率96.33/86.37/93.87%，唯一失败是现有PROJECT.md缺自动编排行。隔离临时夹具复现：工作区歧义仍可写启动根；tasks账本缺失被当空账并复用T-001；同run_id换幂等键可重复收轮与累计成本；schema解析丢弃未来字段。建议优先边界可靠性，再做结构化编排/输出、跨平台安装验证和只读UI证据定位。当前调用按收工规矩记账并自动刷新派生文档，初检失败不等于当前复验结果。
+- 2026-10-28 [zcode] 同步 GitHub 更新到本地：快进 9 个提交（01c2d70→502cd13，含 0.7.0 发布、M4 编排闭环账本、CI 发布修复），3 个 .pm 自动生成文件冲突采用远端权威版本并丢弃本地暂存；重建 dist 并跑测试 387/387 全过，工作区干净。
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

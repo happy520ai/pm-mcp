@@ -5,6 +5,10 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { atomicWrite, withFileRecoveryLock, withLedgerLock } from "./store.ts";
 import { ensurePmRuntimeIgnored, pmPath, registryFile } from "./paths.ts";
+import { gcOperationRecords, operationCacheStats, NoSideEffectError, type IdempotencyGcStats } from "./idempotency-gc.ts";
+
+export { NoSideEffectError } from "./idempotency-gc.ts";
+export type { IdempotencyGcStats } from "./idempotency-gc.ts";
 
 export const IdempotencyKeySchema = z.string()
   .trim()
@@ -108,6 +112,16 @@ function bumpRevision(root: string): void {
 
 function operationFile(root: string, key: string): string {
   return path.join(operationDirectory(root), `${sha256(key)}.json`);
+}
+
+/** 回收过期完成记录；进程内按目录节流，跨进程各自回收自己的旧文件。 */
+export function gcIdempotencyRecords(root: string, options: { now?: number; force?: boolean } = {}): IdempotencyGcStats {
+  return gcOperationRecords(operationDirectory(root), readRecord, options);
+}
+
+/** 缓存体量统计，供 doctor / 运维排查使用。 */
+export function idempotencyCacheStats(root: string): { files: number; bytes: number } {
+  return operationCacheStats(operationDirectory(root));
 }
 
 function legacyOperationFiles(root: string, key: string): string[] {
@@ -314,6 +328,7 @@ export function runIdempotentWriteSync<Args, Prepared = void>(
   fn: (businessArgs: Args, prepared: Prepared) => string,
   prepare?: (businessArgs: Args) => Prepared,
 ): IdempotentResult {
+  gcIdempotencyRecords(root);
   const { businessArgs, explicitKey } = splitIdempotencyArgs(args);
   let reservation = claim(root, tool, businessArgs, "write", explicitKey);
   if (reservation.kind === "pending") {
@@ -337,7 +352,8 @@ export function runIdempotentWriteSync<Args, Prepared = void>(
     complete(reservation.file, reservation.record, text);
     return { text, replayed: false, pending: false, uncertain: false, key: reservation.record.key };
   } catch (error) {
-    if (handlerStarted) markUncertain(reservation.file, reservation.record);
+    if (error instanceof NoSideEffectError) abandon(reservation.file, reservation.record);
+    else if (handlerStarted) markUncertain(reservation.file, reservation.record);
     else abandon(reservation.file, reservation.record);
     throw error;
   }
@@ -349,6 +365,7 @@ export async function runIdempotentWrite<Args>(
   args: Args,
   fn: (businessArgs: Args) => string | Promise<string>,
 ): Promise<IdempotentResult> {
+  gcIdempotencyRecords(root);
   const { businessArgs, explicitKey } = splitIdempotencyArgs(args);
   let reservation = claim(root, tool, businessArgs, "write", explicitKey);
   if (reservation.kind === "pending") {
@@ -368,7 +385,8 @@ export async function runIdempotentWrite<Args>(
     complete(reservation.file, reservation.record, text);
     return { text, replayed: false, pending: false, uncertain: false, key: reservation.record.key };
   } catch (error) {
-    if (handlerStarted) markUncertain(reservation.file, reservation.record);
+    if (error instanceof NoSideEffectError) abandon(reservation.file, reservation.record);
+    else if (handlerStarted) markUncertain(reservation.file, reservation.record);
     else abandon(reservation.file, reservation.record);
     throw error;
   }
@@ -397,6 +415,7 @@ export async function runCoalescedRead<Args>(
     const text = await fn(args);
     return { text, replayed: false, pending: false, uncertain: false, key: "uncached:uninitialized" };
   }
+  gcIdempotencyRecords(root);
   const readClaim = (): Claim => claim(root, tool, { revision: readRevision(root), args }, "read");
   let reservation = readClaim();
   if (reservation.kind === "replay") return replay(reservation.record);

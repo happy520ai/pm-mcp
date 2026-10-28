@@ -1,5 +1,39 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-10-28 — qoder
+
+修正仪表盘对 completed 编排状态的展示：完成态显示 ✅ 而不是误标红旗；已刷新 PROJECT.md。
+
+改动文件（1）: src/dashboard.ts
+
+下一步: 重跑 npm run gate 确认最终全绿
+
+## 2026-10-28 — qoder
+
+T-012 Web UI 仪表盘：本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。
+
+改动文件（2）: src/ui.ts, test/ui.test.ts
+
+## 2026-10-28 — qoder
+
+边界可靠性硬化：工作区歧义 fail-closed、核心账本完整性、幂等缓存 GC、轮次一次性结算与目标完成态、质量报告内容校验、update_task 回滚、UI/CI 增强；验收基线升至 1.3.0
+
+改动文件（22）: .github/workflows/ci.yml, README.md, package.json, src/audit.ts, src/caller-workspace.ts, src/idempotency.ts, src/init.ts, src/orchestrator-tools.ts, src/orchestrator.ts, src/session-log.ts, src/store.ts, src/task-tools.ts, src/tool-base.ts, src/types.ts, src/ui.ts, src/version.ts, test/orchestrator.test.ts, test/ui.test.ts, src/idempotency-gc.ts, src/orchestrator-state.ts, src/quality-report.ts, test/hardening.test.ts
+
+下一步: 重跑 npm run gate 至全绿；通过后按验收标准标记编排目标完成
+
+## 2026-10-28 — qoder
+
+项目升级空间只读研究，未改源码、测试或配置。实际MCP确认0.7.0/58工具；typecheck通过，coverage初检387项中386通过，行/分支/函数覆盖率96.33/86.37/93.87%，唯一失败是现有PROJECT.md缺自动编排行。隔离临时夹具复现：工作区歧义仍可写启动根；tasks账本缺失被当空账并复用T-001；同run_id换幂等键可重复收轮与累计成本；schema解析丢弃未来字段。建议优先边界可靠性，再做结构化编排/输出、跨平台安装验证和只读UI证据定位。当前调用按收工规矩记账并自动刷新派生文档，初检失败不等于当前复验结果。
+
+下一步: 待用户选择升级范围，不自动建功能任务、不派发、不提交或发布。优先修复工作区歧义写入、核心账本缺失/版本防护、run_id唯一结算。；本次研究会话写入后复验coverage；未执行会更新审计/验收台账的完整gate。后续按需要统一README版本/工具数/覆盖率描述与项目阶段。
+
+## 2026-10-28 — zcode
+
+同步 GitHub 更新到本地：快进 9 个提交（01c2d70→502cd13，含 0.7.0 发布、M4 编排闭环账本、CI 发布修复），3 个 .pm 自动生成文件冲突采用远端权威版本并丢弃本地暂存；重建 dist 并跑测试 387/387 全过，工作区干净。
+
+下一步: /mcp reload 或重启 ZCode 后 get_status 应显示 0.7.0；上轮结论仍有效：0.6.x 的 git fallback 在 0.7.0 中已带，重连后 audit ⑨ git ENOENT 应清零；skip/空测试文本扫描误报是否在 0.7.0 已修需重连后复核
+
 ## 2026-10-28 — zcode
 
 0.7.0 发布流程：版本 bump + 发布说明 + gate 全绿 + npm pack（SHA256 c82c869f…）+ publish workflow 更新 + tag v0.7.0 推送 + 用 git 凭据走 API 建 Release 426358864 并上传 tarball + dispatch publish。publish 步骤成功、npm registry 已有 0.7.0（本地 sha512 与 registry 一致），但校验步骤硬编码 @0.6.1 导致假红。修复：校验版本改读 package.json，publish 步骤幂等化（版本已存在则跳过）。

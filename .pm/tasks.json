@@ -268,21 +268,24 @@
       "title": "Web UI 仪表盘",
       "detail": "",
       "type": "feature",
-      "status": "backlog",
+      "status": "done",
       "priority": null,
       "milestone": "M3",
       "steps": [],
       "checkpoint": null,
-      "files": [],
+      "files": [
+        "src/ui.ts",
+        "test/ui.test.ts"
+      ],
       "acceptance": "",
-      "result_note": "",
-      "verification": "",
+      "result_note": "本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261028-163401-434-0000.json\n报告 SHA-256: bfb655ee8f87c8a72f2961562a02da390bcb4b546414d48607eed4b600ec71f2\n源码 SHA-256: e5761f970d7a3f9034194855f788d3732980d860dfaf8516af3f35fe4c8beb68\n执行时间: 2026-10-28T16:34:01.434Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）",
       "tags": [],
-      "author": "",
+      "author": "qoder",
       "created": "2026-09-01T16:30:56.681Z",
-      "updated": "2026-10-20T15:17:31.906Z",
+      "updated": "2026-10-28T16:34:36.307Z",
       "started_at": null,
-      "completed_at": null
+      "completed_at": "2026-10-28T16:34:36.307Z"
     },
     {
       "id": "T-013",

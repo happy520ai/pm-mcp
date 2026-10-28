@@ -190,6 +190,16 @@ export function gitAudit(root: string): GitAudit {
 /** 完整结构对账：九项报告 */
 export function auditStructure(root: string, maxLines = 150, forceFresh = false, indexPrepared = false): string {
   const project = loadProject(root);
+  const missing = pmIntegrity(root);
+  // 先报缺失再加载：核心账本缺失时读取会 fail-closed，不能让它把整份审计变成异常
+  if (missing.length > 0) {
+    return [
+      "## ⓪ 账本完整性",
+      `- 🚩 账本文件丢失: ${missing.join(", ")}——数据可能被误删，请从 git 历史恢复；读取已 fail-closed，不会把缺失当成空账。`,
+      "",
+      "其余对账已跳过：核心账本缺失，继续读取会把缺失误当空账。",
+    ].join("\n");
+  }
   const { features } = loadFeatures(root);
   const { tasks } = loadTasks(root);
   const { milestones } = loadRoadmap(root);
@@ -207,13 +217,8 @@ export function auditStructure(root: string, maxLines = 150, forceFresh = false,
     (db.prepare(`SELECT COALESCE(SUM(loc),0) s FROM files WHERE top=?`).get(top) as { s: number }).s;
 
   /* ⓪ .pm 完整性（账本被删不得静默回退空表） */
-  const missing = pmIntegrity(root);
   L.push("## ⓪ 账本完整性");
-  if (missing.length === 0) {
-    L.push("✅ .pm 账本文件齐全。");
-  } else {
-    L.push(`- 🚩 账本文件丢失: ${missing.join(", ")}——数据可能被误删，请从 git 历史恢复（load 层的空表回退只是应急，不是恢复）。`);
-  }
+  L.push("✅ .pm 账本文件齐全。");
 
   /* ① 增长 */
   L.push("");

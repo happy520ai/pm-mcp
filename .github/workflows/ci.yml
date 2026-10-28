@@ -29,3 +29,45 @@ jobs:
       - run: npm run coverage
       - run: npm run build
       - run: npm pack --dry-run
+
+  windows:
+    name: Windows Node 24
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run coverage
+      - run: npm run build
+
+  package-smoke:
+    name: Package smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Pack and install the real tarball
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pm-smoke"
+          npm pack --pack-destination "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP/pm-smoke"
+          npm init -y >/dev/null
+          TGZ=$(ls "$RUNNER_TEMP"/*.tgz | head -n 1)
+          npm install "$TGZ"
+          node node_modules/@luckychen1993/pm-mcp/dist/cli.js probe --timeout 20000 -- \
+            node node_modules/@luckychen1993/pm-mcp/dist/index.js --root .

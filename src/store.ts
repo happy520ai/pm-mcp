@@ -318,8 +318,19 @@ export function saveProject(root: string, project: Project): void {
   saveJson(pmPath(root, PROJECT_JSON), ProjectSchema.parse(project));
 }
 
+/** 核心账本缺失时绝不能回退为空账：那会把「文件丢了」伪装成「项目还没任务」 */
+function loadRequired<S extends ZodTypeAny>(file: string, schema: S): output<S> {
+  if (!fs.existsSync(file)) {
+    throw new Error(
+      `核心账本缺失: ${file}。已停止读取，避免把缺失当成空账掩盖数据丢失。` +
+      "请从备份恢复该文件；若项目确实尚未初始化，请先调用 init_project。",
+    );
+  }
+  return loadJson(file, schema) as output<S>;
+}
+
 export function loadTasks(root: string): TasksFile {
-  return loadJson(pmPath(root, TASKS_JSON), TasksFileSchema, { seq: 0, tasks: [] });
+  return loadRequired(pmPath(root, TASKS_JSON), TasksFileSchema);
 }
 export function saveTasks(root: string, data: TasksFile): void {
   // 写入即校验：绕过工具层直写也过不了 schema（空白标题/非法枚举在闸门被拒）
@@ -327,45 +338,42 @@ export function saveTasks(root: string, data: TasksFile): void {
 }
 
 export function loadRoadmap(root: string): RoadmapFile {
-  return loadJson(pmPath(root, ROADMAP_JSON), RoadmapFileSchema, { seq: 0, milestones: [] });
+  return loadRequired(pmPath(root, ROADMAP_JSON), RoadmapFileSchema);
 }
 export function saveRoadmap(root: string, data: RoadmapFile): void {
   saveJson(pmPath(root, ROADMAP_JSON), RoadmapFileSchema.parse(data));
 }
 
 export function loadFeatures(root: string): FeaturesFile {
-  return loadJson(pmPath(root, FEATURES_JSON), FeaturesFileSchema, { seq: 0, features: [] });
+  return loadRequired(pmPath(root, FEATURES_JSON), FeaturesFileSchema);
 }
 export function saveFeatures(root: string, data: FeaturesFile): void {
   saveJson(pmPath(root, FEATURES_JSON), FeaturesFileSchema.parse(data));
 }
 
 export function loadSessions(root: string): SessionsFile {
-  return loadJson(pmPath(root, SESSIONS_JSON), SessionsFileSchema, { seq: 0, sessions: [] });
+  return loadRequired(pmPath(root, SESSIONS_JSON), SessionsFileSchema);
 }
 export function saveSessions(root: string, data: SessionsFile): void {
   saveJson(pmPath(root, SESSIONS_JSON), SessionsFileSchema.parse(data));
 }
 
 export function loadDebugLog(root: string): DebugLogFile {
-  return loadJson(pmPath(root, DEBUGLOG_JSON), DebugLogFileSchema, { seq: 0, entries: [] });
+  return loadRequired(pmPath(root, DEBUGLOG_JSON), DebugLogFileSchema);
 }
 export function saveDebugLog(root: string, data: DebugLogFile): void {
   saveJson(pmPath(root, DEBUGLOG_JSON), DebugLogFileSchema.parse(data));
 }
 
 export function loadFileNotes(root: string): FileNotesFile {
-  return loadJson(pmPath(root, FILE_NOTES_JSON), FileNotesFileSchema, { notes: {} });
+  return loadRequired(pmPath(root, FILE_NOTES_JSON), FileNotesFileSchema);
 }
 export function saveFileNotes(root: string, data: FileNotesFile): void {
   saveJson(pmPath(root, FILE_NOTES_JSON), FileNotesFileSchema.parse(data));
 }
 
 export function loadSecurity(root: string): SecurityFile {
-  return loadJson(pmPath(root, SECURITY_JSON), SecurityFileSchema, {
-    findings: [],
-    last_scan: null,
-  });
+  return loadRequired(pmPath(root, SECURITY_JSON), SecurityFileSchema);
 }
 export function saveSecurity(root: string, data: SecurityFile): void {
   saveJson(pmPath(root, SECURITY_JSON), SecurityFileSchema.parse(data));

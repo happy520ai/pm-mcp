@@ -18,6 +18,8 @@ const TOOL_NAME_PATTERN = /mcp__pm[_-]mcp__/;
 export interface RequestRoot {
   root: string;
   source: string;
+  /** 真实歧义：多个不同工作区都可能是调用方，写操作必须 fail-closed */
+  ambiguous?: boolean;
   candidates?: string[];
 }
 
@@ -254,12 +256,15 @@ export function resolveRequestRoot(options: ResolveRequestRootOptions): RequestR
 
   const logs = recentRunLogs({ env, now, windowMs: options.scanWindowMs ?? 60_000 });
   const matched = matchCallerWorkspaces({ tool: options.tool, args: options.args, logs, now });
-  if (matched.length === 1) return { root: matched[0]!.workspace, source: "qoder-session-log(request-match)" };
-  if (matched.length > 1) {
+  // 同一工作区的多个会话命中不是歧义：先去重，再判断是否真的分不清
+  const matchedWorkspaces = [...new Set(matched.map((hit) => hit.workspace))];
+  if (matchedWorkspaces.length === 1) return { root: matchedWorkspaces[0]!, source: "qoder-session-log(request-match)" };
+  if (matchedWorkspaces.length > 1) {
     return {
       ...startup,
-      source: `startup(${options.startupSource});请求指纹同时命中 ${matched.length} 个会话，未猜测`,
-      candidates: matched.map((hit) => hit.workspace),
+      ambiguous: true,
+      source: `startup(${options.startupSource});请求指纹同时命中 ${matchedWorkspaces.length} 个工作区，未猜测`,
+      candidates: matchedWorkspaces,
     };
   }
 
@@ -268,7 +273,7 @@ export function resolveRequestRoot(options: ResolveRequestRootOptions): RequestR
   if (hotWorkspaces.length === 1) return { root: hotWorkspaces[0]!, source: "qoder-session-log(only-active)" };
   // 多个会话同时活跃又没指纹：宁可如实报歧义，也不拿启动期那个可能早就过期的根去猜
   if (hotWorkspaces.length > 1) {
-    return { ...startup, source: `startup(${options.startupSource});多个 Qoder 会话同时活跃，未猜测`, candidates: hotWorkspaces };
+    return { ...startup, ambiguous: true, source: `startup(${options.startupSource});多个 Qoder 会话同时活跃，未猜测`, candidates: hotWorkspaces };
   }
 
   const hint = env[ROOT_HINT_ENV]?.trim();

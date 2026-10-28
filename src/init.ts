@@ -45,7 +45,6 @@ export function initProject(root: string, input: InitInput): Project {
     created: t,
     updated: t,
   };
-  saveProject(root, project);
   saveRoadmap(root, { seq: 0, milestones: [] });
   saveTasks(root, { seq: 0, tasks: [] });
   saveFeatures(root, { seq: 0, features: [] });
@@ -59,5 +58,8 @@ export function initProject(root: string, input: InitInput): Project {
   }
   // 项目开启即有规矩：AGENTS.md 自动写入（已有则增量合并，绝不覆盖既有内容）
   upsertAgentsMd(root, input.agentsMd !== false);
+  // 提交点：project.json 最后写。它存在即代表其余账本已就绪，
+  // 这样中途失败不会留下「已初始化但核心账本缺失」的不可恢复状态。
+  saveProject(root, project);
   return project;
 }

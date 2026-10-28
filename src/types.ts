@@ -65,7 +65,8 @@ export type Milestone = z.infer<typeof MilestoneSchema>;
 
 export const RoadmapFileSchema = z.object({
   seq: z.number().int().default(0),
-  milestones: z.array(MilestoneSchema).default([]),
+  /** 必填：文件存在但缺主体数组意味着账本被截断，不能当空账 */
+  milestones: z.array(MilestoneSchema),
 });
 export type RoadmapFile = z.infer<typeof RoadmapFileSchema>;
 
@@ -124,7 +125,8 @@ export type Task = z.infer<typeof TaskSchema>;
 
 export const TasksFileSchema = z.object({
   seq: z.number().int().default(0),
-  tasks: z.array(TaskSchema).default([]),
+  /** 必填：缺 tasks 字段的残文件必须报错，不能静默当成空账 */
+  tasks: z.array(TaskSchema),
 });
 export type TasksFile = z.infer<typeof TasksFileSchema>;
 
@@ -147,7 +149,7 @@ export type Feature = z.infer<typeof FeatureSchema>;
 
 export const FeaturesFileSchema = z.object({
   seq: z.number().int().default(0),
-  features: z.array(FeatureSchema).default([]),
+  features: z.array(FeatureSchema),
 });
 export type FeaturesFile = z.infer<typeof FeaturesFileSchema>;
 
@@ -167,7 +169,7 @@ export type Session = z.infer<typeof SessionSchema>;
 
 export const SessionsFileSchema = z.object({
   seq: z.number().int().default(0),
-  sessions: z.array(SessionSchema).default([]),
+  sessions: z.array(SessionSchema),
 });
 export type SessionsFile = z.infer<typeof SessionsFileSchema>;
 
@@ -188,7 +190,7 @@ export type DebugEntry = z.infer<typeof DebugEntrySchema>;
 
 export const DebugLogFileSchema = z.object({
   seq: z.number().int().default(0),
-  entries: z.array(DebugEntrySchema).default([]),
+  entries: z.array(DebugEntrySchema),
 });
 export type DebugLogFile = z.infer<typeof DebugLogFileSchema>;
 
@@ -205,7 +207,7 @@ export const FileNoteSchema = z.object({
 export type FileNote = z.infer<typeof FileNoteSchema>;
 
 export const FileNotesFileSchema = z.object({
-  notes: z.record(z.string(), FileNoteSchema).default({}),
+  notes: z.record(z.string(), FileNoteSchema),
 });
 export type FileNotesFile = z.infer<typeof FileNotesFileSchema>;
 
@@ -230,7 +232,7 @@ export const FindingSchema = z.object({
 export type Finding = z.infer<typeof FindingSchema>;
 
 export const SecurityFileSchema = z.object({
-  findings: z.array(FindingSchema).default([]),
+  findings: z.array(FindingSchema),
   last_scan: z.string().nullable().default(null),
 });
 export type SecurityFile = z.infer<typeof SecurityFileSchema>;

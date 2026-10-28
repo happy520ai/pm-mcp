@@ -1,5 +1,5 @@
 {
-  "seq": 28,
+  "seq": 31,
   "entries": [
     {
       "id": "D-0001",
@@ -430,6 +430,53 @@
         "test/scenario.test.ts",
         "test/runner.test.ts",
         "test/public-search.test.ts"
+      ],
+      "task_id": null
+    },
+    {
+      "id": "D-0029",
+      "date": "2026-10-28T16:34:53.477Z",
+      "author": "",
+      "symptom": "acceptance 1.2.0 报 errors=27，gate 恒定失败。",
+      "root_cause": "三类独立根因：新增 complete_goal 后工具数 59 与冻结的 58 不符；orchestrator.ts/idempotency.ts 被新逻辑推过 500 行预算；验收采集器读取旧质量报告，quality_source_matches_current=0。",
+      "fix": "拆分 orchestrator-state.ts 与 idempotency-gc.ts 使实现文件回到预算内；按正式流程升版验收基线 1.3.0（仅 mcp_tools 58→59）；验收前先跑真实质量矩阵绑定当前源码。",
+      "verified_how": "npm run gate 全绿：audit 无红旗、quality PASS、acceptance 1.3.0 PASS errors=0。",
+      "files": [
+        "src/orchestrator.ts",
+        "src/orchestrator-state.ts",
+        "src/idempotency.ts",
+        "src/idempotency-gc.ts",
+        "package.json"
+      ],
+      "task_id": null
+    },
+    {
+      "id": "D-0030",
+      "date": "2026-10-28T16:34:53.586Z",
+      "author": "",
+      "symptom": "两个 Qoder 会话同时活跃时，add_task 静默写入启动期默认项目。",
+      "root_cause": "resolveRequestRoot 在指纹命中多个工作区时返回启动根并标注「未猜测」，但 toolW/toolI 只读取 ctx.root，不检查歧义标记。",
+      "fix": "给 RequestRoot/RequestContext 增加 ambiguous 标记，写工具在执行前 fail-closed 报错并列出候选根；显式 root 仍是逃生口。",
+      "verified_how": "hardening.test.ts 双工作区夹具断言 add_task isError 且两项目任务数均不变；显式 root 可正常写入。",
+      "files": [
+        "src/caller-workspace.ts",
+        "src/tool-base.ts",
+        "test/hardening.test.ts"
+      ],
+      "task_id": null
+    },
+    {
+      "id": "D-0031",
+      "date": "2026-10-28T16:34:53.672Z",
+      "author": "",
+      "symptom": "同一 run_id 可重复 end 推进 round_count；写入坏 quality 文件可把 stall 清零。",
+      "root_cause": "endRound 只比对非空 active_run_id，且允许无在飞轮次结算；latestQualityReport 只按文件名排序，不解析报告内容。",
+      "fix": "end 必须与 active_run_id 精确配对，并用台账有界列表+永久 marker 保证 run_id 只结算一次；质量报告按结构校验，坏文件回退到上一份有效报告。",
+      "verified_how": "orchestrator.test.ts 覆盖重复结算拒绝、坏报告不清零停滞、有效报告可清零；全量 401/401 通过。",
+      "files": [
+        "src/orchestrator.ts",
+        "src/quality-report.ts",
+        "test/orchestrator.test.ts"
       ],
       "task_id": null
     }
