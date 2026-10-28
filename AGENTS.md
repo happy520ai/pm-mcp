@@ -23,3 +23,10 @@
 ## 每个里程碑节点
 snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit_license 许可证审计
 <!-- pm-mcp:agents-md:v1:end -->
+
+## 自动编排派发（ADR-010，持久约定，不依赖任何对话）
+
+- **双桥派发**：干活的会话优先走桥二——`node D:\zcode\resources\glm\zcode.cjs -p "<指令>" --cwd <项目根> --surface terminal`（独立进程、全新上下文、用完即弃）；CLI 不可用（未登录/401）时回退桥一（workflow 子代理，可按轮指定模型如统一号池 glm-5.3-flash）。
+- **一轮一会话**：干活的上下文不继承任何对话历史，新会话只读 `.pm/` 账本恢复状态（get_status + 卡上的 steps/checkpoint）。
+- **红线**：禁止 git push、禁止发布；gate 不过不 commit；`record_round(begin)` 与 `end` 必须配对同一 run_id；Windows 下 CLI 按 providerOrder[0] 取供应商，可用池（unified-key-pool）必须放队首。
+- **台账是唯一持久记忆**：只在对话里说过、没落账的东西，会话关闭即丢失。收工必 log_session / checkpoint / record_decision。

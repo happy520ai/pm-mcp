@@ -2775,7 +2775,7 @@
         },
         {
           "text": "用一张真实小卡验证桥②全链：spawn→领卡→干活→门禁→记账→退出",
-          "done": false
+          "done": true
         },
         {
           "text": "心跳派发切为「CLI 优先、子代理回退」，写进 README 循环章节",
@@ -2783,9 +2783,9 @@
         }
       ],
       "checkpoint": {
-        "note": "login 完成（旅行者5050，GLM-5.3）；探针通过：spawn 的 CLI 会话以退出码 0 读到 get_orchestrator（ready/3 轮/台账正常）。根因修复：CLI 执行按 providerOrder[0] 取供应商，mimo 的 key 失效，已把 unified-key-pool 挪到队首（原文件备份 provider_config.json.backup-20261027-cli）。",
-        "next_step": "建一张小卡（todo），spawn CLI 会话让它自己领卡执行，验证全链后把心跳派发切为 CLI 优先",
-        "at": "2026-10-27T09:25:42.384Z"
+        "note": "桥二真实轮通过：spawn 的 CLI 会话自主完成开轮→领卡 T-078→改 README→跑门禁（撞审计红旗后自行补 log_session 复跑）→置 done→收轮；心跳独立复核 gate 一次命中已知 flaky（watcher-leader，隔离即过），复跑 EXIT=0 全绿并提交 0e0e66f。",
+        "next_step": "步骤 4（心跳派发切为「CLI 优先、子代理回退」）是 prompt 约定：心跳 prompt 无法编辑，依赖对话历史 + ADR-010 + README 传递；下次派发按 ADR-010 走。",
+        "at": "2026-10-27T09:36:54.473Z"
       },
       "files": [
         ".pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md"
@@ -2796,7 +2796,7 @@
       "tags": [],
       "author": "",
       "created": "2026-10-27T09:16:23.879Z",
-      "updated": "2026-10-27T09:25:42.384Z",
+      "updated": "2026-10-27T09:36:54.473Z",
       "started_at": "2026-10-27T09:25:42.384Z",
       "completed_at": null
     },

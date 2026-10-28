@@ -1,5 +1,5 @@
 {
-  "seq": 83,
+  "seq": 84,
   "sessions": [
     {
       "id": "S-0001",
@@ -1939,6 +1939,17 @@
         "README.md": "2edd419ccde553c03f9288a427cf215aebf75597f42ec393229c3d5f3cb294bb"
       },
       "next_steps": []
+    },
+    {
+      "id": "S-0084",
+      "date": "2026-10-27T09:36:54.483Z",
+      "author": "",
+      "summary": "T-077 桥二落地：CLI 会话登录验证与派发切换：桥二真实轮通过：spawn 的 CLI 会话自主完成开轮→领卡 T-078→改 README→跑门禁（撞审计红旗后自行补 log_session 复跑）→置 done→收轮；心跳独立复核 gate 一次命中已知 flaky（watcher-leader，隔离即过），复跑 EXIT=0 全绿并提交 0e0e66f。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": [
+        "步骤 4（心跳派发切为「CLI 优先、子代理回退」）是 prompt 约定：心跳 prompt 无法编辑，依赖对话历史 + ADR-010 + README 传递；下次派发按 ADR-010 走。"
+      ]
     }
   ]
 }

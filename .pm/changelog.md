@@ -2,6 +2,12 @@
 
 ## 2026-10-27 — 未知
 
+T-077 桥二落地：CLI 会话登录验证与派发切换：桥二真实轮通过：spawn 的 CLI 会话自主完成开轮→领卡 T-078→改 README→跑门禁（撞审计红旗后自行补 log_session 复跑）→置 done→收轮；心跳独立复核 gate 一次命中已知 flaky（watcher-leader，隔离即过），复跑 EXIT=0 全绿并提交 0e0e66f。
+
+下一步: 步骤 4（心跳派发切为「CLI 优先、子代理回退」）是 prompt 约定：心跳 prompt 无法编辑，依赖对话历史 + ADR-010 + README 传递；下次派发按 ADR-010 走。
+
+## 2026-10-27 — 未知
+
 T-078 README 补 CLI 会话派发说明（桥二）：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节：桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑、只读 .pm/ 账本恢复）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
 
 改动文件（1）: README.md

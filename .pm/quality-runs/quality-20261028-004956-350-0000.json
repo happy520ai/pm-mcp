@@ -1,0 +1,154 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-10-28T00:49:56.350Z",
+  "ok": true,
+  "reported_ok": true,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.14.0"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "1d71409febdbea8140d1bc5a7abec721ce1ff873661cee8fe2985d9f9429480f",
+      "files": 148,
+      "bytes": 1468157
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "1d71409febdbea8140d1bc5a7abec721ce1ff873661cee8fe2985d9f9429480f",
+      "files": 148,
+      "bytes": 1468157
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 65641,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 54460,
+        "stderr_bytes": 0,
+        "output_sha256": "f33b6c672d48c5f4c96cd031d178f382d00c84ad2883ef16a5007a3f5e1be1b2",
+        "tests": 374,
+        "passed": 374,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 5211,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 61,
+        "stderr_bytes": 0,
+        "output_sha256": "31da5f26f597d7ad1749000ce04139b50468345068b874fc150e02a2eb3c9e29",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 9257,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 106,
+        "stderr_bytes": 0,
+        "output_sha256": "3b317c25a8f48b716a9c92a6e2a1d0847905b0226882996c70e35904e3c5e1b9",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "coverage",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 78291,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 61215,
+        "stderr_bytes": 0,
+        "output_sha256": "58810a3949c7950cab990d23906fc40414a8f584c93075b1daa2819da6e744b3",
+        "tests": 374,
+        "passed": 374,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": {
+          "lines_pct": 96.22,
+          "branches_pct": 86.29,
+          "functions_pct": 94.07
+        },
+        "counter_source": "node_test_summary",
+        "evidence_level": "coverage_observed"
+      },
+      "error": ""
+    }
+  ]
+}

@@ -23,12 +23,12 @@ function waitFor(condition: () => boolean, timeoutMs: number): Promise<void> {
   });
 }
 
-function markerPids(marker: string): number[] {
-  if (!fs.existsSync(marker)) return [];
-  return fs.readFileSync(marker, "utf8")
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map(Number);
+/** 当前持有 fs.watch 的进程：拿到 watch 时写旗标，watcher 关闭时删除 */
+function ownerFlags(flagDir: string): number[] {
+  if (!fs.existsSync(flagDir)) return [];
+  return fs.readdirSync(flagDir)
+    .filter((name) => /watcher-\d+\.flag/.test(name))
+    .map((name) => Number(name.replace(/watcher-/, "").replace(/.flag/, "")));
 }
 
 function unexpectedChildStderr(chunks: string[]): string {
@@ -41,11 +41,13 @@ function unexpectedChildStderr(chunks: string[]): string {
 function childProgram(moduleUrl: string): string {
   return `
     import fs from "node:fs";
-    const [root, marker] = process.argv.slice(1);
+    const [root, flagDir] = process.argv.slice(1);
+    const flagFile = flagDir + "/watcher-" + process.pid + ".flag";
     const originalWatch = fs.watch;
     fs.watch = function (...args) {
       const watcher = originalWatch.apply(this, args);
-      fs.appendFileSync(marker, String(process.pid) + "\\n", "utf8");
+      fs.writeFileSync(flagFile, String(process.pid), "utf8");
+      watcher.on("close", () => { try { fs.rmSync(flagFile, { force: true }); } catch {} });
       return watcher;
     };
     const { startWatcher } = await import(${JSON.stringify(moduleUrl)});
@@ -77,7 +79,8 @@ test("Node 22 SQLite 实验性提示不冒充 watcher 业务错误", () => {
 test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接管", { timeout: 30_000 }, async () => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), "pm-watcher-leader-"));
   const root = path.join(base, "project");
-  const marker = path.join(base, "watchers.log");
+  const flagDir = path.join(base, "watcher-flags");
+  fs.mkdirSync(flagDir, { recursive: true });
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.writeFileSync(path.join(root, "src", "a.ts"), "export const a = 1;\n", "utf8");
   process.env.PM_MCP_HOME = path.join(base, "home");
@@ -91,7 +94,7 @@ test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接�
 
   try {
     for (let index = 0; index < agentCount; index += 1) {
-      const child = spawn(process.execPath, ["--input-type=module", "--eval", program, root, marker], {
+      const child = spawn(process.execPath, ["--input-type=module", "--eval", program, root, flagDir], {
         cwd: path.resolve("."),
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -105,8 +108,8 @@ test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接�
     }
 
     await waitFor(() => ready.size === agentCount, 15_000);
-    await waitFor(() => markerPids(marker).length >= 1, 5_000);
-    const late = spawn(process.execPath, ["--input-type=module", "--eval", program, root, marker], {
+    await waitFor(() => ownerFlags(flagDir).length === 1, 15_000);
+    const late = spawn(process.execPath, ["--input-type=module", "--eval", program, root, flagDir], {
       cwd: path.resolve("."),
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -119,15 +122,15 @@ test("20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接�
     late.stderr!.on("data", (chunk: string) => failures.push(chunk));
     await waitFor(() => ready.size === agentCount + 1, 5_000);
     await new Promise((resolve) => setTimeout(resolve, 1_000));
-    const initial = [...new Set(markerPids(marker))];
+    const initial = [...new Set(ownerFlags(flagDir))];
     assert.equal(initial.length, 1, `迟到 standby 加入后仍只能有一个 fs.watch owner，实际 ${initial.length}: ${initial.join(",")}`);
 
     const leader = children.find((child) => child.pid === initial[0]);
     assert.ok(leader, `找不到 leader 子进程 ${initial[0]}`);
     leader.kill("SIGKILL");
-    await waitFor(() => new Set(markerPids(marker)).size >= 2, 10_000);
+    await waitFor(() => new Set(ownerFlags(flagDir)).size >= 2, 10_000);
     await new Promise((resolve) => setTimeout(resolve, 1_250));
-    const afterFailover = [...new Set(markerPids(marker))];
+    const afterFailover = [...new Set(ownerFlags(flagDir))];
     assert.equal(afterFailover.length, 2, `强杀后只能有一个新 owner 接管，实际 owner ${afterFailover.length} 个`);
     assert.notEqual(afterFailover[1], afterFailover[0]);
     const unexpectedStderr = unexpectedChildStderr(failures);
