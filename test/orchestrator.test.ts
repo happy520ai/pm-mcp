@@ -24,6 +24,7 @@ import {
   shouldExitLoop,
   validateConcurrency,
   validateMaxHours,
+  validateMaxTokens,
   validateMaxRounds,
 } from "../src/orchestrator.ts";
 
@@ -351,4 +352,99 @@ test("预算传 null = 不限：轮数再高也不触发 budget-exhausted", () =
   assert.equal(high.settings.max_hours, null);
   assert.equal(orchestratorStatus(high).status, "ready");
   assert.match(orchestratorStatus(high).reason, /不限/);
+});
+
+/* ---------------------------- 轮次证据核验 ---------------------------- */
+
+test("begin 记录证据基线：源码指纹与最新质量报告", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  const file = beginRound(root, { runId: "ev-1", kind: "cli" });
+  assert.equal(file.run.active_run_kind, "cli");
+  assert.ok(file.run.round_baseline, "begin 必须记录基线");
+  assert.match(file.run.round_baseline!.source_sha256, /^[a-f0-9]{64}$/);
+  assert.equal(file.run.round_baseline!.quality_report, null);
+  assert.match(file.log[file.log.length - 1]!.note, /cli/);
+});
+
+test("end 声称有证据但源码与报告都没变：降级为无证据并计入停滞", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "ev-2", kind: "manual" });
+  const after = endRound(root, { runId: "ev-2", producedEvidence: true });
+  assert.equal(after.run.stall_rounds, 1, "无实际产出却声称有证据，应记停滞");
+  assert.match(after.log[after.log.length - 1]!.note, /声称有证据但源码与质量报告都没变/);
+});
+
+test("end 声称有证据且源码确实变化：正常清零停滞", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "ev-3", kind: "cli" });
+  fs.writeFileSync(path.join(root, "changed.ts"), "export const changed = 1;\n", "utf8");
+  const after = endRound(root, { runId: "ev-3", producedEvidence: true });
+  assert.equal(after.run.stall_rounds, 0);
+  assert.match(after.log[after.log.length - 1]!.note, /有新证据/);
+});
+
+test("end 显式传 produced_evidence:false 时不误报降级", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "ev-4", kind: "manual" });
+  const after = endRound(root, { runId: "ev-4", producedEvidence: false });
+  assert.equal(after.run.stall_rounds, 1);
+  assert.match(after.log[after.log.length - 1]!.note, /无新证据/);
+  assert.ok(!/声称有证据/.test(after.log[after.log.length - 1]!.note));
+});
+
+test("失败轮不受证据核验影响，走连续失败计数", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "ev-5", kind: "workflow" });
+  const after = endRound(root, { runId: "ev-5", producedEvidence: true, failure: "额度耗尽" });
+  assert.equal(after.run.consecutive_failures, 1);
+  assert.equal(after.run.stall_rounds, 0);
+});
+
+test("end 清零运行指针与基线：不留过期状态", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "ev-6", kind: "cli" });
+  const after = endRound(root, { runId: "ev-6", producedEvidence: false });
+  assert.equal(after.run.active_run_id, null);
+  assert.equal(after.run.active_run_kind, null);
+  assert.equal(after.run.round_baseline, null);
+});
+
+/* ---------------------------- token 记账与上限 ---------------------------- */
+
+test("token 逐轮累加，达到上限判 budget-exhausted", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  setSettings(root, { enabled: true, reason: "开工" });
+  setSettings(root, { max_total_tokens: 1_000_000 });
+  beginRound(root, { runId: "tk-1", kind: "cli" });
+  endRound(root, { runId: "tk-1", producedEvidence: false, tokensUsed: 600_000 });
+  assert.equal(loadOrchestrator(root).run.tokens_used, 600_000);
+  assert.equal(orchestratorStatus(loadOrchestrator(root)).status, "ready");
+  beginRound(root, { runId: "tk-2", kind: "cli" });
+  const over = endRound(root, { runId: "tk-2", producedEvidence: false, tokensUsed: 500_000 });
+  assert.equal(over.run.tokens_used, 1_100_000);
+  assert.equal(orchestratorStatus(over).status, "budget-exhausted");
+  assert.match(orchestratorStatus(over).reason, /token/);
+});
+
+test("token 上限缺省为不限，负数与小数被拒", () => {
+  const root = proj();
+  assert.equal(loadOrchestrator(root).settings.max_total_tokens, null);
+  assert.throws(() => setSettings(root, { max_total_tokens: 0 }), /max_total_tokens/);
+  assert.throws(() => setSettings(root, { max_total_tokens: 1.5 }), /max_total_tokens/);
+  assert.equal(validateMaxTokens(null), null);
+});
+
+test("未上报 token 时不改变累计值（不伪造消耗）", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "tk-3", kind: "manual" });
+  const after = endRound(root, { runId: "tk-3", producedEvidence: false });
+  assert.equal(after.run.tokens_used, 0);
 });

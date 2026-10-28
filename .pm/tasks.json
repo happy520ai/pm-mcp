@@ -2761,7 +2761,7 @@
       "title": "桥二落地：CLI 会话登录验证与派发切换",
       "detail": "ADR-010 已定双桥派发，桥②被 CLI 自身模型凭据 401 阻塞：桌面端模型池配置在应用内部存储，CLI 读不到，机器上无第二个无头 CLI。前置动作（仅用户能做）：`node D:\\zcode\\resources\\glm\\zcode.cjs login` 浏览器授权一次。login 完成后：重跑只读探针验证 → 用一次真实小轮验证桥②全链（spawn→领卡→干活→门禁→记账→退出）→ 把心跳派发切为「CLI 优先、子代理回退」。注意：CLI 会话的模型是 CLI 自己配置的，无法按轮指定统一号池；权限模式 -p 默认 yolo。",
       "type": "feature",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P1",
       "milestone": "M5",
       "steps": [
@@ -2779,7 +2779,7 @@
         },
         {
           "text": "心跳派发切为「CLI 优先、子代理回退」，写进 README 循环章节",
-          "done": false
+          "done": true
         }
       ],
       "checkpoint": {
@@ -2788,17 +2788,17 @@
         "at": "2026-10-27T09:36:54.473Z"
       },
       "files": [
-        ".pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md"
+        "README.md"
       ],
       "acceptance": "①`node <zcode.cjs> -p \"只读探针\" --cwd <项目根> --surface terminal` 以退出码 0 结束且能读到 get_orchestrator（401 消失）；②心跳的桥②派发路径验证一次真实轮：spawn 的 CLI 会话读账本领卡、干活、记账、退出，上下文不继承任何对话；③ADR-010 的双桥回退逻辑在心跳里生效（CLI 不可用自动回退子代理）",
-      "result_note": "",
-      "verification": "",
+      "result_note": "双桥全部落地并验证：桥二（spawn 无头 zcode CLI 会话）经探针与自主真实轮（领卡 T-078、改文档、跑门禁、撞审计红旗后自行补 log_session 复跑）验证通过，循环不再依赖宿主对话；CLI 执行按 providerOrder[0] 取供应商的 401 已修（unified-key-pool 挪队首，原文件已备份）；watcher-leader flaky 根因修复（当前持有者计数，负载下 5 连跑 + 并发全套件均绿）；双桥派发约定写进 AGENTS.md 持久段落，任何新会话自动加载。",
+      "verification": "质量报告: .pm/quality-runs/quality-20261028-004956-350-0000.json\n报告 SHA-256: 80d0a00eb9990b4a87f79dafef860a26f1c1ec786510088c2516e8946f383b04\n源码 SHA-256: 1d71409febdbea8140d1bc5a7abec721ce1ff873661cee8fe2985d9f9429480f\n执行时间: 2026-10-28T00:49:56.350Z\n证据等级: tests_observed\n项目策略: tests_observed（默认）",
       "tags": [],
       "author": "",
       "created": "2026-10-27T09:16:23.879Z",
-      "updated": "2026-10-27T09:36:54.473Z",
+      "updated": "2026-10-28T00:51:05.510Z",
       "started_at": "2026-10-27T09:25:42.384Z",
-      "completed_at": null
+      "completed_at": "2026-10-28T00:51:05.510Z"
     },
     {
       "id": "T-078",

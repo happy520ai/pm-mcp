@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { pmPath } from "./paths.ts";
+import { fingerprintProject } from "./project-fingerprint.ts";
 import { saveJson, withLedgerLock } from "./store.ts";
 
 export const ORCHESTRATOR_SCHEMA_VERSION = 1 as const;
@@ -38,11 +39,26 @@ export const SettingsSchema = z.object({
   /** null = 不限（此时只靠停滞与连续失败两个进度型刹车） */
   max_rounds: z.number().int().min(1).max(MAX_ROUNDS_MAX).nullable().default(DEFAULT_MAX_ROUNDS),
   max_hours: z.number().min(0.1).max(MAX_HOURS_MAX).nullable().default(DEFAULT_MAX_HOURS),
+  /** 累计 token 上限（null=不限）。一次纯文档轮曾烧掉 543 万 token，没有上限就没有成本防线 */
+  max_total_tokens: z.number().int().min(1).nullable().default(null),
 });
+
+/** 运行指针：区分是哪一座桥在跑，并记录可据此自愈的运行 id */
+export const RunKindSchema = z.enum(["workflow", "cli", "manual"]);
 
 export const RunStateSchema = z.object({
   active_run_id: z.string().nullable().default(null),
+  /** 在飞轮次由哪种执行器承载；缺省 manual（手工 tick） */
+  active_run_kind: RunKindSchema.nullable().default(null),
+  /** begin 时的源码指纹与质量报告基线，供 end 核验「有新证据」是否属实 */
+  round_baseline: z.object({
+    source_sha256: z.string(),
+    quality_report: z.string().nullable(),
+    at: z.string(),
+  }).nullable().default(null),
   round_count: z.number().int().min(0).default(0),
+  /** 累计消耗 token：由 end 逐轮累加（外部上报），用于 max_total_tokens 判定 */
+  tokens_used: z.number().int().min(0).default(0),
   stall_rounds: z.number().int().min(0).default(0),
   consecutive_failures: z.number().int().min(0).default(0),
   last_round_at: z.string().nullable().default(null),
@@ -69,6 +85,7 @@ export const OrchestratorSchema = z.object({
 export type Goal = z.infer<typeof GoalSchema>;
 export type OrchestratorSettings = z.infer<typeof SettingsSchema>;
 export type OrchestratorRun = z.infer<typeof RunStateSchema>;
+export type RunKind = z.infer<typeof RunKindSchema>;
 export type OrchestratorFile = z.infer<typeof OrchestratorSchema>;
 export type OrchestratorInput = z.input<typeof OrchestratorSchema>;
 
@@ -82,10 +99,13 @@ export function defaultOrchestrator(): OrchestratorFile {
   return {
     schema_version: ORCHESTRATOR_SCHEMA_VERSION,
     goal: null,
-    settings: { enabled: false, max_concurrency: 3, max_rounds: DEFAULT_MAX_ROUNDS, max_hours: DEFAULT_MAX_HOURS },
+    settings: { enabled: false, max_concurrency: 3, max_rounds: DEFAULT_MAX_ROUNDS, max_hours: DEFAULT_MAX_HOURS, max_total_tokens: null },
     run: {
       active_run_id: null,
+      active_run_kind: null,
+      round_baseline: null,
       round_count: 0,
+      tokens_used: 0,
       stall_rounds: 0,
       consecutive_failures: 0,
       last_round_at: null,
@@ -176,6 +196,14 @@ export function validateMaxHours(value: number | null): number | null {
   return value;
 }
 
+export function validateMaxTokens(value: number | null): number | null {
+  if (value === null) return null;
+  if (!Number.isInteger(value) || value < 1) {
+    throw new RangeError(`max_total_tokens 必须是正整数或 null，收到: ${value}`);
+  }
+  return value;
+}
+
 /* ------------------------------- 记账 -------------------------------- */
 
 /** 日志有界，避免台账无限膨胀 */
@@ -190,7 +218,10 @@ function appendLog(file: OrchestratorFile, kind: string, note: string): void {
 export function budgetLabel(file: OrchestratorFile): string {
   const rounds = file.settings.max_rounds === null ? `${file.run.round_count}/不限` : `${file.run.round_count}/${file.settings.max_rounds}`;
   const hours = file.settings.max_hours === null ? "不限" : `${file.settings.max_hours}h`;
-  return `${rounds} 轮（上限 ${hours}）`;
+  const tokens = file.settings.max_total_tokens === null
+    ? ""
+    : `（token ${file.run.tokens_used}/${file.settings.max_total_tokens}）`;
+  return `${rounds} 轮（上限 ${hours}）${tokens}`;
 }
 
 export type OrchestratorStatus =
@@ -213,7 +244,41 @@ export function orchestratorStatus(file: OrchestratorFile): { status: Orchestrat
   if (file.settings.max_rounds !== null && file.run.round_count >= file.settings.max_rounds) {
     return { status: "budget-exhausted", reason: `已用完 ${file.run.round_count}/${file.settings.max_rounds} 轮预算` };
   }
+  if (file.settings.max_total_tokens !== null && file.run.tokens_used >= file.settings.max_total_tokens) {
+    return { status: "budget-exhausted", reason: `已用完 token 预算（${file.run.tokens_used}/${file.settings.max_total_tokens}）` };
+  }
   return { status: "ready", reason: `可执行下一轮（${budgetLabel(file)}）` };
+}
+
+/* ------------------------------ 证据核验 ------------------------------ */
+
+/** 最新质量报告文件名（按文件名时间戳排序），没有则 null。只读目录，不解析内容。 */
+export function latestQualityReport(root: string): string | null {
+  const directory = pmPath(root, "quality-runs");
+  if (!fs.existsSync(directory)) return null;
+  const names = fs.readdirSync(directory).filter((name) => /^quality-.*\.json$/.test(name)).sort();
+  const newest = names[names.length - 1];
+  return newest ? `.pm/quality-runs/${newest}` : null;
+}
+
+export interface RoundEvidence {
+  /** 源码树相对 begin 是否变化（指纹不同） */
+  sourceChanged: boolean;
+  /** begin 之后是否出现更新的质量报告 */
+  newQualityReport: boolean;
+}
+
+/**
+ * 核验「本轮产出了新证据」这一声称：源码指纹变化，或出现了更新的质量报告。
+ * 两者都没有却声称有证据，就是空转冒充产出——这是自动编排最该拦的一种谎。
+ */
+export function roundEvidence(root: string, baseline: OrchestratorFile["run"]["round_baseline"]): RoundEvidence {
+  const current = fingerprintProject(root).sha256;
+  const report = latestQualityReport(root);
+  return {
+    sourceChanged: baseline ? current !== baseline.source_sha256 : true,
+    newQualityReport: baseline ? report !== null && report !== baseline.quality_report : report !== null,
+  };
 }
 
 /* ------------------------------ 变更操作 ------------------------------ */
@@ -251,6 +316,7 @@ export interface SetSettingsInput {
   max_concurrency?: number;
   max_rounds?: number | null;
   max_hours?: number | null;
+  max_total_tokens?: number | null;
 }
 
 /** 每次开关都留理由与时间，否则第二天不知道为什么停的 */
@@ -263,6 +329,7 @@ export function setSettings(root: string, input: SetSettingsInput): Orchestrator
     if (input.max_concurrency !== undefined) file.settings.max_concurrency = validateConcurrency(input.max_concurrency);
     if (input.max_rounds !== undefined) file.settings.max_rounds = validateMaxRounds(input.max_rounds);
     if (input.max_hours !== undefined) file.settings.max_hours = validateMaxHours(input.max_hours);
+    if (input.max_total_tokens !== undefined) file.settings.max_total_tokens = validateMaxTokens(input.max_total_tokens);
     if (input.enabled !== undefined && input.enabled !== file.settings.enabled) {
       file.settings.enabled = input.enabled;
       if (input.enabled) {
@@ -282,16 +349,31 @@ export function setSettings(root: string, input: SetSettingsInput): Orchestrator
   });
 }
 
-/** 一轮开始：记录 active_run_id，让「关开关」能立刻定位到正在跑的那一轮 */
-export function beginRound(root: string, runId: string): OrchestratorFile {
+export interface BeginRoundInput {
+  runId: string;
+  /** 承载本轮的执行器；缺省 manual。workflow/cli 应传真实运行 id 以便自愈 */
+  kind?: RunKind;
+}
+
+/** 一轮开始：记录 active_run_id、执行器类型与证据基线（供 end 核验产出是否属实） */
+export function beginRound(root: string, input: BeginRoundInput | string): OrchestratorFile {
+  const runId = (typeof input === "string" ? input : input.runId).trim();
+  const kind: RunKind = typeof input === "string" ? "manual" : (input.kind ?? "manual");
+  const baseline = {
+    source_sha256: fingerprintProject(root).sha256,
+    quality_report: latestQualityReport(root),
+    at: nowIso(),
+  };
   return mutateOrchestrator(root, (file) => {
     if (!file.goal) throw new Error("尚未设置最终目标，不能开轮（请先 set_goal）。");
-    if (file.run.active_run_id && file.run.active_run_id !== runId.trim()) {
+    if (file.run.active_run_id && file.run.active_run_id !== runId) {
       throw new Error(`已有一轮在执行（${file.run.active_run_id}），同一时间只允许一轮。`);
     }
-    file.run.active_run_id = runId.trim();
+    file.run.active_run_id = runId;
+    file.run.active_run_kind = kind;
+    file.run.round_baseline = baseline;
     file.run.last_round_at = nowIso();
-    appendLog(file, "round-start", runId.trim());
+    appendLog(file, "round-start", `${runId}（${kind}）`);
     return file;
   });
 }
@@ -301,10 +383,17 @@ export interface EndRoundInput {
   /** 这一轮是否产出了新的可核验证据（测试报告/提交的源码变更） */
   producedEvidence: boolean;
   failure?: string;
+  /** 本轮实际消耗 token（由执行器上报）；累计进 run.tokens_used */
+  tokensUsed?: number;
 }
 
 /** 一轮结束：清零 active_run_id、推进轮数、判定停滞与连续失败退出 */
 export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
+  const evidence = roundEvidence(root, readOrchestrator(root).value.run.round_baseline);
+  const claimsEvidence = input.producedEvidence && !input.failure;
+  // 声称有产出、但源码没变也没有新质量报告：按无证据处理，不让空转冒充成果
+  const effectiveEvidence = claimsEvidence ? evidence.sourceChanged || evidence.newQualityReport : input.producedEvidence;
+  const downgraded = claimsEvidence && !effectiveEvidence;
   return mutateOrchestrator(root, (file) => {
     if (file.run.active_run_id && file.run.active_run_id !== input.runId.trim()) {
       throw new Error(`本轮已不属于当前执行的轮次（${file.run.active_run_id}），拒绝记账。`);
@@ -312,8 +401,13 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
     const run = file.run;
     const at = nowIso();
     run.active_run_id = null;
+    run.active_run_kind = null;
+    run.round_baseline = null;
     run.round_count += 1;
     run.last_round_at = at;
+    if (input.tokensUsed !== undefined && Number.isFinite(input.tokensUsed) && input.tokensUsed > 0) {
+      run.tokens_used += Math.floor(input.tokensUsed);
+    }
 
     if (input.failure) {
       run.consecutive_failures += 1;
@@ -322,9 +416,13 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
       appendLog(file, run.consecutive_failures >= FAIL_EXIT_THRESHOLD ? "fail-exit" : "round-fail", note);
     } else {
       run.consecutive_failures = 0;
-      run.stall_rounds = input.producedEvidence ? 0 : run.stall_rounds + 1;
-      const note = `${input.runId.trim()}: ${input.producedEvidence ? "有新证据" : `无新证据（停滞 ${run.stall_rounds}/${STALL_THRESHOLD}）`}`;
-      appendLog(file, run.stall_rounds >= STALL_THRESHOLD ? "stalled" : "round-end", note);
+      run.stall_rounds = effectiveEvidence ? 0 : run.stall_rounds + 1;
+      const detail = effectiveEvidence
+        ? "有新证据"
+        : downgraded
+          ? `声称有证据但源码与质量报告都没变，按无证据计（停滞 ${run.stall_rounds}/${STALL_THRESHOLD}）`
+          : `无新证据（停滞 ${run.stall_rounds}/${STALL_THRESHOLD}）`;
+      appendLog(file, run.stall_rounds >= STALL_THRESHOLD ? "stalled" : "round-end", `${input.runId.trim()}: ${detail}`);
     }
     return file;
   });

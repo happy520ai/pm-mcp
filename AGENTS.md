@@ -30,3 +30,5 @@ snapshot_codebase + audit_structure 对账；audit_security 安全体检；audit
 - **一轮一会话**：干活的上下文不继承任何对话历史，新会话只读 `.pm/` 账本恢复状态（get_status + 卡上的 steps/checkpoint）。
 - **红线**：禁止 git push、禁止发布；gate 不过不 commit；`record_round(begin)` 与 `end` 必须配对同一 run_id；Windows 下 CLI 按 providerOrder[0] 取供应商，可用池（unified-key-pool）必须放队首。
 - **台账是唯一持久记忆**：只在对话里说过、没落账的东西，会话关闭即丢失。收工必 log_session / checkpoint / record_decision。
+- **记账要诚实**：`record_round(begin, run_id, run_kind: workflow|cli|manual)` 会记录源码指纹与质量报告基线；`end` 声称 `produced_evidence:true` 时会核验是否真有变化——没变会被降级为无证据并计入停滞。**真无产出就传 `produced_evidence:false`**，不要用 true 刷掉停滞计数。
+- **成本要上报**：`end` 传 `tokens_used`（本轮实际消耗），累计进台账供 `max_total_tokens` 判定；不要虚报也不要省略。

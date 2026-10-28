@@ -43,7 +43,7 @@
     "prepare": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
     "test": "node --test-concurrency=2 --test \"test/*.test.ts\"",
-    "coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-lines=90 --test-coverage-branches=85 --test-coverage-functions=90 --test-concurrency=2 --test \"test/*.test.ts\"",
+    "coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-lines=95 --test-coverage-branches=85 --test-coverage-functions=93 --test-concurrency=2 --test \"test/*.test.ts\"",
     "audit": "node scripts/health-check.mts",
     "benchmark": "node scripts/benchmark.mts",
     "benchmark:volume": "node scripts/benchmark-volume.mts",

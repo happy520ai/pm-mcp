@@ -1,5 +1,27 @@
 # 变更日志（自动生成，来自 sessions.json）
 
+## 2026-10-28 — zcode
+
+按缺陷方案全量修复：①轮次证据核验——begin 记录源码指纹+最新质量报告基线，end 声称有证据时核验是否真变化，没变则降级为无证据并计入停滞（拦「空转冒充产出」）；②运行指针结构化——新增 run_kind（workflow|cli|manual），自愈时可据此回查真实状态；③token 记账与预算——counters 逐轮累加 tokens_used，max_total_tokens 达上限判 budget-exhausted；④README 拆分 564→484 行（客户端接入细节外移到 docs/clients.md，仍在 500 预算内）；⑤覆盖率门槛收紧 lines 90→95、functions 90→93（实测 96.29/86.38/93.87）；⑥复核 11 项 accepted 安全风险，逐条按当前行号核实为测试 fixture 拼接假值/规则样例，结论落 D-0028。orchestrator 测试 21→30 项全过。
+
+改动文件（8）: AGENTS.md, README.md, package.json, src/orchestrator.ts, src/orchestrator-tools.ts, test/orchestrator.test.ts, docs/clients.md, .pm/debuglog.json
+
+下一步: 后续轮次按 AGENTS.md 新约定：begin 带 run_kind、end 上报 tokens_used、无产出如实传 produced_evidence:false
+
+## 2026-10-28 — zcode
+
+全部修掉收尾：①watcher-leader flaky 根因修复——marker 文件只追加永不清理、断言历史唯一 PID 数，竞态下瞬时 watch 永久污染计数；改为每进程拿到 fs.watch 时写旗标文件、watcher 关闭时删除，断言「当前持有者」数量，不变量不变（单 owner、强杀后有界接管），单跑 5 次全绿 + 全套件 374/374 并发跑两轮均绿；②双桥派发约定（ADR-010）写进 AGENTS.md 持久段落——任何新会话/CLI 会话自动加载，派发不再依赖对话历史；③T-077 收尾置 done。gate EXIT=0（quality PASS、acceptance errors=0），提交 6015aa2。
+
+改动文件（6）: AGENTS.md, test/watcher-leader.test.ts, .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+
+下一步: 后续轮次按 AGENTS.md 的双桥派发约定走（CLI 优先、子代理回退）
+
+## 2026-10-28 — 未知
+
+T-077 桥二落地：CLI 会话登录验证与派发切换：双桥全部落地并验证：桥二（spawn 无头 zcode CLI 会话）经探针与自主真实轮（领卡 T-078、改文档、跑门禁、撞审计红旗后自行补 log_session 复跑）验证通过，循环不再依赖宿主对话；CLI 执行按 providerOrder[0] 取供应商的 401 已修（unified-key-pool 挪队首，原文件已备份）；watcher-leader flaky 根因修复（当前持有者计数，负载下 5 连跑 + 并发全套件均绿）；双桥派发约定写进 AGENTS.md 持久段落，任何新会话自动加载。
+
+改动文件（1）: README.md
+
 ## 2026-10-27 — 未知
 
 T-077 桥二落地：CLI 会话登录验证与派发切换：桥二真实轮通过：spawn 的 CLI 会话自主完成开轮→领卡 T-078→改 README→跑门禁（撞审计红旗后自行补 log_session 复跑）→置 done→收轮；心跳独立复核 gate 一次命中已知 flaky（watcher-leader，隔离即过），复跑 EXIT=0 全绿并提交 0e0e66f。

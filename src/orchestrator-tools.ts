@@ -28,7 +28,7 @@ export function orchestratorStatusLines(root: string): string[] {
   if (file.goal) lines.push(`目标: ${file.goal.objective}｜验收: ${file.goal.acceptance}`);
   else lines.push("目标: 未设置（先 set_goal，否则不会自动开轮）");
   lines.push(`开关 ${file.settings.enabled ? "开" : "关"} · 并发 ${file.settings.max_concurrency} · 预算 ${budgetLabel(file)}`);
-  if (file.run.active_run_id) lines.push(`当前轮: ${file.run.active_run_id}`);
+      lines.push(`当前轮: ${file.run.active_run_id}${file.run.active_run_kind ? `（${file.run.active_run_kind}）` : ""}`);
   if (file.run.stall_rounds > 0 || file.run.consecutive_failures > 0) {
     lines.push(`停滞 ${file.run.stall_rounds}/${STALL_THRESHOLD} · 连续失败 ${file.run.consecutive_failures}/${FAIL_EXIT_THRESHOLD}`);
   }
@@ -61,7 +61,7 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
     },
   );
 
-  toolI<{ enabled?: boolean; reason?: string; max_concurrency?: number; max_rounds?: number | null; max_hours?: number | null }>(
+  toolI<{ enabled?: boolean; reason?: string; max_concurrency?: number; max_rounds?: number | null; max_hours?: number | null; max_total_tokens?: number | null }>(
     server, startupRoot,
     "set_orchestrator",
     "手动开关自动编排并调整并发与预算。enabled 变更必须给 reason（留痕）。并发与预算可随时单独调整，下一轮生效。",
@@ -71,6 +71,7 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
       max_concurrency: z.number().int().min(1).max(MAX_CONCURRENCY).optional().describe(`同时执行的任务数上限，${MIN_CONCURRENCY}-${MAX_CONCURRENCY}`),
       max_rounds: z.number().int().min(1).nullable().optional().describe("本轮项目最多跑多少轮（1-500）；传 null = 不限"),
       max_hours: z.number().min(0.1).nullable().optional().describe("本轮项目最长多少小时（0.1-168）；传 null = 不限"),
+      max_total_tokens: z.number().int().min(1).nullable().optional().describe("累计 token 上限；传 null = 不限。达到即 budget-exhausted"),
     },
     (args, ctx) => {
       const root = ctx.root;
@@ -87,29 +88,34 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
     },
   );
 
-  toolI<{ action: "begin" | "end"; run_id: string; produced_evidence?: boolean; failure?: string }>(
+  toolI<{ action: "begin" | "end"; run_id: string; run_kind?: "workflow" | "cli" | "manual"; produced_evidence?: boolean; failure?: string; tokens_used?: number }>(
     server, startupRoot,
     "record_round",
-    "记录一轮自动执行的开始与结束，驱动停滞检测、连续失败退出与轮数预算。由外部定时任务/workflow 调用。",
+    "记录一轮自动执行的开始与结束，驱动停滞检测、连续失败退出与轮数预算。由外部定时任务/workflow 调用。begin 会记录源码/质量报告基线；end 声称有证据时会核验是否真的变了源码或有新报告——空转冒充产出会被降级为无证据。",
     {
       action: z.enum(["begin", "end"]).describe("begin 开轮，end 收尾"),
-      run_id: z.string().trim().min(1).describe("本轮的标识，如 workflow 运行 id 或时间戳"),
+      run_id: z.string().trim().min(1).describe("本轮标识：workflow 运行 id / cli 会话 id 或时间戳（自愈时据此回查真实状态）"),
+      run_kind: z.enum(["workflow", "cli", "manual"]).optional().describe("begin 时填：本轮由哪种执行器承载，缺省 manual"),
       produced_evidence: z.boolean().optional().describe("end 时填：本轮是否产出新的可核验证据（测试报告/源码变更）。连续无证据会判定停滞并自动停止。"),
       failure: z.string().optional().describe("end 时填：本轮失败的简短原因（如额度耗尽）。连续失败达到阈值会退出循环。"),
+      tokens_used: z.number().int().min(0).optional().describe("end 时填：本轮实际消耗 token，累计进台账用于 max_total_tokens 判定"),
     },
     (args, ctx) => {
       const root = ctx.root;
       requireInitialized(root);
       const file = args.action === "begin"
-        ? beginRound(root, args.run_id)
-        : endRound(root, { runId: args.run_id, producedEvidence: args.produced_evidence ?? true, failure: args.failure?.trim() || undefined });
+        ? beginRound(root, { runId: args.run_id, kind: args.run_kind })
+        : endRound(root, { runId: args.run_id, producedEvidence: args.produced_evidence ?? true, failure: args.failure?.trim() || undefined, tokensUsed: args.tokens_used });
       const { status, reason } = orchestratorStatus(file);
       refreshDerived(root);
       const parts = [
-        args.action === "begin" ? `▶️ 本轮已登记: ${args.run_id}` : `✅ 本轮已记账: ${args.run_id}`,
+        args.action === "begin" ? `▶️ 本轮已登记: ${args.run_id}（${file.run.round_count >= 0 ? "基线已记录" : ""}）` : `✅ 本轮已记账: ${args.run_id}`,
         `轮次 ${budgetLabel(file)} · 停滞 ${file.run.stall_rounds}/${STALL_THRESHOLD} · 连续失败 ${file.run.consecutive_failures}/${FAIL_EXIT_THRESHOLD}`,
         `状态: ${status}（${reason}）`,
       ];
+      // 最近一条日志能显示是否发生了「声称有证据但被降级」——把核验结果如实回给调用方
+      const last = file.log[file.log.length - 1];
+      if (args.action === "end" && last) parts.push(`记账明细: ${last.note}`);
       if (shouldExitLoop(file)) parts.push("⛔ 已达停滞或连续失败阈值，循环应停止，不要继续开新轮。");
       return parts.join("\n");
     },
@@ -135,7 +141,7 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
         "",
         `开关: ${file.settings.enabled ? "开启" : "关闭"} · 并发: ${file.settings.max_concurrency}`,
         `预算: ${budgetLabel(file)}`,
-        `当前轮: ${file.run.active_run_id ?? "无"}`,
+        `当前轮: ${file.run.active_run_id ?? "无"}${file.run.active_run_id && file.run.active_run_kind ? `（${file.run.active_run_kind}）` : ""}`,
         `停滞: ${file.run.stall_rounds}/${STALL_THRESHOLD} · 连续失败: ${file.run.consecutive_failures}/${FAIL_EXIT_THRESHOLD}`,
         `台账: ${health}${issue ? `（${issue}）` : ""}`,
       ];

@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-28T00:50:00.636Z
+> 生成时间: 2026-10-28T01:48:25.269Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -27,10 +27,10 @@ flowchart LR
 ✅ [██████████] 100% M2 v2 增强（30/30）
 ○ [░░░░░░░░░░] 0% M3 v3 体验增强（Web UI 仪表盘等，暂不排期）（0/1）
 ✅ [██████████] 100% M4 M4 目标锚定与编排开关（被动驱动的持久账本）（5/5）
-▶ [████████░░] 75% M5 M5 编排闭环文档化（3/4）
+▶ [██████████] 100% M5 M5 编排闭环文档化（4/4）
 
 ## 🎯 当前焦点
-- 🔄 T-077 桥二落地：CLI 会话登录验证与派发切换（步骤 2/4） → 下一步: 步骤 4（心跳派发切为「CLI 优先、子代理回退」）是 prompt 约定：心跳 prompt 无法编辑，依赖对话历史 + ADR-010 + README 传递；下次派发按 ADR-010 走。
+- （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
 - 当前阶段: v0.3.0 本地验收通过：固定安装目录已配置，既有客户端待重连核验；未发布
 
 ## 🩺 健康摘要
@@ -38,13 +38,13 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(39), package.json(21), src/index.ts(17) |
+| churn（变更率） | ⚠️ 热点 README.md(41), package.json(22), PROJECT.md(18) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 27 条记录 |
+| 调试知识 | 28 条记录 |
 | 测试背书 | 34/34 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-28 00:49（命令 4/4；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-10-28 00:50（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-10-28 01:48（命令 4/4；证据 tests_observed） |
+| 标准化验收 | ✅ 2026-10-28 01:48（需求 33/33，errors 0） |
 | 自动编排 | ✅ ready（可执行下一轮（4/不限 轮（上限 不限）））· 并发 8 · 轮次 4/不限 |
 
 ## 🧭 模块与语言治理
@@ -53,8 +53,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 76 · backlog 1 · in_progress 1
-- [in_progress] T-077 桥二落地：CLI 会话登录验证与派发切换 (feature, M5)
+- 总览: done 77 · backlog 1
 
 ## 🧩 功能清单
 ### src
@@ -115,14 +114,15 @@ flowchart LR
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 
 ## 📜 最近会话
+- 2026-10-28 [zcode] 按缺陷方案全量修复：①轮次证据核验——begin 记录源码指纹+最新质量报告基线，end 声称有证据时核验是否真变化，没变则降级为无证据并计入停滞（拦「空转冒充产出」）；②运行指针结构化——新增 run_kind（workflow|cli|manual），自愈时可据此回查真实状态；③token 记账与预算——counters 逐轮累加 tokens_used，max_total_tokens 达上限判 budget-exhausted；④README 拆分 564→484 行（客户端接入细节外移到 docs/clients.md，仍在 500 预算内）；⑤覆盖率门槛收紧 lines 90→95、functions 90→93（实测 96.29/86.38/93.87）；⑥复核 11 项 accepted 安全风险，逐条按当前行号核实为测试 fixture 拼接假值/规则样例，结论落 D-0028。orchestrator 测试 21→30 项全过。
+  - 改动: AGENTS.md, README.md, package.json, src/orchestrator.ts, src/orchestrator-tools.ts, test/orchestrator.test.ts, docs/clients.md, .pm/debuglog.json
+- 2026-10-28 [zcode] 全部修掉收尾：①watcher-leader flaky 根因修复——marker 文件只追加永不清理、断言历史唯一 PID 数，竞态下瞬时 watch 永久污染计数；改为每进程拿到 fs.watch 时写旗标文件、watcher 关闭时删除，断言「当前持有者」数量，不变量不变（单 owner、强杀后有界接管），单跑 5 次全绿 + 全套件 374/374 并发跑两轮均绿；②双桥派发约定（ADR-010）写进 AGENTS.md 持久段落——任何新会话/CLI 会话自动加载，派发不再依赖对话历史；③T-077 收尾置 done。gate EXIT=0（quality PASS、acceptance errors=0），提交 6015aa2。
+  - 改动: AGENTS.md, test/watcher-leader.test.ts, .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
+- 2026-10-28 [?] T-077 桥二落地：CLI 会话登录验证与派发切换：双桥全部落地并验证：桥二（spawn 无头 zcode CLI 会话）经探针与自主真实轮（领卡 T-078、改文档、跑门禁、撞审计红旗后自行补 log_session 复跑）验证通过，循环不再依赖宿主对话；CLI 执行按 providerOrder[0] 取供应商的 401 已修（unified-key-pool 挪队首，原文件已备份）；watcher-leader flaky 根因修复（当前持有者计数，负载下 5 连跑 + 并发全套件均绿）；双桥派发约定写进 AGENTS.md 持久段落，任何新会话自动加载。
+  - 改动: README.md
 - 2026-10-27 [?] T-077 桥二落地：CLI 会话登录验证与派发切换：桥二真实轮通过：spawn 的 CLI 会话自主完成开轮→领卡 T-078→改 README→跑门禁（撞审计红旗后自行补 log_session 复跑）→置 done→收轮；心跳独立复核 gate 一次命中已知 flaky（watcher-leader，隔离即过），复跑 EXIT=0 全绿并提交 0e0e66f。
 - 2026-10-27 [?] T-078 README 补 CLI 会话派发说明（桥二）：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节：桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑、只读 .pm/ 账本恢复）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
   - 改动: README.md
-- 2026-10-27 [zcode-cli] T-078：README.md 自动编排章节新增「桥二：spawn CLI 会话派发」小节——桥①/桥②对比、spawn 命令形态（node zcode.cjs -p "<指令>" --cwd 项目根 --surface terminal）、适用时机（宿主对话关闭时循环仍可跑）、Windows providerOrder 可用池放队首与 401 注意事项，内容与 ADR-010 一致。
-  - 改动: README.md
-- 2026-10-27 [?] T-077 桥二落地：CLI 会话登录验证与派发切换：login 完成（旅行者5050，GLM-5.3）；探针通过：spawn 的 CLI 会话以退出码 0 读到 get_orchestrator（ready/3 轮/台账正常）。根因修复：CLI 执行按 providerOrder[0] 取供应商，mimo 的 key 失效，已把 unified-key-pool 挪到队首（原文件备份 provider_config.json.backup-20261027-cli）。
-- 2026-10-27 [zcode] 搭双桥：ADR-010 记录「CLI 会话优先、子代理回退、一轮一会话」——桥①（workflow 子代理 + 统一号池）已跑通三轮；桥②（spawn 无头 zcode CLI）被 CLI 自身凭据 401 阻塞，已探明 CLI v0.17.0 支持 -p/--cwd/--surface，桌面端模型池 CLI 读不到，需用户执行一次 zcode login。建 T-077 承接桥二落地（login→探针→真实轮→切换派发），暂留 backlog 等用户完成登录后再提升。
-  - 改动: .pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md, .pm/tasks.json
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

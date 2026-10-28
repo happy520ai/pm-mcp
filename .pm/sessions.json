@@ -1,5 +1,5 @@
 {
-  "seq": 84,
+  "seq": 87,
   "sessions": [
     {
       "id": "S-0001",
@@ -1949,6 +1949,73 @@
       "file_hashes": {},
       "next_steps": [
         "步骤 4（心跳派发切为「CLI 优先、子代理回退」）是 prompt 约定：心跳 prompt 无法编辑，依赖对话历史 + ADR-010 + README 传递；下次派发按 ADR-010 走。"
+      ]
+    },
+    {
+      "id": "S-0085",
+      "date": "2026-10-28T00:51:05.518Z",
+      "author": "",
+      "summary": "T-077 桥二落地：CLI 会话登录验证与派发切换：双桥全部落地并验证：桥二（spawn 无头 zcode CLI 会话）经探针与自主真实轮（领卡 T-078、改文档、跑门禁、撞审计红旗后自行补 log_session 复跑）验证通过，循环不再依赖宿主对话；CLI 执行按 providerOrder[0] 取供应商的 401 已修（unified-key-pool 挪队首，原文件已备份）；watcher-leader flaky 根因修复（当前持有者计数，负载下 5 连跑 + 并发全套件均绿）；双桥派发约定写进 AGENTS.md 持久段落，任何新会话自动加载。",
+      "files": [
+        "README.md"
+      ],
+      "file_hashes": {
+        "README.md": "2edd419ccde553c03f9288a427cf215aebf75597f42ec393229c3d5f3cb294bb"
+      },
+      "next_steps": []
+    },
+    {
+      "id": "S-0086",
+      "date": "2026-10-28T00:51:12.656Z",
+      "author": "zcode",
+      "summary": "全部修掉收尾：①watcher-leader flaky 根因修复——marker 文件只追加永不清理、断言历史唯一 PID 数，竞态下瞬时 watch 永久污染计数；改为每进程拿到 fs.watch 时写旗标文件、watcher 关闭时删除，断言「当前持有者」数量，不变量不变（单 owner、强杀后有界接管），单跑 5 次全绿 + 全套件 374/374 并发跑两轮均绿；②双桥派发约定（ADR-010）写进 AGENTS.md 持久段落——任何新会话/CLI 会话自动加载，派发不再依赖对话历史；③T-077 收尾置 done。gate EXIT=0（quality PASS、acceptance errors=0），提交 6015aa2。",
+      "files": [
+        "AGENTS.md",
+        "test/watcher-leader.test.ts",
+        ".pm/tasks.json",
+        ".pm/sessions.json",
+        ".pm/changelog.md",
+        "PROJECT.md"
+      ],
+      "file_hashes": {
+        "AGENTS.md": "eab5bd4ef54798de7379ada8933efcb9c235423eec8454c532ff9b326c754e0e",
+        "test/watcher-leader.test.ts": "d9746392d660f08d752cb32d9a24d6f25d897b6d5415ee953efc82126fd1c2af",
+        ".pm/tasks.json": "9f9b590971d2eb5ec9df89ce6588e2ffcdcc9a332a4c68e3b1c143eb93fbb971",
+        ".pm/sessions.json": "d1090472c82253ae8b31767da94d55bbeead18d003cb4daf12e32d51742b45a0",
+        ".pm/changelog.md": "dd00720384a183bea7147651003eeab3b1a7738d73b38a7d9f4143f9129da0e7",
+        "PROJECT.md": "39ef9dd1774d08c1b27960c00e09c860fdc7d9fb71998b101717b0f3dbb134ad"
+      },
+      "next_steps": [
+        "后续轮次按 AGENTS.md 的双桥派发约定走（CLI 优先、子代理回退）"
+      ]
+    },
+    {
+      "id": "S-0087",
+      "date": "2026-10-28T01:45:35.372Z",
+      "author": "zcode",
+      "summary": "按缺陷方案全量修复：①轮次证据核验——begin 记录源码指纹+最新质量报告基线，end 声称有证据时核验是否真变化，没变则降级为无证据并计入停滞（拦「空转冒充产出」）；②运行指针结构化——新增 run_kind（workflow|cli|manual），自愈时可据此回查真实状态；③token 记账与预算——counters 逐轮累加 tokens_used，max_total_tokens 达上限判 budget-exhausted；④README 拆分 564→484 行（客户端接入细节外移到 docs/clients.md，仍在 500 预算内）；⑤覆盖率门槛收紧 lines 90→95、functions 90→93（实测 96.29/86.38/93.87）；⑥复核 11 项 accepted 安全风险，逐条按当前行号核实为测试 fixture 拼接假值/规则样例，结论落 D-0028。orchestrator 测试 21→30 项全过。",
+      "files": [
+        "AGENTS.md",
+        "README.md",
+        "package.json",
+        "src/orchestrator.ts",
+        "src/orchestrator-tools.ts",
+        "test/orchestrator.test.ts",
+        "docs/clients.md",
+        ".pm/debuglog.json"
+      ],
+      "file_hashes": {
+        "AGENTS.md": "66f4ba4b4771757220a234b35dd1f7424d19a9cb91c4007ae6ce08233f4e4904",
+        "README.md": "a732e2330a2585f64aa57b439a7db4ee84bf44db13c7acf9f8db94142fe7c103",
+        "package.json": "e98a8e55219af5a7edc5f0a1dc93e5947b3d5c77c50e3c0bd3f2375694eab2fa",
+        "src/orchestrator.ts": "d49ca553b8a965ca0363bb48e4094688fee4372c1afe25647191e7af6417b4db",
+        "src/orchestrator-tools.ts": "9cfd13e989f03adffa73e244a20fc969c89dc12aba6aa86aaab20e703fda4a69",
+        "test/orchestrator.test.ts": "e35c025f918a2a48d0fa01be1acc7cfc384af7c55c1fcf42c684c1d219edf1dd",
+        "docs/clients.md": "8933c2a415b7c730803c8276541947121e6229168ec70e3c917937c061f94120",
+        ".pm/debuglog.json": "84d823747d10d1ee056d3a22659ee9f4eef6a5d7b7b0143024764c1ef0625eec"
+      },
+      "next_steps": [
+        "后续轮次按 AGENTS.md 新约定：begin 带 run_kind、end 上报 tokens_used、无产出如实传 produced_evidence:false"
       ]
     }
   ]
