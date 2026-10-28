@@ -1,5 +1,5 @@
 {
-  "seq": 91,
+  "seq": 92,
   "sessions": [
     {
       "id": "S-0001",
@@ -2104,6 +2104,30 @@
         "提交发布改动并打 tag v0.7.0",
         "创建 GitHub Release 并上传 tarball（需要 gh 或 API token）",
         "dispatch publish-npm.yml（publish=true）"
+      ]
+    },
+    {
+      "id": "S-0092",
+      "date": "2026-10-28T07:26:10.796Z",
+      "author": "zcode",
+      "summary": "0.7.0 发布流程：版本 bump + 发布说明 + gate 全绿 + npm pack（SHA256 c82c869f…）+ publish workflow 更新 + tag v0.7.0 推送 + 用 git 凭据走 API 建 Release 426358864 并上传 tarball + dispatch publish。publish 步骤成功、npm registry 已有 0.7.0（本地 sha512 与 registry 一致），但校验步骤硬编码 @0.6.1 导致假红。修复：校验版本改读 package.json，publish 步骤幂等化（版本已存在则跳过）。",
+      "files": [
+        ".github/workflows/publish-npm.yml",
+        "package.json",
+        "README.md",
+        "src/watcher-coordinator.ts",
+        "test/watcher-leader.test.ts"
+      ],
+      "file_hashes": {
+        ".github/workflows/publish-npm.yml": "ca5e431f4d152a780c1a72530c6dee3756291301e1a962fa2e292e92d1a1d010",
+        "package.json": "80413d2a56740057b1a49320670a57c1fc111cc53fa9159cbfab6a079508bb05",
+        "README.md": "29a73de769282231ccc832a7aefd279a5a32c2d033945f430eb38d6ae4e517a5",
+        "src/watcher-coordinator.ts": "cc77e29e62f019677d0d7325da0c748cef4c92cbdd452b0cd809ec3cb161bf79",
+        "test/watcher-leader.test.ts": "a9899d02890ad07b09fc73a8d6e911607736f9de96551ae0a28a205c111b2941"
+      },
+      "next_steps": [
+        "重派 publish workflow 验证幂等 + 校验步骤（commit/push 后）",
+        "确认 npm 页面 0.7.0 可见"
       ]
     }
   ]

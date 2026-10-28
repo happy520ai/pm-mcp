@@ -53,13 +53,20 @@ jobs:
           npm publish "$TARBALL" --dry-run --ignore-scripts --access public --tag latest
       - name: Publish to npm using the configured trusted publisher
         if: inputs.publish
-        run: npm publish "$TARBALL" --ignore-scripts --access public --tag latest
+        run: |
+          PKG_VERSION=$(node -e "console.log(JSON.parse(require('node:fs').readFileSync('package.json','utf8')).version)")
+          if npm view "@luckychen1993/pm-mcp@$PKG_VERSION" version >/dev/null 2>&1; then
+            echo "版本 $PKG_VERSION 已在 npm 上，跳过发布（幂等重跑），仍会校验产物完整性"
+          else
+            npm publish "$TARBALL" --ignore-scripts --access public --tag latest
+          fi
       - name: Verify the public registry artifact
         if: inputs.publish
         run: |
           # 发布成功 ≠ 元数据立即可见：registry CDN 复制有秒级~分钟级延迟，轮询而不是假红。
           for i in $(seq 1 36); do
-            if npm view @luckychen1993/pm-mcp@0.6.1 dist.integrity --json > published-integrity.json 2>/dev/null; then break; fi
+            PKG_VERSION=$(node -e "console.log(JSON.parse(require('node:fs').readFileSync('package.json','utf8')).version)")
+            if npm view "@luckychen1993/pm-mcp@$PKG_VERSION" dist.integrity --json > published-integrity.json 2>/dev/null; then break; fi
             if [ "$i" = 36 ]; then echo "registry metadata did not propagate within 3 minutes" >&2; exit 1; fi
             sleep 5
           done
@@ -69,5 +76,5 @@ jobs:
           const expected = 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(process.env.TARBALL)).digest('base64');
           const actual = JSON.parse(fs.readFileSync('published-integrity.json', 'utf8'));
           if (actual !== expected) throw new Error('Published tarball integrity does not match the verified release');
-          console.log('Verified npm 0.6.1 artifact integrity');
+          console.log('Verified npm artifact integrity for ' + JSON.parse(require('node:fs').readFileSync('package.json','utf8')).version);
           NODE

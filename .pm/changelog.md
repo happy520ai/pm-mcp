@@ -2,6 +2,14 @@
 
 ## 2026-10-28 — zcode
 
+0.7.0 发布流程：版本 bump + 发布说明 + gate 全绿 + npm pack（SHA256 c82c869f…）+ publish workflow 更新 + tag v0.7.0 推送 + 用 git 凭据走 API 建 Release 426358864 并上传 tarball + dispatch publish。publish 步骤成功、npm registry 已有 0.7.0（本地 sha512 与 registry 一致），但校验步骤硬编码 @0.6.1 导致假红。修复：校验版本改读 package.json，publish 步骤幂等化（版本已存在则跳过）。
+
+改动文件（5）: .github/workflows/publish-npm.yml, package.json, README.md, src/watcher-coordinator.ts, test/watcher-leader.test.ts
+
+下一步: 重派 publish workflow 验证幂等 + 校验步骤（commit/push 后）；确认 npm 页面 0.7.0 可见
+
+## 2026-10-28 — zcode
+
 0.7.0 发布就绪：版本号 bump、README 发布说明、dist 重建、gate 全绿（quality-20261028-070102-337、acceptance errors=0）、npm pack 得到 luckychen1993-pm-mcp-0.7.0.tgz（SHA256 c82c869f…），publish-npm.yml 的 TARBALL/EXPECTED_SHA256/concurrency/描述/Release 路径全部指向 0.7.0。
 
 改动文件（5）: .github/workflows/publish-npm.yml, package.json, README.md, src/watcher-coordinator.ts, test/watcher-leader.test.ts
