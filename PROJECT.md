@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-28T16:42:00.568Z
+> 生成时间: 2026-10-28T17:00:38.644Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -31,20 +31,20 @@ flowchart LR
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
-- 当前阶段: 0.7.0 + 边界可靠性硬化（工作区歧义/账本完整性/轮次一次性结算/完成态，本地验证，未发布）
+- 当前阶段: 0.8.0 发布准备：边界可靠性硬化与编排终止态（本地 gate 全绿后发布 npm）
 
 ## 🩺 健康摘要
 | 账本 | 状态 |
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(47), package.json(27), PROJECT.md(18) |
+| churn（变更率） | ⚠️ 热点 README.md(48), package.json(28), PROJECT.md(18) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 31 条记录 |
 | 测试背书 | 41/41 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-28 16:39（命令 4/4；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-10-28 16:39（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-10-28 17:00（命令 4/4；证据 tests_observed） |
+| 标准化验收 | ✅ 2026-10-28 17:00（需求 33/33，errors 0） |
 | 自动编排 | ✅ completed（目标已完成并验收（2026-10-28T16:34:36.417Z）：npm run gate 全绿（audit 无红旗；quality PASS；acceptance 1.3.0 PASS errors=0）；排期任务已全部收口。）· 并发 8 · 轮次 4/40 |
 
 ## 🧭 模块与语言治理
@@ -128,6 +128,8 @@ flowchart LR
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 
 ## 📜 最近会话
+- 2026-10-28 [qoder] 准备 0.8.0 发布：版本与 lockfile 升级、README 发布说明、验收基线 1.4.0（产品版本同步，阈值保持 59）。
+  - 改动: README.md, package.json, package-lock.json
 - 2026-10-28 [qoder] 修正仪表盘对 completed 编排状态的展示：完成态显示 ✅ 而不是误标红旗；已刷新 PROJECT.md。
   - 改动: src/dashboard.ts
 - 2026-10-28 [qoder] T-012 Web UI 仪表盘：本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。
@@ -135,7 +137,6 @@ flowchart LR
 - 2026-10-28 [qoder] 边界可靠性硬化：工作区歧义 fail-closed、核心账本完整性、幂等缓存 GC、轮次一次性结算与目标完成态、质量报告内容校验、update_task 回滚、UI/CI 增强；验收基线升至 1.3.0
   - 改动: .github/workflows/ci.yml, README.md, package.json, src/audit.ts, src/caller-workspace.ts, src/idempotency.ts, src/init.ts, src/orchestrator-tools.ts 等 22 个
 - 2026-10-28 [qoder] 项目升级空间只读研究，未改源码、测试或配置。实际MCP确认0.7.0/58工具；typecheck通过，coverage初检387项中386通过，行/分支/函数覆盖率96.33/86.37/93.87%，唯一失败是现有PROJECT.md缺自动编排行。隔离临时夹具复现：工作区歧义仍可写启动根；tasks账本缺失被当空账并复用T-001；同run_id换幂等键可重复收轮与累计成本；schema解析丢弃未来字段。建议优先边界可靠性，再做结构化编排/输出、跨平台安装验证和只读UI证据定位。当前调用按收工规矩记账并自动刷新派生文档，初检失败不等于当前复验结果。
-- 2026-10-28 [zcode] 同步 GitHub 更新到本地：快进 9 个提交（01c2d70→502cd13，含 0.7.0 发布、M4 编排闭环账本、CI 发布修复），3 个 .pm 自动生成文件冲突采用远端权威版本并丢弃本地暂存；重建 dist 并跑测试 387/387 全过，工作区干净。
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

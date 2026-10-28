@@ -1,5 +1,5 @@
 {
-  "seq": 97,
+  "seq": 98,
   "sessions": [
     {
       "id": "S-0001",
@@ -2240,6 +2240,27 @@
       },
       "next_steps": [
         "重跑 npm run gate 确认最终全绿"
+      ]
+    },
+    {
+      "id": "S-0098",
+      "date": "2026-10-28T16:51:31.956Z",
+      "author": "qoder",
+      "summary": "准备 0.8.0 发布：版本与 lockfile 升级、README 发布说明、验收基线 1.4.0（产品版本同步，阈值保持 59）。",
+      "files": [
+        "README.md",
+        "package.json",
+        "package-lock.json"
+      ],
+      "file_hashes": {
+        "README.md": "f6cd79dd916b05a02543c0622edc5186536eee8d512e67b8c8944bbdf578454a",
+        "package.json": "eb2c9c82ac46801672c376928a2ab5fd3e1da7f733311256cb377b05c1552767",
+        "package-lock.json": "afae1b4f1e6a8ecaf153bde63a60f50af547f090bbe94fd23b7ba56680da7c97"
+      },
+      "next_steps": [
+        "重跑 npm run gate",
+        "提交并打 v0.8.0 tag",
+        "创建 GitHub Release 与 npm 发布"
       ]
     }
   ]
