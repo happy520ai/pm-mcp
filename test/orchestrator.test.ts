@@ -130,8 +130,8 @@ test("开关必须给理由，只改并发不需要理由", () => {
 test("开启编排清除暂停标记并重置停滞与失败计数", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
-  endRound(root, { runId: "r1", producedEvidence: false });
-  endRound(root, { runId: "r2", producedEvidence: false });
+  endRound(root, { runId: "r1", producedEvidence: false , tokensUnknown: true });
+  endRound(root, { runId: "r2", producedEvidence: false , tokensUnknown: true });
   const on = setSettings(root, { enabled: true, reason: "开始迭代" });
   assert.equal(on.settings.enabled, true);
   assert.equal(on.run.paused_reason, null);
@@ -164,7 +164,7 @@ test("orchestratorStatus 覆盖七种状态", () => {
   const running = beginRound(root, "run-1");
   assert.equal(orchestratorStatus(running).status, "running");
 
-  const done = endRound(root, { runId: "run-1", producedEvidence: true });
+  const done = endRound(root, { runId: "run-1", producedEvidence: true , tokensUnknown: true });
   assert.equal(orchestratorStatus(done).status, "ready");
 
   setSettings(root, { max_rounds: 1 });
@@ -193,7 +193,7 @@ test("无新证据累加停滞计数，达到阈值后退出循环", () => {
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   setSettings(root, { enabled: true, reason: "开工" });
   for (let i = 1; i <= STALL_THRESHOLD; i++) {
-    endRound(root, { runId: `r${i}`, producedEvidence: false });
+    endRound(root, { runId: `r${i}`, producedEvidence: false , tokensUnknown: true });
   }
   const stalled = loadOrchestrator(root);
   assert.equal(stalled.run.stall_rounds, STALL_THRESHOLD);
@@ -206,9 +206,9 @@ test("有新证据会重置停滞计数", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   setSettings(root, { enabled: true, reason: "开工" });
-  endRound(root, { runId: "a", producedEvidence: false });
-  endRound(root, { runId: "b", producedEvidence: false });
-  endRound(root, { runId: "c", producedEvidence: true });
+  endRound(root, { runId: "a", producedEvidence: false , tokensUnknown: true });
+  endRound(root, { runId: "b", producedEvidence: false , tokensUnknown: true });
+  endRound(root, { runId: "c", producedEvidence: true , tokensUnknown: true });
   const file = loadOrchestrator(root);
   assert.equal(file.run.stall_rounds, 0);
   assert.equal(file.run.round_count, 3);
@@ -220,7 +220,7 @@ test("连续失败达到阈值触发退出，且重置停滞计数", () => {
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   setSettings(root, { enabled: true, reason: "开工" });
   for (let i = 0; i < FAIL_EXIT_THRESHOLD; i++) {
-    endRound(root, { runId: `f${i}`, producedEvidence: true, failure: "额度已耗尽" });
+    endRound(root, { runId: `f${i}`, producedEvidence: true, failure: "额度已耗尽" , tokensUnknown: true });
   }
   const file = loadOrchestrator(root);
   assert.equal(file.run.consecutive_failures, FAIL_EXIT_THRESHOLD);
@@ -235,8 +235,8 @@ test("同一时间只允许一轮，且结束轮次必须匹配 runId", () => {
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, "run-a");
   assert.throws(() => beginRound(root, "run-b"), /只允许一轮/);
-  assert.throws(() => endRound(root, { runId: "run-b", producedEvidence: true }), /拒绝记账/);
-  const ended = endRound(root, { runId: "run-a", producedEvidence: true });
+  assert.throws(() => endRound(root, { runId: "run-b", producedEvidence: true, tokensUnknown: true }), /拒绝记账/);
+  const ended = endRound(root, { runId: "run-a", producedEvidence: true , tokensUnknown: true });
   assert.equal(ended.run.active_run_id, null);
 });
 
@@ -244,7 +244,7 @@ test("结束一个轮次后允许再开一轮", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, "run-a");
-  endRound(root, { runId: "run-a", producedEvidence: true });
+  endRound(root, { runId: "run-a", producedEvidence: true , tokensUnknown: true });
   const again = beginRound(root, "run-a");
   assert.equal(again.run.active_run_id, "run-a");
 });
@@ -260,7 +260,7 @@ test("日志有界，不会无限膨胀", () => {
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   setSettings(root, { enabled: true, reason: "开工" });
   for (let i = 0; i < 40; i++) {
-    endRound(root, { runId: `l${i}`, producedEvidence: i % 2 === 0 });
+    endRound(root, { runId: `l${i}`, producedEvidence: i % 2 === 0 , tokensUnknown: true });
   }
   const file = loadOrchestrator(root);
   assert.ok(file.log.length <= 20, `日志应截断，实际 ${file.log.length}`);
@@ -326,7 +326,7 @@ test("编排工具端到端：目标 → 开关 → 开轮 → 停滞退出，ge
   const again = await call("record_round", { action: "begin", run_id: "wf-2" });
   assert.equal(again.isError, true, "同一时间只允许一轮");
 
-  const end = await call("record_round", { action: "end", run_id: "wf-1", produced_evidence: false });
+  const end = await call("record_round", { action: "end", run_id: "wf-1", produced_evidence: false, tokens_used: 1200 });
   assert.ok(!end.isError, textOf(end));
   assert.match(textOf(end), /轮次 1\/40/);
 
@@ -371,7 +371,7 @@ test("end 声称有证据但源码与报告都没变：降级为无证据并计�
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, { runId: "ev-2", kind: "manual" });
-  const after = endRound(root, { runId: "ev-2", producedEvidence: true });
+  const after = endRound(root, { runId: "ev-2", producedEvidence: true , tokensUnknown: true });
   assert.equal(after.run.stall_rounds, 1, "无实际产出却声称有证据，应记停滞");
   assert.match(after.log[after.log.length - 1]!.note, /声称有证据但源码与质量报告都没变/);
 });
@@ -381,7 +381,7 @@ test("end 声称有证据且源码确实变化：正常清零停滞", () => {
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, { runId: "ev-3", kind: "cli" });
   fs.writeFileSync(path.join(root, "changed.ts"), "export const changed = 1;\n", "utf8");
-  const after = endRound(root, { runId: "ev-3", producedEvidence: true });
+  const after = endRound(root, { runId: "ev-3", producedEvidence: true , tokensUnknown: true });
   assert.equal(after.run.stall_rounds, 0);
   assert.match(after.log[after.log.length - 1]!.note, /有新证据/);
 });
@@ -390,7 +390,7 @@ test("end 显式传 produced_evidence:false 时不误报降级", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, { runId: "ev-4", kind: "manual" });
-  const after = endRound(root, { runId: "ev-4", producedEvidence: false });
+  const after = endRound(root, { runId: "ev-4", producedEvidence: false , tokensUnknown: true });
   assert.equal(after.run.stall_rounds, 1);
   assert.match(after.log[after.log.length - 1]!.note, /无新证据/);
   assert.ok(!/声称有证据/.test(after.log[after.log.length - 1]!.note));
@@ -400,7 +400,7 @@ test("失败轮不受证据核验影响，走连续失败计数", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, { runId: "ev-5", kind: "workflow" });
-  const after = endRound(root, { runId: "ev-5", producedEvidence: true, failure: "额度耗尽" });
+  const after = endRound(root, { runId: "ev-5", producedEvidence: true, failure: "额度耗尽" , tokensUnknown: true });
   assert.equal(after.run.consecutive_failures, 1);
   assert.equal(after.run.stall_rounds, 0);
 });
@@ -409,7 +409,7 @@ test("end 清零运行指针与基线：不留过期状态", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, { runId: "ev-6", kind: "cli" });
-  const after = endRound(root, { runId: "ev-6", producedEvidence: false });
+  const after = endRound(root, { runId: "ev-6", producedEvidence: false , tokensUnknown: true });
   assert.equal(after.run.active_run_id, null);
   assert.equal(after.run.active_run_kind, null);
   assert.equal(after.run.round_baseline, null);
@@ -445,6 +445,40 @@ test("未上报 token 时不改变累计值（不伪造消耗）", () => {
   const root = proj();
   setGoal(root, { objective: "完成", acceptance: "测试全绿" });
   beginRound(root, { runId: "tk-3", kind: "manual" });
-  const after = endRound(root, { runId: "tk-3", producedEvidence: false });
+  const after = endRound(root, { runId: "tk-3", producedEvidence: false , tokensUnknown: true });
   assert.equal(after.run.tokens_used, 0);
+});
+
+/* ------------------------- 成本上报硬约束（协议） ------------------------- */
+
+test("end 既不给 tokens_used 也不声明 tokens_unknown 时直接拒绝", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "p-1", kind: "cli" });
+  assert.throws(
+    () => endRound(root, { runId: "p-1", producedEvidence: false }),
+    /必须上报本轮成本/,
+  );
+  // 拒绝后轮次仍在飞，调用方补上字段即可正常收轮
+  assert.equal(loadOrchestrator(root).run.active_run_id, "p-1");
+  const ok = endRound(root, { runId: "p-1", producedEvidence: false, tokensUnknown: true });
+  assert.equal(ok.run.active_run_id, null);
+});
+
+test("声明 tokens_unknown 会被单独计数，不计入 token 累计", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "p-2", kind: "manual" });
+  const after = endRound(root, { runId: "p-2", producedEvidence: false, tokensUnknown: true });
+  assert.equal(after.run.tokens_used, 0);
+  assert.equal(after.run.protocol.tokens_unknown_rounds, 1);
+});
+
+test("证据降级会被累计计数，供状态查询暴露", () => {
+  const root = proj();
+  setGoal(root, { objective: "完成", acceptance: "测试全绿" });
+  beginRound(root, { runId: "p-3", kind: "cli" });
+  const after = endRound(root, { runId: "p-3", producedEvidence: true, tokensUsed: 100 });
+  assert.equal(after.run.protocol.evidence_downgrades, 1);
+  assert.equal(after.run.stall_rounds, 1);
 });

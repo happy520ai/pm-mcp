@@ -1,5 +1,5 @@
 {
-  "seq": 87,
+  "seq": 88,
   "sessions": [
     {
       "id": "S-0001",
@@ -2016,6 +2016,29 @@
       },
       "next_steps": [
         "后续轮次按 AGENTS.md 新约定：begin 带 run_kind、end 上报 tokens_used、无产出如实传 produced_evidence:false"
+      ]
+    },
+    {
+      "id": "S-0088",
+      "date": "2026-10-28T02:00:14.115Z",
+      "author": "zcode",
+      "summary": "把「诚实记账」从约定升级为机制：①record_round(end) 硬约束——tokens_used 与 tokens_unknown 两者必传其一，省略直接报错（拒绝后轮次仍在飞，补字段即可收轮），旧 prompt 无法再静默跳过成本上报；②RunState 新增 protocol 计数（tokens_unknown_rounds / evidence_downgrades），让「没上报成本」「证据被降级」在状态里可见而非埋在日志；③get_orchestrator 每次输出「本轮协议」硬约束说明与合规偏离计数——心跳每次 tick 第一步读它，旧 prompt 也能看到该做什么；④get_status structuredContent 补 max_total_tokens/tokens_used/protocol 字段；⑤README docs 索引句改写为读者视角（何时需要、里面有什么）；⑥AGENTS.md 与 README 同步硬约束。orchestrator 测试 30→33 项全过。",
+      "files": [
+        "README.md",
+        "src/orchestrator.ts",
+        "src/orchestrator-tools.ts",
+        "src/project-tools.ts",
+        "test/orchestrator.test.ts"
+      ],
+      "file_hashes": {
+        "README.md": "ab3316f5f5d699ef2e54fa63857ccf273ccfe1969e5bc4df591a0049ad6e6c86",
+        "src/orchestrator.ts": "c1795f396ebcab0d4d04b750f03d32a5cea3d497b0a06a1131e7c28108f7d5da",
+        "src/orchestrator-tools.ts": "ddae11e2a91d0684e76b19bee31c7711c1c032c5c9a16a72e78aea2f38757a2c",
+        "src/project-tools.ts": "d75862381921befddb40c4c4e64fb32a05c15d6b83b5d1fc680ceafc8c408d20",
+        "test/orchestrator.test.ts": "6e78c8edc0581fd5a3cada28eea29cac03b331a239c93832f4d11f92a0203a89"
+      },
+      "next_steps": [
+        "提交后重启/重连让 58→59 工具目录生效（新增字段非新工具，目录数不变）"
       ]
     }
   ]

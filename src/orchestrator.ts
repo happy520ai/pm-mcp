@@ -59,6 +59,13 @@ export const RunStateSchema = z.object({
   round_count: z.number().int().min(0).default(0),
   /** 累计消耗 token：由 end 逐轮累加（外部上报），用于 max_total_tokens 判定 */
   tokens_used: z.number().int().min(0).default(0),
+  /** 协议合规计数：让「没上报成本」「证据被降级」在状态里可见，而不是只埋在日志 */
+  protocol: z.object({
+    /** 显式声明无法测量 token 的轮次数 */
+    tokens_unknown_rounds: z.number().int().min(0).default(0),
+    /** 声称有证据但被核验降级的轮次数（空转冒充产出的累计证据） */
+    evidence_downgrades: z.number().int().min(0).default(0),
+  }).default({}),
   stall_rounds: z.number().int().min(0).default(0),
   consecutive_failures: z.number().int().min(0).default(0),
   last_round_at: z.string().nullable().default(null),
@@ -106,6 +113,7 @@ export function defaultOrchestrator(): OrchestratorFile {
       round_baseline: null,
       round_count: 0,
       tokens_used: 0,
+      protocol: { tokens_unknown_rounds: 0, evidence_downgrades: 0 },
       stall_rounds: 0,
       consecutive_failures: 0,
       last_round_at: null,
@@ -385,10 +393,17 @@ export interface EndRoundInput {
   failure?: string;
   /** 本轮实际消耗 token（由执行器上报）；累计进 run.tokens_used */
   tokensUsed?: number;
+  /** 确实无法测量时的显式声明；与 tokensUsed 二选一，省略两者会被拒绝 */
+  tokensUnknown?: boolean;
 }
 
 /** 一轮结束：清零 active_run_id、推进轮数、判定停滞与连续失败退出 */
 export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
+  // 协议硬约束：成本必须被明确交代。静默省略会让 token 预算变成一句空话，
+  // 所以宁可直接报错要求调用方补上，也不接受「装作没这回事」。
+  if (input.tokensUsed === undefined && !input.tokensUnknown) {
+    throw new Error("record_round(end) 必须上报本轮成本：传 tokens_used（实际消耗）或 tokens_unknown:true（确实无法测量）。两者都不传会让 token 预算失效，已被拒绝。");
+  }
   const evidence = roundEvidence(root, readOrchestrator(root).value.run.round_baseline);
   const claimsEvidence = input.producedEvidence && !input.failure;
   // 声称有产出、但源码没变也没有新质量报告：按无证据处理，不让空转冒充成果
@@ -407,8 +422,11 @@ export function endRound(root: string, input: EndRoundInput): OrchestratorFile {
     run.last_round_at = at;
     if (input.tokensUsed !== undefined && Number.isFinite(input.tokensUsed) && input.tokensUsed > 0) {
       run.tokens_used += Math.floor(input.tokensUsed);
+    } else if (input.tokensUnknown) {
+      run.protocol.tokens_unknown_rounds += 1;
     }
 
+    if (downgraded) run.protocol.evidence_downgrades += 1;
     if (input.failure) {
       run.consecutive_failures += 1;
       run.stall_rounds = 0;

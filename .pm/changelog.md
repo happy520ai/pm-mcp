@@ -2,6 +2,14 @@
 
 ## 2026-10-28 — zcode
 
+把「诚实记账」从约定升级为机制：①record_round(end) 硬约束——tokens_used 与 tokens_unknown 两者必传其一，省略直接报错（拒绝后轮次仍在飞，补字段即可收轮），旧 prompt 无法再静默跳过成本上报；②RunState 新增 protocol 计数（tokens_unknown_rounds / evidence_downgrades），让「没上报成本」「证据被降级」在状态里可见而非埋在日志；③get_orchestrator 每次输出「本轮协议」硬约束说明与合规偏离计数——心跳每次 tick 第一步读它，旧 prompt 也能看到该做什么；④get_status structuredContent 补 max_total_tokens/tokens_used/protocol 字段；⑤README docs 索引句改写为读者视角（何时需要、里面有什么）；⑥AGENTS.md 与 README 同步硬约束。orchestrator 测试 30→33 项全过。
+
+改动文件（5）: README.md, src/orchestrator.ts, src/orchestrator-tools.ts, src/project-tools.ts, test/orchestrator.test.ts
+
+下一步: 提交后重启/重连让 58→59 工具目录生效（新增字段非新工具，目录数不变）
+
+## 2026-10-28 — zcode
+
 按缺陷方案全量修复：①轮次证据核验——begin 记录源码指纹+最新质量报告基线，end 声称有证据时核验是否真变化，没变则降级为无证据并计入停滞（拦「空转冒充产出」）；②运行指针结构化——新增 run_kind（workflow|cli|manual），自愈时可据此回查真实状态；③token 记账与预算——counters 逐轮累加 tokens_used，max_total_tokens 达上限判 budget-exhausted；④README 拆分 564→484 行（客户端接入细节外移到 docs/clients.md，仍在 500 预算内）；⑤覆盖率门槛收紧 lines 90→95、functions 90→93（实测 96.29/86.38/93.87）；⑥复核 11 项 accepted 安全风险，逐条按当前行号核实为测试 fixture 拼接假值/规则样例，结论落 D-0028。orchestrator 测试 21→30 项全过。
 
 改动文件（8）: AGENTS.md, README.md, package.json, src/orchestrator.ts, src/orchestrator-tools.ts, test/orchestrator.test.ts, docs/clients.md, .pm/debuglog.json

@@ -88,7 +88,7 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
     },
   );
 
-  toolI<{ action: "begin" | "end"; run_id: string; run_kind?: "workflow" | "cli" | "manual"; produced_evidence?: boolean; failure?: string; tokens_used?: number }>(
+  toolI<{ action: "begin" | "end"; run_id: string; run_kind?: "workflow" | "cli" | "manual"; produced_evidence?: boolean; failure?: string; tokens_used?: number; tokens_unknown?: boolean }>(
     server, startupRoot,
     "record_round",
     "记录一轮自动执行的开始与结束，驱动停滞检测、连续失败退出与轮数预算。由外部定时任务/workflow 调用。begin 会记录源码/质量报告基线；end 声称有证据时会核验是否真的变了源码或有新报告——空转冒充产出会被降级为无证据。",
@@ -98,14 +98,15 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
       run_kind: z.enum(["workflow", "cli", "manual"]).optional().describe("begin 时填：本轮由哪种执行器承载，缺省 manual"),
       produced_evidence: z.boolean().optional().describe("end 时填：本轮是否产出新的可核验证据（测试报告/源码变更）。连续无证据会判定停滞并自动停止。"),
       failure: z.string().optional().describe("end 时填：本轮失败的简短原因（如额度耗尽）。连续失败达到阈值会退出循环。"),
-      tokens_used: z.number().int().min(0).optional().describe("end 时填：本轮实际消耗 token，累计进台账用于 max_total_tokens 判定"),
+      tokens_used: z.number().int().min(0).optional().describe("end 时必填其一：本轮实际消耗 token，累计进台账用于 max_total_tokens 判定"),
+      tokens_unknown: z.boolean().optional().describe("end 时必填其一：确实无法测量 token 时显式传 true。与 tokens_used 二选一，省略两者会被拒绝"),
     },
     (args, ctx) => {
       const root = ctx.root;
       requireInitialized(root);
       const file = args.action === "begin"
         ? beginRound(root, { runId: args.run_id, kind: args.run_kind })
-        : endRound(root, { runId: args.run_id, producedEvidence: args.produced_evidence ?? true, failure: args.failure?.trim() || undefined, tokensUsed: args.tokens_used });
+        : endRound(root, { runId: args.run_id, producedEvidence: args.produced_evidence ?? true, failure: args.failure?.trim() || undefined, tokensUsed: args.tokens_used, tokensUnknown: args.tokens_unknown });
       const { status, reason } = orchestratorStatus(file);
       refreshDerived(root);
       const parts = [
@@ -145,6 +146,19 @@ export function registerOrchestratorTools(server: McpServer, startupRoot: string
         `停滞: ${file.run.stall_rounds}/${STALL_THRESHOLD} · 连续失败: ${file.run.consecutive_failures}/${FAIL_EXIT_THRESHOLD}`,
         `台账: ${health}${issue ? `（${issue}）` : ""}`,
       ];
+      // 协议与合规状态必须印在这里：心跳每次 tick 第一步就读它，
+      // 这样即使外部 prompt 还是旧文本，也会看到该补什么、以及上一轮偏没偏离。
+      L.push("", "## 本轮协议（record_round 硬约束）");
+      L.push("- begin：带 run_id 与 run_kind（workflow|cli|manual），会记录源码指纹与质量报告基线");
+      L.push("- end：必须上报成本——tokens_used（实际消耗）或 tokens_unknown:true（无法测量），两者都省会被拒绝");
+      L.push("- end：produced_evidence:true 会核验源码/质量报告是否真变化，没变则降级为无证据并计入停滞；真无产出请传 false");
+      const p = file.run.protocol;
+      if (p.tokens_unknown_rounds > 0 || p.evidence_downgrades > 0) {
+        L.push(`- ⚠️ 合规偏离累计：未上报成本 ${p.tokens_unknown_rounds} 轮 · 证据被降级 ${p.evidence_downgrades} 轮`);
+      } else {
+        L.push("- ✅ 至今无协议偏离");
+      }
+
       const recent = file.log.slice(-10).reverse();
       if (recent.length > 0) {
         L.push("", "## 最近记录");

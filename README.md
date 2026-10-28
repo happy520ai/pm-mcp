@@ -120,7 +120,7 @@ npx -y @luckychen1993/pm-mcp@0.1.5 setup --client codex --project
 
 ### 客户端官方命令（自动检测失败时备用）
 
-各客户端（Codex / Claude Code / ZCode / Cursor / VS Code / WorkBuddy / Qoder）的手工配置备用命令、适配器写法与核验步骤已移到 [docs/clients.md](docs/clients.md)。
+自动检测偶尔漏掉非标准安装路径或特殊目录。这时按客户端查手工配置——Codex / Claude Code / ZCode / Cursor / VS Code / WorkBuddy 各自的推荐命令，Qoder 的适配器写法与多窗口工作区认领，以及每步的重连核验方法，都在 [docs/clients.md](docs/clients.md)。
 
 ### 环境变量与参数
 
@@ -261,6 +261,8 @@ Windows 注意：CLI 的模型凭据来自其自身配置，`providerOrder` 需�
 
 - `max_rounds: null` 时跳过 `budget-exhausted` 判定，只剩停滞（3 轮无新证据）与连续失败（2 轮）两个进度型刹车。
 - `max_total_tokens` 累计 token 上限（`end` 时由执行器上报 `tokens_used` 累加），达到即判 `budget-exhausted`；`null` = 不限。一次纯文档轮曾烧掉 543 万 token，没有成本上限就没有防线。
+- **成本上报是硬约束**：`end` 必须传 `tokens_used` 或显式 `tokens_unknown: true`，两者都省略会被直接拒绝——这不是提示，是报错。prompt 再旧也糊弄不过去。拒绝后轮次仍在飞，补上字段即可正常收轮。
+- `get_orchestrator` 每次都输出「本轮协议」与合规偏离计数（未上报成本几轮、证据被降级几轮）——心跳第一步读它，所以旧 prompt 也能看到该做什么。
 - `max_hours: null` 时界面显示「不限」；**小时上限目前只参与展示与回显，不参与状态判定**——代码没有按 `started_at` 计算已用时长，也没有任何状态取值源自小时预算。
 - `get_orchestrator` / `set_orchestrator` / `record_round` 的文本输出由 `budgetLabel` 渲染为 `<已跑>/<轮数上限> 轮（上限 <小时>h 或 不限）`，例如 `7/40 轮（上限 24h）`、`7/不限 轮（上限 不限）`。`PROJECT.md` 仪表盘的「自动编排」行由 `src/dashboard.ts` 自行拼接，只显示 `轮次 <已跑>/<轮数上限>`（null 显示「不限」），**不含**小时上限。
 - `get_status` 的 `structuredContent` 里 `max_rounds` / `max_hours` 是 JSON `null`（不是字符串「不限」）；`get_orchestrator` 目前**没有**结构化载荷（注册时未传 presentation），只有文本内容——依赖 structuredContent 的调用方要改读 `get_status`。
