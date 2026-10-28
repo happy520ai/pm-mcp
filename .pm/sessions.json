@@ -1,5 +1,5 @@
 {
-  "seq": 98,
+  "seq": 99,
   "sessions": [
     {
       "id": "S-0001",
@@ -2261,6 +2261,22 @@
         "重跑 npm run gate",
         "提交并打 v0.8.0 tag",
         "创建 GitHub Release 与 npm 发布"
+      ]
+    },
+    {
+      "id": "S-0099",
+      "date": "2026-10-28T17:02:38.602Z",
+      "author": "qoder",
+      "summary": "发布工作流切换到 0.8.0：GitHub Release tarball、实测 SHA256 校验值与发布版本号同步。",
+      "files": [
+        ".github/workflows/publish-npm.yml"
+      ],
+      "file_hashes": {
+        ".github/workflows/publish-npm.yml": "4aaa198e75e2dc8e8ac9c90d3994202bdc4520bf2c40fb483d99efe5552e433b"
+      },
+      "next_steps": [
+        "触发 Publish 工作流 publish=true",
+        "核对 npm 0.8.0 与 dist-tags"
       ]
     }
   ]

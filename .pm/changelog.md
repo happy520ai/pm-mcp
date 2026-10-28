@@ -2,6 +2,14 @@
 
 ## 2026-10-28 — qoder
 
+发布工作流切换到 0.8.0：GitHub Release tarball、实测 SHA256 校验值与发布版本号同步。
+
+改动文件（1）: .github/workflows/publish-npm.yml
+
+下一步: 触发 Publish 工作流 publish=true；核对 npm 0.8.0 与 dist-tags
+
+## 2026-10-28 — qoder
+
 准备 0.8.0 发布：版本与 lockfile 升级、README 发布说明、验收基线 1.4.0（产品版本同步，阈值保持 59）。
 
 改动文件（3）: README.md, package.json, package-lock.json
