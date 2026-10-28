@@ -8,6 +8,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
 import { initProject } from "../src/init.ts";
 import { closeIndex, ensureFresh, freshness, getIndex, startWatcher } from "../src/index-store.ts";
+import { isTransientActivationError } from "../src/watcher-coordinator.ts";
 
 const agentCount = 20;
 
@@ -44,10 +45,20 @@ function childProgram(moduleUrl: string): string {
     const [root, flagDir] = process.argv.slice(1);
     const flagFile = flagDir + "/watcher-" + process.pid + ".flag";
     const originalWatch = fs.watch;
+    // 按进程计数：close 事件是异步的，同一进程「激活→降级→再激活」时迟到的回调
+    // 会把新旗标删掉，导致持有者被少计。计数归零才删除旗标。
+    let openWatchers = 0;
     fs.watch = function (...args) {
       const watcher = originalWatch.apply(this, args);
-      fs.writeFileSync(flagFile, String(process.pid), "utf8");
-      watcher.on("close", () => { try { fs.rmSync(flagFile, { force: true }); } catch {} });
+      openWatchers += 1;
+      fs.writeFileSync(flagFile, String(openWatchers), "utf8");
+      watcher.on("close", () => {
+        openWatchers -= 1;
+        try {
+          if (openWatchers > 0) fs.writeFileSync(flagFile, String(openWatchers), "utf8");
+          else fs.rmSync(flagFile, { force: true });
+        } catch {}
+      });
       return watcher;
     };
     const { startWatcher } = await import(${JSON.stringify(moduleUrl)});
@@ -183,4 +194,27 @@ test("watcher 的 SQLITE_BUSY 不得吞成成功，必须留下 dirty 并由精�
     closeIndex(root);
     fs.rmSync(base, { recursive: true, force: true });
   }
+});
+
+test("瞬态激活错误被识别为可重试，真故障不算", () => {
+  const transient = [
+    "disk I/O error",
+    "SQLITE_IOERR: disk I/O error",
+    "database is locked",
+    "database is busy",
+    "SQLITE_BUSY",
+    "EBUSY: resource busy or locked",
+  ];
+  for (const message of transient) {
+    assert.equal(isTransientActivationError(new Error(message)), true, message);
+  }
+  const real = [
+    "EACCES: permission denied",
+    "ENOENT: no such file or directory",
+    "watcher coordinator unavailable",
+  ];
+  for (const message of real) {
+    assert.equal(isTransientActivationError(new Error(message)), false, message);
+  }
+  assert.equal(isTransientActivationError("plain string error"), false);
 });

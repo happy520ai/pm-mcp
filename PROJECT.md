@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-28T02:03:23.909Z
+> 生成时间: 2026-10-28T07:07:21.346Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -38,13 +38,13 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(42), package.json(22), PROJECT.md(18) |
+| churn（变更率） | ⚠️ 热点 README.md(45), package.json(25), PROJECT.md(18) |
 | 安全 | ✅ 无未处理发现 |
 | 调试知识 | 28 条记录 |
 | 测试背书 | 34/34 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-28 02:03（命令 4/4；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-10-28 02:03（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-10-28 07:07（命令 4/4；证据 tests_observed） |
+| 标准化验收 | ✅ 2026-10-28 07:07（需求 33/33，errors 0） |
 | 自动编排 | ✅ ready（可执行下一轮（4/不限 轮（上限 不限）））· 并发 8 · 轮次 4/不限 |
 
 ## 🧭 模块与语言治理
@@ -114,15 +114,16 @@ flowchart LR
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 
 ## 📜 最近会话
+- 2026-10-28 [zcode] 0.7.0 发布就绪：版本号 bump、README 发布说明、dist 重建、gate 全绿（quality-20261028-070102-337、acceptance errors=0）、npm pack 得到 luckychen1993-pm-mcp-0.7.0.tgz（SHA256 c82c869f…），publish-npm.yml 的 TARBALL/EXPECTED_SHA256/concurrency/描述/Release 路径全部指向 0.7.0。
+  - 改动: .github/workflows/publish-npm.yml, package.json, README.md, src/watcher-coordinator.ts, test/watcher-leader.test.ts
+- 2026-10-28 [zcode] 发布前根治 watcher-leader 偶发失败（两层根因）：①测试旗标计数在「激活→降级→再激活」时被异步 close 回调误删（改按进程计数，归零才删）；②真正的产品问题——覆盖率插桩加重 I/O 后 20 进程并发开 SQLite 索引库会撞 disk I/O error，而协调器把瞬态错误按故障上报到 stderr。新增 isTransientActivationError 分类，瞬态错误静默重试、连续 3 次才上报。覆盖率插桩下连跑两次 387/387 全绿。
+  - 改动: src/watcher-coordinator.ts, test/watcher-leader.test.ts, README.md, package.json
+- 2026-10-28 [zcode] 0.7.0 发布准备：版本号 0.6.1→0.7.0，README 顶部补 0.7.0 发布说明（编排闭环/证据核验/成本硬约束/双桥/基线 1.2.0），dist 重建。gate 因改动未记会话证据报红旗，记账后复跑。
+  - 改动: README.md, package.json, dist/orchestrator.js
 - 2026-10-28 [zcode] 把「诚实记账」从约定升级为机制：①record_round(end) 硬约束——tokens_used 与 tokens_unknown 两者必传其一，省略直接报错（拒绝后轮次仍在飞，补字段即可收轮），旧 prompt 无法再静默跳过成本上报；②RunState 新增 protocol 计数（tokens_unknown_rounds / evidence_downgrades），让「没上报成本」「证据被降级」在状态里可见而非埋在日志；③get_orchestrator 每次输出「本轮协议」硬约束说明与合规偏离计数——心跳每次 tick 第一步读它，旧 prompt 也能看到该做什么；④get_status structuredContent 补 max_total_tokens/tokens_used/protocol 字段；⑤README docs 索引句改写为读者视角（何时需要、里面有什么）；⑥AGENTS.md 与 README 同步硬约束。orchestrator 测试 30→33 项全过。
   - 改动: README.md, src/orchestrator.ts, src/orchestrator-tools.ts, src/project-tools.ts, test/orchestrator.test.ts
 - 2026-10-28 [zcode] 按缺陷方案全量修复：①轮次证据核验——begin 记录源码指纹+最新质量报告基线，end 声称有证据时核验是否真变化，没变则降级为无证据并计入停滞（拦「空转冒充产出」）；②运行指针结构化——新增 run_kind（workflow|cli|manual），自愈时可据此回查真实状态；③token 记账与预算——counters 逐轮累加 tokens_used，max_total_tokens 达上限判 budget-exhausted；④README 拆分 564→484 行（客户端接入细节外移到 docs/clients.md，仍在 500 预算内）；⑤覆盖率门槛收紧 lines 90→95、functions 90→93（实测 96.29/86.38/93.87）；⑥复核 11 项 accepted 安全风险，逐条按当前行号核实为测试 fixture 拼接假值/规则样例，结论落 D-0028。orchestrator 测试 21→30 项全过。
   - 改动: AGENTS.md, README.md, package.json, src/orchestrator.ts, src/orchestrator-tools.ts, test/orchestrator.test.ts, docs/clients.md, .pm/debuglog.json
-- 2026-10-28 [zcode] 全部修掉收尾：①watcher-leader flaky 根因修复——marker 文件只追加永不清理、断言历史唯一 PID 数，竞态下瞬时 watch 永久污染计数；改为每进程拿到 fs.watch 时写旗标文件、watcher 关闭时删除，断言「当前持有者」数量，不变量不变（单 owner、强杀后有界接管），单跑 5 次全绿 + 全套件 374/374 并发跑两轮均绿；②双桥派发约定（ADR-010）写进 AGENTS.md 持久段落——任何新会话/CLI 会话自动加载，派发不再依赖对话历史；③T-077 收尾置 done。gate EXIT=0（quality PASS、acceptance errors=0），提交 6015aa2。
-  - 改动: AGENTS.md, test/watcher-leader.test.ts, .pm/tasks.json, .pm/sessions.json, .pm/changelog.md, PROJECT.md
-- 2026-10-28 [?] T-077 桥二落地：CLI 会话登录验证与派发切换：双桥全部落地并验证：桥二（spawn 无头 zcode CLI 会话）经探针与自主真实轮（领卡 T-078、改文档、跑门禁、撞审计红旗后自行补 log_session 复跑）验证通过，循环不再依赖宿主对话；CLI 执行按 providerOrder[0] 取供应商的 401 已修（unified-key-pool 挪队首，原文件已备份）；watcher-leader flaky 根因修复（当前持有者计数，负载下 5 连跑 + 并发全套件均绿）；双桥派发约定写进 AGENTS.md 持久段落，任何新会话自动加载。
-  - 改动: README.md
-- 2026-10-27 [?] T-077 桥二落地：CLI 会话登录验证与派发切换：桥二真实轮通过：spawn 的 CLI 会话自主完成开轮→领卡 T-078→改 README→跑门禁（撞审计红旗后自行补 log_session 复跑）→置 done→收轮；心跳独立复核 gate 一次命中已知 flaky（watcher-leader，隔离即过），复跑 EXIT=0 全绿并提交 0e0e66f。
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

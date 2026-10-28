@@ -2,6 +2,30 @@
 
 ## 2026-10-28 — zcode
 
+0.7.0 发布就绪：版本号 bump、README 发布说明、dist 重建、gate 全绿（quality-20261028-070102-337、acceptance errors=0）、npm pack 得到 luckychen1993-pm-mcp-0.7.0.tgz（SHA256 c82c869f…），publish-npm.yml 的 TARBALL/EXPECTED_SHA256/concurrency/描述/Release 路径全部指向 0.7.0。
+
+改动文件（5）: .github/workflows/publish-npm.yml, package.json, README.md, src/watcher-coordinator.ts, test/watcher-leader.test.ts
+
+下一步: 提交发布改动并打 tag v0.7.0；创建 GitHub Release 并上传 tarball（需要 gh 或 API token）；dispatch publish-npm.yml（publish=true）
+
+## 2026-10-28 — zcode
+
+发布前根治 watcher-leader 偶发失败（两层根因）：①测试旗标计数在「激活→降级→再激活」时被异步 close 回调误删（改按进程计数，归零才删）；②真正的产品问题——覆盖率插桩加重 I/O 后 20 进程并发开 SQLite 索引库会撞 disk I/O error，而协调器把瞬态错误按故障上报到 stderr。新增 isTransientActivationError 分类，瞬态错误静默重试、连续 3 次才上报。覆盖率插桩下连跑两次 387/387 全绿。
+
+改动文件（4）: src/watcher-coordinator.ts, test/watcher-leader.test.ts, README.md, package.json
+
+下一步: gate 绿后提交、npm pack、更新 publish workflow、打 tag、建 release
+
+## 2026-10-28 — zcode
+
+0.7.0 发布准备：版本号 0.6.1→0.7.0，README 顶部补 0.7.0 发布说明（编排闭环/证据核验/成本硬约束/双桥/基线 1.2.0），dist 重建。gate 因改动未记会话证据报红旗，记账后复跑。
+
+改动文件（3）: README.md, package.json, dist/orchestrator.js
+
+下一步: gate 复跑全绿后提交、打包、更新 publish workflow、打 tag
+
+## 2026-10-28 — zcode
+
 把「诚实记账」从约定升级为机制：①record_round(end) 硬约束——tokens_used 与 tokens_unknown 两者必传其一，省略直接报错（拒绝后轮次仍在飞，补字段即可收轮），旧 prompt 无法再静默跳过成本上报；②RunState 新增 protocol 计数（tokens_unknown_rounds / evidence_downgrades），让「没上报成本」「证据被降级」在状态里可见而非埋在日志；③get_orchestrator 每次输出「本轮协议」硬约束说明与合规偏离计数——心跳每次 tick 第一步读它，旧 prompt 也能看到该做什么；④get_status structuredContent 补 max_total_tokens/tokens_used/protocol 字段；⑤README docs 索引句改写为读者视角（何时需要、里面有什么）；⑥AGENTS.md 与 README 同步硬约束。orchestrator 测试 30→33 项全过。
 
 改动文件（5）: README.md, src/orchestrator.ts, src/orchestrator-tools.ts, src/project-tools.ts, test/orchestrator.test.ts

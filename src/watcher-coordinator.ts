@@ -4,6 +4,18 @@ import { DatabaseSync } from "node:sqlite";
 
 const ELECTION_POLL_MS = 1_000;
 const ELECTION_BUSY_MS = 20;
+/** 瞬态激活失败连续多少次才当成真故障上报（此前一次 SQLITE_IOERR 就会写 stderr） */
+const TRANSIENT_ACTIVATION_REPORT_AFTER = 3;
+
+/**
+ * 激活 leader 时要打开索引库并建 fs.watch，高并发或磁盘繁忙时可能撞到瞬态错误。
+ * 这类错误下一轮轮询会自愈，不该按「项目出了问题」上报——否则任何一次瞬时
+ * 抖动都会变成审计里的业务错误（覆盖率插桩下 20 进程并发即可复现）。
+ */
+export function isTransientActivationError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /disk i\/o error|SQLITE_IOERR|database is locked|database is busy|SQLITE_BUSY|SQLITE_LOCKED|EBUSY|EAGAIN/i.test(message);
+}
 
 export interface WatcherCoordinator {
   stop(): void;
@@ -92,6 +104,7 @@ export function coordinateWatcherLeader(
   let timer: NodeJS.Timeout | null = null;
   let stopped = false;
   let unavailable = false;
+  let transientActivationFailures = 0;
 
   const relinquish = (): void => {
     try { cleanup?.(); } catch (error) { report("leader cleanup", error); }
@@ -122,8 +135,17 @@ export function coordinateWatcherLeader(
       const activated = activate();
       if (!activated) unavailable = true;
       else cleanup = activated;
+      transientActivationFailures = 0;
     } catch (error) {
-      report("leader activation", error);
+      // 瞬态 I/O/锁冲突：下一轮轮询会重试，静默放过；连续多次才说明是真问题
+      if (isTransientActivationError(error)) {
+        transientActivationFailures += 1;
+        if (transientActivationFailures >= TRANSIENT_ACTIVATION_REPORT_AFTER) {
+          report("leader activation", error);
+        }
+      } else {
+        report("leader activation", error);
+      }
     }
     if (!cleanup) relinquish();
     if (unavailable) {

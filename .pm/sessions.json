@@ -1,5 +1,5 @@
 {
-  "seq": 88,
+  "seq": 91,
   "sessions": [
     {
       "id": "S-0001",
@@ -2039,6 +2039,71 @@
       },
       "next_steps": [
         "提交后重启/重连让 58→59 工具目录生效（新增字段非新工具，目录数不变）"
+      ]
+    },
+    {
+      "id": "S-0089",
+      "date": "2026-10-28T06:17:48.238Z",
+      "author": "zcode",
+      "summary": "0.7.0 发布准备：版本号 0.6.1→0.7.0，README 顶部补 0.7.0 发布说明（编排闭环/证据核验/成本硬约束/双桥/基线 1.2.0），dist 重建。gate 因改动未记会话证据报红旗，记账后复跑。",
+      "files": [
+        "README.md",
+        "package.json",
+        "dist/orchestrator.js"
+      ],
+      "file_hashes": {
+        "README.md": "29a73de769282231ccc832a7aefd279a5a32c2d033945f430eb38d6ae4e517a5",
+        "package.json": "80413d2a56740057b1a49320670a57c1fc111cc53fa9159cbfab6a079508bb05",
+        "dist/orchestrator.js": "5cbb456f0dcd616fa067d0a10e5a55c2450e75d116633dbdde82f71198ca767e"
+      },
+      "next_steps": [
+        "gate 复跑全绿后提交、打包、更新 publish workflow、打 tag"
+      ]
+    },
+    {
+      "id": "S-0090",
+      "date": "2026-10-28T06:41:27.432Z",
+      "author": "zcode",
+      "summary": "发布前根治 watcher-leader 偶发失败（两层根因）：①测试旗标计数在「激活→降级→再激活」时被异步 close 回调误删（改按进程计数，归零才删）；②真正的产品问题——覆盖率插桩加重 I/O 后 20 进程并发开 SQLite 索引库会撞 disk I/O error，而协调器把瞬态错误按故障上报到 stderr。新增 isTransientActivationError 分类，瞬态错误静默重试、连续 3 次才上报。覆盖率插桩下连跑两次 387/387 全绿。",
+      "files": [
+        "src/watcher-coordinator.ts",
+        "test/watcher-leader.test.ts",
+        "README.md",
+        "package.json"
+      ],
+      "file_hashes": {
+        "src/watcher-coordinator.ts": "cc77e29e62f019677d0d7325da0c748cef4c92cbdd452b0cd809ec3cb161bf79",
+        "test/watcher-leader.test.ts": "a9899d02890ad07b09fc73a8d6e911607736f9de96551ae0a28a205c111b2941",
+        "README.md": "29a73de769282231ccc832a7aefd279a5a32c2d033945f430eb38d6ae4e517a5",
+        "package.json": "80413d2a56740057b1a49320670a57c1fc111cc53fa9159cbfab6a079508bb05"
+      },
+      "next_steps": [
+        "gate 绿后提交、npm pack、更新 publish workflow、打 tag、建 release"
+      ]
+    },
+    {
+      "id": "S-0091",
+      "date": "2026-10-28T07:03:42.481Z",
+      "author": "zcode",
+      "summary": "0.7.0 发布就绪：版本号 bump、README 发布说明、dist 重建、gate 全绿（quality-20261028-070102-337、acceptance errors=0）、npm pack 得到 luckychen1993-pm-mcp-0.7.0.tgz（SHA256 c82c869f…），publish-npm.yml 的 TARBALL/EXPECTED_SHA256/concurrency/描述/Release 路径全部指向 0.7.0。",
+      "files": [
+        ".github/workflows/publish-npm.yml",
+        "package.json",
+        "README.md",
+        "src/watcher-coordinator.ts",
+        "test/watcher-leader.test.ts"
+      ],
+      "file_hashes": {
+        ".github/workflows/publish-npm.yml": "c22d5d7300b9ef4eedf228fd242d8e1b75df69388b470a95a561eed81c4063c4",
+        "package.json": "80413d2a56740057b1a49320670a57c1fc111cc53fa9159cbfab6a079508bb05",
+        "README.md": "29a73de769282231ccc832a7aefd279a5a32c2d033945f430eb38d6ae4e517a5",
+        "src/watcher-coordinator.ts": "cc77e29e62f019677d0d7325da0c748cef4c92cbdd452b0cd809ec3cb161bf79",
+        "test/watcher-leader.test.ts": "a9899d02890ad07b09fc73a8d6e911607736f9de96551ae0a28a205c111b2941"
+      },
+      "next_steps": [
+        "提交发布改动并打 tag v0.7.0",
+        "创建 GitHub Release 并上传 tarball（需要 gh 或 API token）",
+        "dispatch publish-npm.yml（publish=true）"
       ]
     }
   ]

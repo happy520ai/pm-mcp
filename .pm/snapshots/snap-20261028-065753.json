@@ -1,0 +1,143 @@
+{
+  "taken_at": "2026-10-28T06:57:53.080Z",
+  "file": ".pm/snapshots/snap-20261028-065753.json",
+  "total_files": 150,
+  "total_loc": 29086,
+  "test_files": 55,
+  "skip_markers": 0,
+  "deps": [
+    "@ast-grep/lang-csharp",
+    "@ast-grep/lang-go",
+    "@ast-grep/lang-java",
+    "@ast-grep/lang-kotlin",
+    "@ast-grep/lang-python",
+    "@ast-grep/lang-rust",
+    "@ast-grep/napi",
+    "@modelcontextprotocol/sdk",
+    "typescript",
+    "zod",
+    "@types/node"
+  ],
+  "by_ext": [
+    {
+      "ext": "ts",
+      "files": 122,
+      "loc": 25140
+    },
+    {
+      "ext": "mts",
+      "files": 13,
+      "loc": 2737
+    },
+    {
+      "ext": "md",
+      "files": 4,
+      "loc": 768
+    },
+    {
+      "ext": "ps1",
+      "files": 1,
+      "loc": 160
+    },
+    {
+      "ext": "json",
+      "files": 3,
+      "loc": 107
+    },
+    {
+      "ext": "yml",
+      "files": 2,
+      "loc": 106
+    },
+    {
+      "ext": "(无扩展名)",
+      "files": 3,
+      "loc": 43
+    },
+    {
+      "ext": "mjs",
+      "files": 1,
+      "loc": 25
+    }
+  ],
+  "top_dirs": [
+    {
+      "dir": "src",
+      "files": 68,
+      "loc": 15275
+    },
+    {
+      "dir": "test",
+      "files": 54,
+      "loc": 9865
+    },
+    {
+      "dir": "scripts",
+      "files": 13,
+      "loc": 2737
+    },
+    {
+      "dir": ".",
+      "files": 11,
+      "loc": 973
+    },
+    {
+      "dir": ".github/workflows",
+      "files": 2,
+      "loc": 106
+    },
+    {
+      "dir": "docs",
+      "files": 1,
+      "loc": 105
+    },
+    {
+      "dir": "test/fixtures",
+      "files": 1,
+      "loc": 25
+    }
+  ],
+  "largest_files": [
+    {
+      "path": "src/language-adapters.ts",
+      "loc": 499
+    },
+    {
+      "path": "README.md",
+      "loc": 498
+    },
+    {
+      "path": "src/semantic-graph.ts",
+      "loc": 496
+    },
+    {
+      "path": "src/acceptance-model.ts",
+      "loc": 486
+    },
+    {
+      "path": "test/orchestrator.test.ts",
+      "loc": 485
+    },
+    {
+      "path": "src/index-store.ts",
+      "loc": 471
+    },
+    {
+      "path": "src/orchestrator.ts",
+      "loc": 454
+    },
+    {
+      "path": "src/idempotency.ts",
+      "loc": 453
+    },
+    {
+      "path": "src/portfolio.ts",
+      "loc": 447
+    },
+    {
+      "path": "test/setup.test.ts",
+      "loc": 445
+    }
+  ],
+  "index_coverage_pct": 33
+}

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the verified 0.6.1 tarball (false only validates)
+        description: Publish the verified 0.7.0 tarball (false only validates)
         type: boolean
         default: false
         required: true
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: npm-publish-0.6.1
+  group: npm-publish-0.7.0
   cancel-in-progress: false
 
 jobs:
@@ -25,8 +25,8 @@ jobs:
       contents: read
       id-token: write
     env:
-      TARBALL: luckychen1993-pm-mcp-0.6.1.tgz
-      EXPECTED_SHA256: c508b8b038351cfebe7ded6fa67ee888d673734fea0e94c43ec073a39265995f
+      TARBALL: luckychen1993-pm-mcp-0.7.0.tgz
+      EXPECTED_SHA256: c82c869fc5a678affffc402639f5b6dd47331906be09cfdb84389bbcfe57652c
     steps:
       - uses: actions/checkout@v5
         with:
@@ -48,7 +48,7 @@ jobs:
             | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const c=JSON.parse(s);console.log(JSON.stringify({repository:c.repository,repository_owner:c.repository_owner,workflow_ref:c.workflow_ref,job_workflow_ref:c.job_workflow_ref,ref:c.ref,environment:c.environment,aud:c.aud,event_name:c.event_name},null,2))})"
       - name: Download and verify the released artifact
         run: |
-          curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.6.1/$TARBALL"
+          curl --fail --location --output "$TARBALL" "https://github.com/happy520ai/pm-mcp/releases/download/v0.7.0/$TARBALL"
           echo "$EXPECTED_SHA256  $TARBALL" | sha256sum --check --strict
           npm publish "$TARBALL" --dry-run --ignore-scripts --access public --tag latest
       - name: Publish to npm using the configured trusted publisher

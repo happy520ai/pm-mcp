@@ -8,7 +8,18 @@
 
 > 核心理念：**把恶化从「无声发生」变成「显式记账」，把上下文从「模型记忆」搬到「仓库文件」。**
 
-当前源码与 npm 最新发布为 **0.6.1**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+当前源码与 npm 最新发布为 **0.7.0**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+
+## 0.7.0：自动编排闭环（目标锚定 → 派发 → 复核 → 收轮）与协议硬化
+
+- **编排账本与四个工具**：新增 `set_goal` / `set_orchestrator` / `record_round` / `get_orchestrator`（工具目录 54 → 58）。台账 `.pm/orchestrator.json` 记录最终目标、机器可判定的验收标准、手动开关（变更必须留理由）、并发上限、轮数与时长/token 预算、轮次与停滞/失败计数。**fail-closed**：台账缺失视为禁用，损坏时阻止写入且不覆盖原文件。
+- **轮次证据核验**：`record_round(begin)` 记录源码指纹与最新质量报告基线；`end` 声称 `produced_evidence` 时核验二者是否真变化，没变则**降级为无证据并计入停滞**——空转冒充产出会被当场抓住。
+- **成本上报是硬约束**：`end` 必须传 `tokens_used` 或显式 `tokens_unknown: true`，两者都省略直接报错；新增 `max_total_tokens` 上限，达到即判 `budget-exhausted`。
+- **运行指针**：`active_run_id` 配 `run_kind`（workflow / cli / manual），崩溃遗留轮次可据类型回查对应执行器真实状态后自愈。
+- **双桥派发（ADR-010）**：干活的会话优先用无头 CLI（`zcode -p … --cwd … --surface terminal`，全新上下文、用完即弃），不可用时回退 workflow 子代理；一轮一会话，新会话只读账本恢复状态，不继承对话历史。
+- **协议与偏离在状态里可见**：`get_orchestrator` 每次输出本轮协议与「未上报成本 / 证据被降级」累计计数，旧 prompt 也不会静默绕过。
+- **验收基线 1.2.0**：`mcp_tools` 断言 48 → 58，其余门槛不变；升版流程（draft → approve → package.json 指向 → 补 plan/first-failure 证据）写入 README。
+- **文档与测试**：客户端接入细节外移到 `docs/clients.md`（README 回到 500 行预算内）；watcher-leader 偶发失败按根因修复（改为按「当前持有者」计数，不再被瞬时竞态污染）；覆盖率门槛收紧到行 95 / 分支 85 / 函数 93。
 
 ## 0.6.1：git 依赖测试健壮性与失败报告诊断
 

@@ -1,0 +1,155 @@
+{
+  "schema_version": 2,
+  "run_at": "2026-10-28T06:25:48.248Z",
+  "ok": false,
+  "reported_ok": false,
+  "execute": true,
+  "evidence_level": "tests_observed",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.14.0"
+  },
+  "source": {
+    "before": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "338dabcb010bdf98fa225f649bf69a345103c9fb632b89e579da1b464af54bab",
+      "files": 149,
+      "bytes": 1489790
+    },
+    "after": {
+      "algorithm": "sha256-tree-v1",
+      "sha256": "338dabcb010bdf98fa225f649bf69a345103c9fb632b89e579da1b464af54bab",
+      "files": 149,
+      "bytes": 1489790
+    },
+    "stable": true
+  },
+  "results": [
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "test",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 81703,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 55432,
+        "stderr_bytes": 0,
+        "output_sha256": "ce210085be7d99ff1ba87a7b8a2d25da4d15cd953aeee853d91dd7a10e6a466d",
+        "tests": 386,
+        "passed": 386,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": null,
+        "counter_source": "node_test_summary",
+        "evidence_level": "tests_observed"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 7911,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 61,
+        "stderr_bytes": 0,
+        "output_sha256": "0c6a7ba6a001fea2786340f8d3a18cd9007628b73bcf3a12396f847221beb1c7",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "typecheck",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "signal": null,
+      "duration_ms": 13075,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 106,
+        "stderr_bytes": 0,
+        "output_sha256": "a172a7074de818c52d0d9580af21249a77b2fb40c1baa5de6459e02fd5c2fd3d",
+        "tests": null,
+        "passed": null,
+        "failed": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "coverage": null,
+        "counter_source": "unknown",
+        "evidence_level": "execution_only"
+      },
+      "error": ""
+    },
+    {
+      "unit_root": "D:\\DevTools\\pm-mcp",
+      "kind": "coverage",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "coverage"
+      ],
+      "status": "failed",
+      "exit_code": 1,
+      "signal": null,
+      "duration_ms": 104328,
+      "output_truncated": false,
+      "output_summary": {
+        "stdout_bytes": 63247,
+        "stderr_bytes": 0,
+        "output_sha256": "e0b5e3d56262986c65323fef4dd59c61e45c70fe45f0e932104d81e0a0920769",
+        "tests": 386,
+        "passed": 385,
+        "failed": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "coverage": {
+          "lines_pct": 96.2,
+          "branches_pct": 86.27,
+          "functions_pct": 93.8
+        },
+        "counter_source": "node_test_summary",
+        "evidence_level": "coverage_observed"
+      },
+      "output_excerpt": "✖ 20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接管 (4923.5098ms)\n✖ failing tests:\ntest at test\\watcher-leader.test.ts:79:1\n✖ 20 个 MCP 进程共享一个 watcher leader，leader 强杀后有界接管 (4923.5098ms)",
+      "error": ""
+    }
+  ]
+}
