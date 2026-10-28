@@ -6,7 +6,7 @@
     "Node.js>=22.18"
   ],
   "goals": [],
-  "phase": "0.8.0 发布准备：边界可靠性硬化与编排终止态（本地 gate 全绿后发布 npm）",
+  "phase": "0.8.0 已发布：边界可靠性硬化与编排终止态（npm latest 0.8.0，GitHub Release v0.8.0）",
   "modules": [
     "src",
     "test",
@@ -21,5 +21,5 @@
     "outputBudgetLines": 100
   },
   "created": "2026-09-01T16:30:56.142Z",
-  "updated": "2026-10-28T16:51:31.941Z"
+  "updated": "2026-10-28T17:15:17.752Z"
 }

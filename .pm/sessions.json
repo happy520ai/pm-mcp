@@ -1,5 +1,5 @@
 {
-  "seq": 99,
+  "seq": 100,
   "sessions": [
     {
       "id": "S-0001",
@@ -2278,6 +2278,15 @@
         "触发 Publish 工作流 publish=true",
         "核对 npm 0.8.0 与 dist-tags"
       ]
+    },
+    {
+      "id": "S-0100",
+      "date": "2026-10-28T17:15:17.763Z",
+      "author": "qoder",
+      "summary": "0.8.0 发布完成：npm latest=0.8.0，GitHub Release v0.8.0，publish 工作流校验 integrity 与本地 tarball 一致。",
+      "files": [],
+      "file_hashes": {},
+      "next_steps": []
     }
   ]
 }

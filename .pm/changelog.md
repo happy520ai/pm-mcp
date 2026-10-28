@@ -2,6 +2,10 @@
 
 ## 2026-10-28 — qoder
 
+0.8.0 发布完成：npm latest=0.8.0，GitHub Release v0.8.0，publish 工作流校验 integrity 与本地 tarball 一致。
+
+## 2026-10-28 — qoder
+
 发布工作流切换到 0.8.0：GitHub Release tarball、实测 SHA256 校验值与发布版本号同步。
 
 改动文件（1）: .github/workflows/publish-npm.yml

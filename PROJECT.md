@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-28T17:02:38.645Z
+> 生成时间: 2026-10-28T17:15:17.805Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -31,7 +31,7 @@ flowchart LR
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
-- 当前阶段: 0.8.0 发布准备：边界可靠性硬化与编排终止态（本地 gate 全绿后发布 npm）
+- 当前阶段: 0.8.0 已发布：边界可靠性硬化与编排终止态（npm latest 0.8.0，GitHub Release v0.8.0）
 
 ## 🩺 健康摘要
 | 账本 | 状态 |
@@ -128,6 +128,7 @@ flowchart LR
 - [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 
 ## 📜 最近会话
+- 2026-10-28 [qoder] 0.8.0 发布完成：npm latest=0.8.0，GitHub Release v0.8.0，publish 工作流校验 integrity 与本地 tarball 一致。
 - 2026-10-28 [qoder] 发布工作流切换到 0.8.0：GitHub Release tarball、实测 SHA256 校验值与发布版本号同步。
   - 改动: .github/workflows/publish-npm.yml
 - 2026-10-28 [qoder] 准备 0.8.0 发布：版本与 lockfile 升级、README 发布说明、验收基线 1.4.0（产品版本同步，阈值保持 59）。
@@ -136,8 +137,6 @@ flowchart LR
   - 改动: src/dashboard.ts
 - 2026-10-28 [qoder] T-012 Web UI 仪表盘：本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。
   - 改动: src/ui.ts, test/ui.test.ts
-- 2026-10-28 [qoder] 边界可靠性硬化：工作区歧义 fail-closed、核心账本完整性、幂等缓存 GC、轮次一次性结算与目标完成态、质量报告内容校验、update_task 回滚、UI/CI 增强；验收基线升至 1.3.0
-  - 改动: .github/workflows/ci.yml, README.md, package.json, src/audit.ts, src/caller-workspace.ts, src/idempotency.ts, src/init.ts, src/orchestrator-tools.ts 等 22 个
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT
