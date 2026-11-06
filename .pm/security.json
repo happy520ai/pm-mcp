@@ -10,7 +10,7 @@
       "status": "accepted",
       "note": "扫描器源码中内置规则的正则样例文本（有意为之），非真实危险调用",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-10-28T16:57:41.116Z"
+      "last_seen": "2026-11-06T05:39:33.594Z"
     },
     {
       "id": "SEC-002",
@@ -22,7 +22,7 @@
       "status": "accepted",
       "note": "扫描器源码中内置规则的正则样例文本（有意为之），非真实危险调用",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-10-28T16:57:41.116Z"
+      "last_seen": "2026-11-06T05:39:33.594Z"
     },
     {
       "id": "SEC-003",
@@ -70,7 +70,7 @@
       "status": "accepted",
       "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-10-28T16:57:41.116Z"
+      "last_seen": "2026-11-06T05:39:33.594Z"
     },
     {
       "id": "SEC-007",
@@ -82,7 +82,7 @@
       "status": "accepted",
       "note": "测试 fixture 中的伪造样本值（AWS 官方文档示例值/虚构 key），用于验证扫描器检出能力，非真实凭据",
       "first_seen": "2026-09-01T16:30:57.107Z",
-      "last_seen": "2026-10-28T16:57:41.116Z"
+      "last_seen": "2026-11-06T05:39:33.594Z"
     },
     {
       "id": "SEC-008",
@@ -202,8 +202,104 @@
       "status": "accepted",
       "note": "测试用例中的固定占位 token 仅用于验证 public search 的显式鉴权参数传递，不是真实凭据；不进入生产代码。",
       "first_seen": "2026-09-19T07:32:18.619Z",
-      "last_seen": "2026-10-28T16:57:41.116Z"
+      "last_seen": "2026-11-06T05:39:33.594Z"
+    },
+    {
+      "id": "SEC-018",
+      "rule": "secret.aws-access-key",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 25,
+      "fingerprint": "fc9970bc8c9bcabd",
+      "status": "fixed",
+      "note": "疑似 AWS Access Key（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-019",
+      "rule": "secret.github-token",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 26,
+      "fingerprint": "7afa4d2e22e6e903",
+      "status": "fixed",
+      "note": "疑似 GitHub Token（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-020",
+      "rule": "secret.openai-key",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 27,
+      "fingerprint": "792bf760ff719854",
+      "status": "fixed",
+      "note": "疑似 OpenAI/兼容平台 API Key（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-021",
+      "rule": "secret.google-api",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 28,
+      "fingerprint": "5d240b1ff807b3c6",
+      "status": "fixed",
+      "note": "疑似 Google API Key（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-022",
+      "rule": "secret.slack-token",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 29,
+      "fingerprint": "3e31f8bedc063459",
+      "status": "fixed",
+      "note": "疑似 Slack Token（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-023",
+      "rule": "secret.private-key",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 30,
+      "fingerprint": "dd1bfd6c93987da1",
+      "status": "fixed",
+      "note": "内联私钥（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-024",
+      "rule": "secret.openai-key",
+      "severity": "high",
+      "file": "test/sync.test.ts",
+      "line": 76,
+      "fingerprint": "0ea48cbd200381f6",
+      "status": "fixed",
+      "note": "疑似 OpenAI/兼容平台 API Key（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:07:41.207Z",
+      "last_seen": "2026-11-06T05:07:41.207Z"
+    },
+    {
+      "id": "SEC-025",
+      "rule": "secret.slack-token",
+      "severity": "high",
+      "file": "test/sync-leak.test.ts",
+      "line": 28,
+      "fingerprint": "0e2acef27b5deaef",
+      "status": "fixed",
+      "note": "疑似 Slack Token（自动：最近一次扫描未再检出）",
+      "first_seen": "2026-11-06T05:08:51.523Z",
+      "last_seen": "2026-11-06T05:08:51.523Z"
     }
   ],
-  "last_scan": "2026-10-28T16:57:41.116Z"
+  "last_scan": "2026-11-06T05:39:33.594Z"
 }

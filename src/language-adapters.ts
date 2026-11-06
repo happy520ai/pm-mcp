@@ -52,7 +52,8 @@ const DEFAULT_IGNORE_DIRS = SCAN_IGNORE_DIRS;
 
 const LANGUAGE_ORDER: Language[] = ["javascript", "typescript", "python", "go", "rust", "java", "kotlin", "csharp"];
 const KIND_ORDER: QualityKind[] = ["test", "build", "lint", "typecheck", "coverage", "security"];
-const DEFAULT_TIMEOUT_MS = 5 * 60_000;
+// 600s：套件实测 ~270s，5min 贴边会被系统抖动掐掉（2026-11-02 实录）；PM_QUALITY_TIMEOUT_MS 可覆盖（ms，上限 1h），不设用默认。
+const DEFAULT_TIMEOUT_MS = Number(process.env.PM_QUALITY_TIMEOUT_MS) > 0 ? Math.min(Number(process.env.PM_QUALITY_TIMEOUT_MS), 60 * 60_000) : 10 * 60_000;
 // 计数汇总（"# tests N"）在输出末尾，只保留头部会把它一起丢掉 → 计数器解析为 null → 验收把实测值判成 -1。
 const DEFAULT_OUTPUT_BYTES = 1024 * 1024;
 

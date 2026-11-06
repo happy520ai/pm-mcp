@@ -1,5 +1,5 @@
 {
-  "seq": 31,
+  "seq": 33,
   "entries": [
     {
       "id": "D-0001",
@@ -479,6 +479,33 @@
         "test/orchestrator.test.ts"
       ],
       "task_id": null
+    },
+    {
+      "id": "D-0032",
+      "date": "2026-11-06T00:17:48.460Z",
+      "author": "",
+      "symptom": "测试后真实项目根出现 6 个 pm-sync-remote-* 目录；headOf(远端) 返回 null。",
+      "root_cause": "fs.mkdtempSync 用相对模板时在进程 cwd（真实项目根）建目录；且远端路径经 path.dirname 变成相对路径，--git-dir 从非仓库 cwd 解析失败返回 null。",
+      "fix": "模板改为绝对路径 path.join(os.tmpdir(), \"pm-sync-remote-\")，远端目录恒定绝对路径；并清理了污染目录。",
+      "verified_how": "测试修复后 9/9 全绿，git status 无污染目录。",
+      "files": [
+        "test/sync.test.ts"
+      ],
+      "task_id": "T-087"
+    },
+    {
+      "id": "D-0033",
+      "date": "2026-11-06T05:09:36.937Z",
+      "author": "",
+      "symptom": "npm run gate 报「公网项目中危及以上未处理 7 个（高危 7）」，全部指向 test/sync-leak.test.ts 与 test/sync.test.ts 的夹具行。",
+      "root_cause": "同步泄露回归测试把伪造密钥字面量直接写在仓库测试文件里；本仓审计扫 test/ 目录，把夹具当真实泄露（SEC-018~025，项目 exposure=public 故标高危硬红旗）。",
+      "fix": "测试夹具字面量改为运行时拼接（[\"AKIA\",\"...\"].join(\"\")）：源码里无连续命中，运行时写出的临时文件仍连续，sync 门禁照常检出，审计不误报。",
+      "verified_how": "重跑 npm run audit --root . 高危归零（自动关闭），泄露回归 5/5 仍全绿（运行时文件连续命中被门禁阻断）。",
+      "files": [
+        "test/sync-leak.test.ts",
+        "test/sync.test.ts"
+      ],
+      "task_id": "T-088"
     }
   ]
 }

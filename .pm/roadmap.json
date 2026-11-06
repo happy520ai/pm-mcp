@@ -1,5 +1,5 @@
 {
-  "seq": 5,
+  "seq": 6,
   "milestones": [
     {
       "id": "M1",
@@ -45,6 +45,15 @@
       "order": 5,
       "created": "2026-10-27T05:20:12.846Z",
       "updated": "2026-10-28T16:22:27.930Z"
+    },
+    {
+      "id": "M6",
+      "title": "M6 同步：带安全门的 git push（开源友好简化版）",
+      "goal": "同步能力 = 带安全门的 git push（ADR-013，取代 ADR-011/012 的实现范围）：pm-mcp sync（status/push），推送前变更列表 + 密钥扫描阻断 + y/N 确认，非 TTY 拒绝；零配置用已有 git remote；MCP 工具不暴露 push。",
+      "status": "done",
+      "order": 6,
+      "created": "2026-11-05T16:43:00.968Z",
+      "updated": "2026-11-06T05:43:20.489Z"
     }
   ]
 }

@@ -94,7 +94,7 @@ function fingerprint(ruleId: string, rel: string, matched: string): string {
   return createHash("sha1").update(ruleId + "|" + rel + "|" + matched).digest("hex").slice(0, 16);
 }
 
-interface Detection {
+export interface Detection {
   rule: string;
   severity: Severity;
   file: string;
@@ -225,6 +225,32 @@ export function prepareSecurityAudit(
   const forceContent = options.forceContent ?? true;
   if (forceIndex) walkRefresh(root, { forceContent: true });
   return scanDetections(root, forceContent, forceIndex || options.indexPrepared === true);
+}
+
+/** sync 推送门禁复用：只对给定文件流式跑密钥规则，返回脱敏检测；不更新台账。 */
+export function scanSecretsInFiles(root: string, files: string[]): Detection[] {
+  const out: Detection[] = [];
+  for (const rel of files) {
+    const content = readText(root, rel, true);
+    if (content === null) continue;
+    const lines = content.split("\n");
+    for (const rule of SECRET_PATTERNS) {
+      if (rule.glob && !rule.glob.test(rel)) continue;
+      for (let i = 0; i < lines.length; i++) {
+        const match = findRelevantMatch(rule, lines[i]);
+        if (!match) continue;
+        out.push({
+          rule: rule.id,
+          severity: rule.severity,
+          file: rel,
+          line: i + 1,
+          fingerprint: fingerprint(rule.id, rel, match[0]),
+          message: rule.message,
+        });
+      }
+    }
+  }
+  return out;
 }
 
 /** 扫描并更新台账（幂等：重复扫描不产生重复条目） */

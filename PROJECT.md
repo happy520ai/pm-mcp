@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-10-28T17:15:17.805Z
+> 生成时间: 2026-11-06T05:43:29.732Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -13,10 +13,12 @@ flowchart LR
   M3["M3 v3 体验增强（本地只读 Web UI 已交付）"]:::done
   M4["M4 M4 目标锚定与编排开关（被动驱动的持久账本）"]:::done
   M5["M5 M5 编排闭环文档化"]:::done
+  M6["M6 M6 同步：带安全门的 git push（开源友好简化版）"]:::done
   M1 --> M2
   M2 --> M3
   M3 --> M4
   M4 --> M5
+  M5 --> M6
   classDef done fill:#9ca3af,stroke:#6b7280
   classDef active fill:#86efac,stroke:#16a34a
   classDef planned fill:#e5e7eb,stroke:#9ca3af
@@ -28,6 +30,7 @@ flowchart LR
 ✅ [██████████] 100% M3 v3 体验增强（本地只读 Web UI 已交付）（1/1）
 ✅ [██████████] 100% M4 M4 目标锚定与编排开关（被动驱动的持久账本）（5/5）
 ✅ [██████████] 100% M5 M5 编排闭环文档化（4/4）
+✅ [██████████] 100% M6 M6 同步：带安全门的 git push（开源友好简化版）（2/2）
 
 ## 🎯 当前焦点
 - （无进行中任务。从 backlog 挑一个开始，或 add_task 创建。）
@@ -38,13 +41,13 @@ flowchart LR
 |---|---|
 | 漂移（防幻觉） | ✅ 无 |
 | 债务（反挤出） | ✅ 无未清债务 |
-| churn（变更率） | ⚠️ 热点 README.md(48), package.json(28), PROJECT.md(18) |
+| churn（变更率） | ⚠️ 热点 README.md(50), package.json(28), .pm/tasks.json(19) |
 | 安全 | ✅ 无未处理发现 |
-| 调试知识 | 31 条记录 |
-| 测试背书 | 41/41 个功能带测试 |
+| 调试知识 | 33 条记录 |
+| 测试背书 | 42/42 个功能带测试 |
 | 语义治理 | 1 模块 / 1 接口 / 1 仓库 |
-| 质量矩阵 | ✅ 2026-10-28 17:00（命令 4/4；证据 tests_observed） |
-| 标准化验收 | ✅ 2026-10-28 17:00（需求 33/33，errors 0） |
+| 质量矩阵 | ✅ 2026-11-06 05:43（命令 4/4；证据 tests_observed） |
+| 标准化验收 | 🚩 2026-11-06 05:36（需求 32/33，errors 8） |
 | 自动编排 | ✅ completed（目标已完成并验收（2026-10-28T16:34:36.417Z）：npm run gate 全绿（audit 无红旗；quality PASS；acceptance 1.3.0 PASS errors=0）；排期任务已全部收口。）· 并发 8 · 轮次 4/40 |
 
 ## 🧭 模块与语言治理
@@ -53,7 +56,7 @@ flowchart LR
 - 实时语义结果：pm://architecture / audit_governance；跨仓：pm://portfolio。
 
 ## 📋 任务
-- 总览: done 78
+- 总览: done 80 · cancelled 8
 
 ## 🧩 功能清单
 ### src
@@ -119,24 +122,27 @@ flowchart LR
 - ✅ F-040 任务与会话写入回滚 — update_task 会话写入失败时回滚任务，NoSideEffectError 允许同键重试。
 ### ui
 - ✅ F-041 UI 证据汇总与任务断点展示 — 本地 UI 汇总全部质量命令、源码匹配状态、任务断点与陈旧标记。
+### sync
+- ✅ F-042 sync-gated-push — pm-mcp sync（status/push）：推送前三步安全门——变更列表、密钥扫描（高危阻断，security.ts scanSecretsInFiles
 
 ## 🏛️ 架构决策（最近）
+- [ADR-013-ADR-013-同步简化为带安全门的-git-push](.pm/decisions/ADR-013-ADR-013-同步简化为带安全门的-git-push.md)
+- [ADR-012-ADR-012-同步收敛为加密备份：分级、白名单、age-加密、必做恢复演练](.pm/decisions/ADR-012-ADR-012-同步收敛为加密备份：分级、白名单、age-加密、必做恢复演练.md)
+- [ADR-011-ADR-011-可选出站同步：用户逐次确认，默认关闭](.pm/decisions/ADR-011-ADR-011-可选出站同步：用户逐次确认，默认关闭.md)
 - [ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话](.pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md)
 - [ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）](.pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md)
-- [ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令](.pm/decisions/ADR-008-ADR-008-编排分工定位：控制流外置，pm-mcp-只记账与发指令.md)
-- [ADR-007-输出行数预算显式设为-100（默认-150）](.pm/decisions/ADR-007-输出行数预算显式设为-100（默认-150）.md)
-- [ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-](.pm/decisions/ADR-006-Qoder-项目根改为按请求认领：常驻子进程被所有窗口共用，ppid-与启动期-.md)
 
 ## 📜 最近会话
-- 2026-10-28 [qoder] 0.8.0 发布完成：npm latest=0.8.0，GitHub Release v0.8.0，publish 工作流校验 integrity 与本地 tarball 一致。
-- 2026-10-28 [qoder] 发布工作流切换到 0.8.0：GitHub Release tarball、实测 SHA256 校验值与发布版本号同步。
-  - 改动: .github/workflows/publish-npm.yml
-- 2026-10-28 [qoder] 准备 0.8.0 发布：版本与 lockfile 升级、README 发布说明、验收基线 1.4.0（产品版本同步，阈值保持 59）。
-  - 改动: README.md, package.json, package-lock.json
-- 2026-10-28 [qoder] 修正仪表盘对 completed 编排状态的展示：完成态显示 ✅ 而不是误标红旗；已刷新 PROJECT.md。
-  - 改动: src/dashboard.ts
-- 2026-10-28 [qoder] T-012 Web UI 仪表盘：本地只读 Web UI 已实现：概览/里程碑/任务断点/质量门禁/会话，仅绑定 127.0.0.1、CSP 禁脚本、纯 GET；含 XSS 转义与 API 测试。
-  - 改动: src/ui.ts, test/ui.test.ts
+- 2026-11-06 [zcode] M6 收口：T-088 完成（README sync 章节 + 泄露回归 5/5 + gate 全绿）+ M6 置 done（2/2）。过程中修复三道 gate 红旗：测试夹具字面量被本仓扫描器误报为真实密钥（运行时拼接，D-0033）、coverage 偶发失败（重跑 415/415 全过）、language-adapters.ts 超 500 行预算（超时块压缩至 499 行，行为不变）。最终 gate：audit 无红旗 + quality PASS + acceptance errors=0。节点审计完成：snapshot 160 文件、structure 无漂移无债务、security 0 未处理、license 全绿。
+  - 改动: README.md, test/sync-leak.test.ts, test/sync.test.ts, src/language-adapters.ts
+- 2026-11-06 [zcode] language-adapters.ts 超时块压缩至 499 行（500 行预算内，行为不变：PM_QUALITY_TIMEOUT_MS 环境变量可覆盖 + 600s 默认），修复 gate 的 maintainability 超预算红旗（over_500 检出 504 行）。此文件整体为上一会话遗留的超时修复 + 本会话行数压缩。
+  - 改动: src/language-adapters.ts
+- 2026-11-06 [zcode] T-088 完成（M6 收口）：README 新增「同步：带安全门的 git push」章节（三步安全门、行为边界诚实声明）并更新能力边界；新增 test/sync-leak.test.ts 端到端泄露回归（每条高危密钥规则逐个阻断、.env 类阻断、非交互拒绝、正常文件不误伤）；修复测试夹具字面量被本仓扫描器误报为真实密钥的问题（运行时拼接，D-0033）。src/language-adapters.ts 为上一会话遗留的未提交超时修复（PM_QUALITY_TIMEOUT_MS 环境变量覆盖），非本会话改动，随本清单携带登记。
+  - 改动: src/sync.ts, src/sync-types.ts, src/cli.ts, src/security.ts, test/sync.test.ts, test/sync-leak.test.ts, README.md, src/language-adapters.ts
+- 2026-11-06 [zcode] T-087 完成（M6 同步命令）：新增 src/sync.ts（.pm/sync.json 三字段 fail closed 配置、syncStatus、runSyncPush 三步安全门：变更列表+未推送提交差异→密钥扫描高危阻断→人工 confirm 缺省即拒）与 src/sync-types.ts；security.ts 导出 Detection 并新增 scanSecretsInFiles；cli.ts 挂 sync 子命令。test/sync.test.ts 9 用例（默认关闭/非法配置/密钥阻断/.env阻断/非TTY拒绝/用户拒绝/裸仓推送/只读status/配置回环）全绿；npm test 410/410；typecheck 干净；quality PASS（20261106 报告）。修复测试相对 mkdtemp 污染真实仓库根的 bug（D-0032）。
+  - 改动: src/sync.ts, src/sync-types.ts, src/cli.ts, src/security.ts, test/sync.test.ts
+- 2026-11-05 [zcode] M6 同步方案按 ADR-013 简化为「带安全门的 git push」（开源友好）：取消 tier/白名单黑名单/age 加密/离线批准/restore/watcher 触发/sync-daemon（T-079~T-086 全部取消并留 cancel 备注），新建 T-087（sync 命令）与 T-088（文档与泄露回归），M6 改名并更新目标。ADR-011/012 历史保留。
+  - 改动: .pm/decisions/ADR-013-ADR-013-同步简化为带安全门的-git-push.md, .pm/milestones.json, .pm/tasks.json
 
 ---
 stack: TypeScript, Node.js>=22.18 · modules: src, test, scripts · exposure: public · license: MIT

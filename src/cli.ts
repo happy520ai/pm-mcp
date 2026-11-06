@@ -62,6 +62,15 @@ if (process.argv[2] === "setup") {
     console.error(`[pm-mcp launch] ERROR: ${(error as Error).message}`);
     process.exitCode = 1;
   }
+} else if (process.argv[2] === "sync") {
+  try {
+    const { runSyncCli } = await import("./sync.ts");
+    if (process.argv.includes("--help") || process.argv.includes("-h")) console.log("pm-mcp sync [status|push]  带安全门的 git push（密钥扫描高危阻断 + 人工确认）");
+    else process.exitCode = await runSyncCli(process.argv.slice(3), process.cwd());
+  } catch (error) {
+    console.error(`[pm-mcp sync] ERROR: ${(error as Error).message}`);
+    process.exitCode = 1;
+  }
 } else {
   await import("./index.ts");
 }

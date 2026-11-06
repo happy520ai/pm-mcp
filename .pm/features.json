@@ -1,5 +1,5 @@
 {
-  "seq": 41,
+  "seq": 42,
   "features": [
     {
       "id": "F-001",
@@ -722,6 +722,24 @@
       "status": "implemented",
       "created": "2026-10-28T16:35:22.262Z",
       "updated": "2026-10-28T16:35:22.262Z"
+    },
+    {
+      "id": "F-042",
+      "name": "sync-gated-push",
+      "description": "pm-mcp sync（status/push）：推送前三步安全门——变更列表、密钥扫描（高危阻断，security.ts scanSecretsInFiles）、人工 y/N 确认（confirm 回调缺省即拒绝，非 TTY 结构防线）；配置 .pm/sync.json 三字段默认关闭 fail closed。ADR-013。",
+      "module": "sync",
+      "entry_files": [
+        "src/sync.ts",
+        "src/sync-types.ts",
+        "src/cli.ts",
+        "src/security.ts"
+      ],
+      "test_files": [
+        "test/sync.test.ts"
+      ],
+      "status": "implemented",
+      "created": "2026-11-06T00:17:55.181Z",
+      "updated": "2026-11-06T00:17:55.181Z"
     }
   ]
 }
