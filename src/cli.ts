@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import path from "node:path";
 
 if (process.argv[2] === "setup") {
   try {
@@ -69,6 +70,33 @@ if (process.argv[2] === "setup") {
     else process.exitCode = await runSyncCli(process.argv.slice(3), process.cwd());
   } catch (error) {
     console.error(`[pm-mcp sync] ERROR: ${(error as Error).message}`);
+    process.exitCode = 1;
+  }
+} else if (process.argv[2] === "sync-agents") {
+  try {
+    const { syncAgentsMd } = await import("./agents-md.ts");
+    const { isInitialized } = await import("./paths.ts");
+    const args = process.argv.slice(3);
+    if (args.includes("--help") || args.includes("-h")) {
+      console.log("pm-mcp sync-agents [--root <项目>] [--dry-run]");
+    } else {
+      const value = (flag: string): string | undefined => {
+        const index = args.indexOf(flag);
+        return index >= 0 ? args[index + 1] : undefined;
+      };
+      const root = value("--root") ?? process.cwd();
+      if (!isInitialized(root)) throw new Error(`项目未初始化（${root} 下没有 .pm/project.json）。请先 init_project。`);
+      const dryRun = args.includes("--dry-run");
+      const sync = syncAgentsMd(root, { dryRun });
+      const added = sync.added.length > 0 ? sync.added.join(", ") : "无";
+      const present = sync.present.length > 0 ? sync.present.join(", ") : "无";
+      if (sync.result === "unchanged") console.log("✅ AGENTS.md 已是最新，无需变更");
+      else if (sync.result === "created") console.log(`${dryRun ? "🔎 预览（未写盘）" : "✅ 已创建"} AGENTS.md：写入 [${added}]`);
+      else console.log(`${dryRun ? "🔎 预览（未写盘）" : "✅ 已同步"} AGENTS.md：追加 [${added}]；已存在 [${present}]`);
+      console.log(`文件: ${path.join(root, "AGENTS.md")}`);
+    }
+  } catch (error) {
+    console.error(`[pm-mcp sync-agents] ERROR: ${(error as Error).message}`);
     process.exitCode = 1;
   }
 } else {
