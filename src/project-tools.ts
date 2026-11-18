@@ -36,7 +36,7 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
   toolW<{ name: string; description?: string; stack?: string[]; goals?: string[]; license?: string; exposure?: "local" | "network" | "public"; modules?: string[]; agents_md?: boolean }>(
     server, startupRoot,
     "init_project",
-    "初始化当前项目的 .pm/ 状态目录（单一事实来源），并自动写入 AGENTS.md 工作规矩（已存在则增量合并，不覆盖你的内容）。每个新项目只调用一次；已初始化请用 update_project。",
+    "初始化当前项目的 .pm/ 状态目录（单一事实来源），并自动写入 AGENTS.md 工作规矩（流程 + 判断两段；已存在则增量合并，不覆盖你的内容）。每个新项目只调用一次；已初始化请用 update_project。",
     {
       name: z.string().min(1).describe("项目名"),
       description: z.string().optional().describe("一句话描述"),
@@ -45,7 +45,7 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
       license: z.string().optional().describe("项目许可证（SPDX 名，如 MIT）"),
       exposure: z.enum(["local", "network", "public"]).optional().describe("暴露面，影响安全告警力度"),
       modules: z.array(z.string()).optional().describe("初始模块登记"),
-      agents_md: z.boolean().optional().describe("默认 true：自动写入/合并 AGENTS.md 工作规矩（false 关闭）"),
+      agents_md: z.boolean().optional().describe("默认 true：自动写入/合并 AGENTS.md 工作规矩（流程 + 判断两段；false 关闭）"),
     },
     (args, ctx) => {
       const root = ctx.root;
@@ -55,7 +55,7 @@ export function registerProjectTools(server: McpServer, startupRoot: string): vo
         `✅ 项目已初始化: ${project.name}`,
         `状态目录: ${pmPath(root, "")}（随 git 提交，团队/AI 共享）`,
         "仪表盘已生成: PROJECT.md",
-        args.agents_md === false ? "AGENTS.md 规矩：按要求跳过（agents_md:false）" : "AGENTS.md 工作规矩已写入（已存在则合并；ZCode 每次打开该项目自动加载）",
+        args.agents_md === false ? "AGENTS.md 规矩：按要求跳过（agents_md:false）" : "AGENTS.md 工作规矩（流程 + 判断）已写入（已存在则合并；ZCode 每次打开该项目自动加载）",
         "建议顺序: upsert_module 声明模块/owner/语言 → add_milestone 建里程碑 → add_task 拆任务 → 开工前 get_status / 收工后 log_session。",
       ].join("\n");
     },

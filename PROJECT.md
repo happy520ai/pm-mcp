@@ -1,7 +1,7 @@
 # pm-mcp — 项目仪表盘
 
 > ⚠️ 本文件由 pm-mcp 自动生成（勿手改）。状态账本写入后自动刷新；手动刷新用 regenerate_dashboard。
-> 生成时间: 2026-11-06T05:43:29.732Z
+> 生成时间: 2026-11-17T07:13:22.867Z
 > AI 编码项目的单一事实来源 + 健康台账 MCP 服务
 
 ## 🗺️ 路线图
@@ -126,11 +126,11 @@ flowchart LR
 - ✅ F-042 sync-gated-push — pm-mcp sync（status/push）：推送前三步安全门——变更列表、密钥扫描（高危阻断，security.ts scanSecretsInFiles
 
 ## 🏛️ 架构决策（最近）
+- [ADR-014-工作协议分层：流程归工具，判断归-AGENTS.md-与-prompt](.pm/decisions/ADR-014-工作协议分层：流程归工具，判断归-AGENTS.md-与-prompt.md)
 - [ADR-013-ADR-013-同步简化为带安全门的-git-push](.pm/decisions/ADR-013-ADR-013-同步简化为带安全门的-git-push.md)
 - [ADR-012-ADR-012-同步收敛为加密备份：分级、白名单、age-加密、必做恢复演练](.pm/decisions/ADR-012-ADR-012-同步收敛为加密备份：分级、白名单、age-加密、必做恢复演练.md)
 - [ADR-011-ADR-011-可选出站同步：用户逐次确认，默认关闭](.pm/decisions/ADR-011-ADR-011-可选出站同步：用户逐次确认，默认关闭.md)
 - [ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话](.pm/decisions/ADR-010-ADR-010-双桥派发：CLI-会话优先，子代理回退，一轮一会话.md)
-- [ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）](.pm/decisions/ADR-009-编排闭环五段分工与-active_run_id-自愈指针（ADR-009）.md)
 
 ## 📜 最近会话
 - 2026-11-06 [zcode] M6 收口：T-088 完成（README sync 章节 + 泄露回归 5/5 + gate 全绿）+ M6 置 done（2/2）。过程中修复三道 gate 红旗：测试夹具字面量被本仓扫描器误报为真实密钥（运行时拼接，D-0033）、coverage 偶发失败（重跑 415/415 全过）、language-adapters.ts 超 500 行预算（超时块压缩至 499 行，行为不变）。最终 gate：audit 无红旗 + quality PASS + acceptance errors=0。节点审计完成：snapshot 160 文件、structure 无漂移无债务、security 0 未处理、license 全绿。

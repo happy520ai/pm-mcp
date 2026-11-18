@@ -219,11 +219,15 @@ test("全链路：工具清单、初始化、任务闭环、断点、审计、�
 
   // 提示词
   const prompts = await client.listPrompts();
-  assert.equal(prompts.prompts.length, 5);
+  assert.equal(prompts.prompts.length, 6);
   assert.ok(prompts.prompts.some((p) => p.name === "start-session"));
+  assert.ok(prompts.prompts.some((p) => p.name === "work-protocol"));
   assert.ok(prompts.prompts.some((p) => p.name === "acceptance-review"));
   const p = await client.getPrompt({ name: "start-session" });
   assert.ok((p.messages[0].content as { text: string }).text.includes("get_status"));
+  const wp = await client.getPrompt({ name: "work-protocol" });
+  const wpText = (wp.messages[0].content as { text: string }).text;
+  assert.ok(wpText.includes("快修") && wpText.includes("pre-mortem") && wpText.includes("run_quality_matrix"), wpText);
 
   // 全局注册表（沙箱内）
   const reg = await client.callTool({ name: "list_projects", arguments: {} });

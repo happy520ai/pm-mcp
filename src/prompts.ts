@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Prompts: 工作流提示注册（开工/收工仪式、入职简报、架构评审、标准化终验）。 */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { renderWorkProtocolPrompt } from "./work-protocol.ts";
 
 export function registerPrompts(server: McpServer): void {
   server.registerPrompt(
@@ -19,6 +20,22 @@ export function registerPrompts(server: McpServer): void {
               "3. 陈述本次计划：要做哪个任务、动哪些文件、验收标准是什么。",
               "4. 过程纪律：走捷径就 add_task(type=debt) 登记债务；修 bug 完成后 log_debug 记根因；长任务随手 checkpoint。",
             ].join("\n"),
+          },
+        },
+      ],
+    }),
+  );
+
+  server.registerPrompt(
+    "work-protocol",
+    { description: "pm-mcp 工作协议：先判档（快修/深挖/复盘），再按判断规则执行；工具能验证的部分以工具结果为准。" },
+    () => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: renderWorkProtocolPrompt(),
           },
         },
       ],
