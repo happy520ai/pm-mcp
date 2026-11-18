@@ -8,7 +8,13 @@
 
 > 核心理念：**把恶化从「无声发生」变成「显式记账」，把上下文从「模型记忆」搬到「仓库文件」。**
 
-当前源码与 npm 最新发布为 **0.8.0**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+当前源码与 npm 最新发布为 **0.9.0**。公共安装示例使用 `@latest`；`setup --local` 可绑定已构建的本地入口。
+
+## 0.9.0：带安全门的同步与工作协议两段式
+
+- **同步命令（ADR-013）**：新增 `pm-mcp sync`，把 `git push` 包一层安全门，默认关闭。`sync status` 只读查看配置、远端与待推送变更；`sync push` 走「变更列表 → 密钥扫描（高危阻断）→ 人工确认 y/N」三步，非交互环境结构性拒绝；MCP 工具侧不暴露 push 能力。
+- **工作协议两段式（ADR-014）**：AGENTS.md 自动写入 `process`（工具能强制的流程）+ `judgment`（工具验证不了的判断）两段；新增 `work-protocol` MCP prompt，按需加载分诊（快修/深挖/复盘）与 7 条判断规则；新增 `pm-mcp sync-agents` CLI，存量项目幂等补齐判断段（CRLF 安全、不覆盖用户内容）。
+- **验收基线 1.5.0**：产品版本同步到 0.9.0，`mcp_tools` 保持 59，其余门槛不变；升版流程与证据见 `.pm/acceptance/evidence/pm-mcp-local-release-1.5.0-*.md`。
 
 ## 0.8.0：边界可靠性硬化与编排终止态
 
@@ -105,7 +111,7 @@ AI 编码项目的典型失控（本工具逐一给出机制）：
 
 ## 一个命令自动添加到 AI 编程助手
 
-本页安装示例使用 npm 上最新的**已发布**版本（当前为 **0.8.0**）。仓库源码与发布版本同步；需要本地验证时可用 `setup --local` 从源码构建后接入。
+本页安装示例使用 npm 上最新的**已发布**版本（当前为 **0.9.0**）。仓库源码与发布版本同步；需要本地验证时可用 `setup --local` 从源码构建后接入。
 
 要求：Node.js ≥ 22.18。Windows、macOS 和 Linux 使用同一条命令：
 
@@ -126,7 +132,7 @@ npx -y @luckychen1993/pm-mcp@latest setup --dry-run
 Codex 桌面版启动 MCP 服务时不带工作区路径，逐项目钉根才能用。在项目目录里跑一条命令，自动完成「注册钉定条目 + 初始化 .pm + 写 AGENTS.md 工作规矩」：
 
 ```bash
-npx -y @luckychen1993/pm-mcp@0.8.0 setup --client codex --project
+npx -y @luckychen1993/pm-mcp@0.9.0 setup --client codex --project
 ```
 
 跑完完全重启 Codex，新会话即可用（工具名前缀 `pm-mcp-<目录名>-<路径摘要>`）。不同中文目录和同名目录独立注册；重复执行会核对项目路径，匹配的旧版条目仍可复用。
